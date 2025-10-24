@@ -48,7 +48,7 @@ pub const Lexer = struct {
             _ = self.advance();
         }
 
-        while (!self.isAtEndOffset(1) and self.peek() == '.' and std.ascii.isDigit(self.peekNext())) {
+        if (!self.isAtEndOffset(1) and self.peek() == '.' and std.ascii.isDigit(self.peekNext())) {
             _ = self.advance();
 
             while (!self.isAtEnd() and std.ascii.isDigit(self.peek())) {
