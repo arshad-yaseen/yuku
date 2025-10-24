@@ -26,8 +26,108 @@ pub const Lexer = struct {
             '+' => self.scanPlus(),
             '.' => self.scanDot(),
             '0'...'9' => self.scanNumber(),
+            '"', '\'' => self.scanString(),
+            '/' => self.scanSlashOrRegex(),
             else => self.consumeSingleCharToken(TokenType.Invalid),
         };
+    }
+
+    fn scanString(self: *Lexer) Token {
+        const start = self.position;
+        const quote = self.currentChar();
+        self.advanceBy(1);
+
+        while (!self.isAtEnd()) {
+            const c = self.currentChar();
+
+            if (c == quote) {
+                self.advanceBy(1);
+                const end = self.position;
+                return self.createToken(.StringLiteral, self.source[start..end], start, end);
+            }
+
+            if (c == '\\') {
+                self.advanceBy(1);
+
+                if (!self.isAtEnd()) {
+                    const next = self.currentChar();
+                    if (next == '\r' and self.peekAhead(1) == '\n') {
+                        self.advanceBy(2);
+                    } else {
+                        self.advanceBy(1);
+                    }
+                }
+
+                continue;
+            }
+
+            if (c == '\r' or c == '\n') {
+                break;
+            }
+
+            self.advanceBy(1);
+        }
+
+        const end = self.position;
+        return self.createToken(.Invalid, self.source[start..end], start, end);
+    }
+
+    fn scanSlashOrRegex(self: *Lexer) Token {
+        const start = self.position;
+        const next = self.peekAhead(1);
+
+        if (next == '=') {
+            return self.consumeMultiCharToken(.SlashAssign, 2);
+        }
+
+        self.advanceBy(1);
+        var in_class = false;
+
+        while (!self.isAtEnd()) {
+            const c = self.currentChar();
+
+            if (c == '\\') {
+                self.advanceBy(1);
+                if (!self.isAtEnd()) {
+                    self.advanceBy(1);
+                }
+                continue;
+            }
+
+            if (c == '[') {
+                in_class = true;
+                self.advanceBy(1);
+                continue;
+            }
+
+            if (c == ']') {
+                in_class = false;
+                self.advanceBy(1);
+                continue;
+            }
+
+            if (c == '/' and !in_class) {
+                self.advanceBy(1);
+
+                while (!self.isAtEnd()) {
+                    const flag = self.currentChar();
+                    if (std.ascii.isAlphabetic(flag)) {
+                        self.advanceBy(1);
+                    } else {
+                        break;
+                    }
+                }
+
+                const end = self.position;
+                return self.createToken(.RegexLiteral, self.source[start..end], start, end);
+            }
+
+            self.advanceBy(1);
+        }
+
+        self.position = start;
+
+        return self.consumeSingleCharToken(.Slash);
     }
 
     fn scanDot(self: *Lexer) Token {

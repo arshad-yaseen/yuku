@@ -5,8 +5,8 @@ pub const TokenType = enum {
     BinaryLiteral,      // 0b1010, 0B1111  (done)
     BigIntLiteral,      // 123n, 0xFFn     (done)
 
-    StringLiteral,      // "hello", 'world'
-    RegexLiteral,       // /pattern/flags
+    StringLiteral,      // "hello", 'world'  (done)
+    RegexLiteral,       // /pattern/flags    (done)
 
     NoSubstitutionTemplate, // `hello world`
     TemplateHead,           // `hello ${
@@ -19,7 +19,7 @@ pub const TokenType = enum {
     Plus,               // + (done)
     Minus,              // -
     Star,               // *
-    Slash,              // /
+    Slash,              // / (done)
     Percent,            // %
     Exponent,           // **
 
@@ -27,7 +27,7 @@ pub const TokenType = enum {
     PlusAssign,         // += (done)
     MinusAssign,        // -=
     StarAssign,         // *=
-    SlashAssign,        // /=
+    SlashAssign,        // /= (done)
     PercentAssign,      // %=
     ExponentAssign,     // **=
 
