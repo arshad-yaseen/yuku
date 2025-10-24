@@ -95,7 +95,7 @@ pub const Lexer = struct {
     }
 
     fn peekNext(self: *Lexer) u8 {
-        if(self.position + 1 >= self.source.len) return 0;
+        if(self.isAtEndOffset(1)) return 0;
         return self.source[self.position + 1];
     }
 
