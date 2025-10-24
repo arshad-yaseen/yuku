@@ -17,22 +17,22 @@ pub const TokenType = enum {
     NullLiteral,        // null
 
     Plus,               // + (done)
-    Minus,              // -
-    Star,               // *
+    Minus,              // - (done)
+    Star,               // * (done)
     Slash,              // / (done)
-    Percent,            // %
-    Exponent,           // **
+    Percent,            // % (done)
+    Exponent,           // ** (done)
 
     Assign,             // =
     PlusAssign,         // += (done)
-    MinusAssign,        // -=
-    StarAssign,         // *=
+    MinusAssign,        // -= (done)
+    StarAssign,         // *= (done)
     SlashAssign,        // /= (done)
-    PercentAssign,      // %=
-    ExponentAssign,     // **=
+    PercentAssign,      // %= (done)
+    ExponentAssign,     // **= (done)
 
     Increment,          // ++ (done)
-    Decrement,          // --
+    Decrement,          // -- (done)
 
     Equal,              // ==
     NotEqual,           // !=

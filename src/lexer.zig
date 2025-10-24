@@ -24,11 +24,49 @@ pub const Lexer = struct {
 
         return switch (current_char) {
             '+' => self.scanPlus(),
+            '*' => self.scanStar(),
+            '-' => self.scanMinus(),
             '.' => self.scanDot(),
+            '%' => self.scanPercent(),
             '0'...'9' => self.scanNumber(),
             '"', '\'' => self.scanString(),
             '/' => self.scanSlashOrRegex(),
             else => self.consumeSingleCharToken(TokenType.Invalid),
+        };
+    }
+
+
+    fn scanMinus(self: *Lexer) Token {
+        const next_char = self.peekAhead(1);
+
+        return switch (next_char) {
+            '-' => self.consumeMultiCharToken(.Decrement, 2),
+            '=' => self.consumeMultiCharToken(.MinusAssign, 2),
+            else => self.consumeSingleCharToken(.Minus),
+        };
+    }
+
+    fn scanPercent(self: *Lexer) Token {
+        const next_char = self.peekAhead(1);
+
+        return switch (next_char) {
+            '=' => self.consumeMultiCharToken(.PercentAssign, 2),
+            else => self.consumeSingleCharToken(.Percent),
+        };
+    }
+
+    fn scanStar(self: *Lexer) Token {
+        const next_1 = self.peekAhead(1);
+        const next_2 = self.peekAhead(2);
+
+        if (next_1 == '*' and next_2 == '=') {
+            return self.consumeMultiCharToken(.ExponentAssign, 3);
+        }
+
+        return switch (next_1) {
+            '*' => self.consumeMultiCharToken(.Exponent, 2),
+            '=' => self.consumeMultiCharToken(.StarAssign, 2),
+            else => self.consumeSingleCharToken(.Star),
         };
     }
 
@@ -305,7 +343,7 @@ pub const Lexer = struct {
         return self.source[self.position + offset];
     }
 
-    fn consumeWhile(self: *Lexer, predicate: fn (u8) bool) void {
+    fn consumeWhile(self: *Lexer, comptime predicate: fn (u8) bool) void {
         while (!self.isAtEnd() and predicate(self.currentChar())) {
             self.advanceBy(1);
         }
