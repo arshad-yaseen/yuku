@@ -4,14 +4,9 @@ const Lexer = @import("lexer.zig").Lexer;
 pub fn main() !void {
     var timer = try std.time.Timer.start();
 
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-
-    const allocator = arena.allocator();
-
     const source: []const u8 = "*10.10";
 
-    var lexer = Lexer.init(allocator, source);
+    var lexer = Lexer.init(source);
 
     _ = try lexer.nextToken();
 

@@ -5,13 +5,11 @@ const TokenType = @import("token.zig").TokenType;
 pub const Lexer = struct {
     source: []const u8,
     position: usize,
-    allocator: std.mem.Allocator,
 
-    pub fn init(allocator: std.mem.Allocator, source: []const u8) Lexer {
+    pub fn init(source: []const u8) Lexer {
         return .{
             .source = source,
             .position = 0,
-            .allocator = allocator,
         };
     }
 
@@ -38,8 +36,8 @@ pub const Lexer = struct {
             '<' => self.singleCharToken(TokenType.LessThan),
             '>' => self.singleCharToken(TokenType.GreaterThan),
             '=' => self.singleCharToken(TokenType.Assign),
-             '0'...'9' => self.scanNumber(),
-            else => self.singleCharToken(TokenType.Invalid)
+            '0'...'9' => self.scanNumber(),
+            else => self.singleCharToken(TokenType.Invalid),
         };
     }
 
@@ -97,7 +95,7 @@ pub const Lexer = struct {
     }
 
     fn peekNext(self: *Lexer) u8 {
-        if(self.isAtEndOffset(1)) return 0;
+        if (self.isAtEndOffset(1)) return 0;
         return self.source[self.position + 1];
     }
 
@@ -110,9 +108,6 @@ pub const Lexer = struct {
     }
 
     fn makeToken(token_type: TokenType, lexeme: []const u8, start: usize, end: usize) Token {
-        return Token{ .type = token_type, .lexeme = lexeme, .span = .{
-            .start = start,
-            .end = end
-        }};
+        return Token{ .type = token_type, .lexeme = lexeme, .span = .{ .start = start, .end = end } };
     }
 };
