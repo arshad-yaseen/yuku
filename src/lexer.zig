@@ -34,12 +34,12 @@ pub const Lexer = struct {
             const start = self.position;
             _ = self.advance(2);
             const end = self.position;
-            return self.makeToken(.Increment, self.source[start..end], start, end);
+            return Lexer.makeToken(.Increment, self.source[start..end], start, end);
         } else if (self.peekNext(1) == '=') {
             const start = self.position;
             _ = self.advance(2);
             const end = self.position;
-            return self.makeToken(.PlusAssign, self.source[start..end], start, end);
+            return Lexer.makeToken(.PlusAssign, self.source[start..end], start, end);
         } else {
             return self.singleCharToken(.Plus);
         }
@@ -49,28 +49,27 @@ pub const Lexer = struct {
         const start = self.position;
 
         while (!self.isAtEnd() and std.ascii.isDigit(self.peek())) {
-            _ = self.advance();
+            _ = self.advance(1);
         }
 
-        if (!self.isAtEndOffset(1) and self.peek() == '.' and std.ascii.isDigit(self.peekNext())) {
-            _ = self.advance();
+        if (!self.isAtEndOffset(1) and self.peek() == '.' and std.ascii.isDigit(self.peekNext(1))) {
+            _ = self.advance(1);
 
             while (!self.isAtEnd() and std.ascii.isDigit(self.peek())) {
-                _ = self.advance();
+                _ = self.advance(1);
             }
         }
 
         const end = self.position;
 
-        const number = self.source[start..end];
-        return Lexer.makeToken(.NumericLiteral, number, start, end);
+        return Lexer.makeToken(.NumericLiteral, self.source[start..end], start, end);
     }
 
     fn skipWhitespace(self: *Lexer) void {
         while (!self.isAtEnd()) {
             const c = self.peek();
             switch (c) {
-                ' ', '\t', '\r' => _ = self.advance(),
+                ' ', '\t', '\r' => _ = self.advance(1),
                 else => break,
             }
         }
@@ -78,7 +77,7 @@ pub const Lexer = struct {
 
     fn singleCharToken(self: *Lexer, token_type: TokenType) Token {
         const start = self.position;
-        _ = self.advance();
+        _ = self.advance(1);
         const c = self.source[start..self.position];
         return Lexer.makeToken(token_type, c, start, self.position);
     }
