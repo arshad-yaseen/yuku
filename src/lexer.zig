@@ -23,22 +23,26 @@ pub const Lexer = struct {
         const c = self.peek();
 
         return switch (c) {
-            '+' => self.singleCharToken(TokenType.Plus),
-            '(' => self.singleCharToken(TokenType.LeftParen),
-            ')' => self.singleCharToken(TokenType.RightParen),
-            '{' => self.singleCharToken(TokenType.LeftBrace),
-            '}' => self.singleCharToken(TokenType.RightBrace),
-            ';' => self.singleCharToken(TokenType.Semicolon),
-            ',' => self.singleCharToken(TokenType.Comma),
-            '-' => self.singleCharToken(TokenType.Minus),
-            '*' => self.singleCharToken(TokenType.Star),
-            '/' => self.singleCharToken(TokenType.Slash),
-            '<' => self.singleCharToken(TokenType.LessThan),
-            '>' => self.singleCharToken(TokenType.GreaterThan),
-            '=' => self.singleCharToken(TokenType.Assign),
+            '+' => self.scanPlus(),
             '0'...'9' => self.scanNumber(),
             else => self.singleCharToken(TokenType.Invalid),
         };
+    }
+
+    fn scanPlus(self: *Lexer) Token {
+        if (self.peekNext(1) == '+') {
+            const start = self.position;
+            _ = self.advance(2);
+            const end = self.position;
+            return self.makeToken(.Increment, self.source[start..end], start, end);
+        } else if (self.peekNext(1) == '=') {
+            const start = self.position;
+            _ = self.advance(2);
+            const end = self.position;
+            return self.makeToken(.PlusAssign, self.source[start..end], start, end);
+        } else {
+            return self.singleCharToken(.Plus);
+        }
     }
 
     fn scanNumber(self: *Lexer) Token {
@@ -83,9 +87,9 @@ pub const Lexer = struct {
         return Lexer.makeToken(token_type, "", self.position, self.position);
     }
 
-    fn advance(self: *Lexer) u8 {
+    fn advance(self: *Lexer, offset: u8) u8 {
         const c = self.source[self.position];
-        self.position += 1;
+        self.position += offset;
         return c;
     }
 
@@ -94,9 +98,9 @@ pub const Lexer = struct {
         return self.source[self.position];
     }
 
-    fn peekNext(self: *Lexer) u8 {
-        if (self.isAtEndOffset(1)) return 0;
-        return self.source[self.position + 1];
+    fn peekNext(self: *Lexer, offset: u8) u8 {
+        if (self.isAtEndOffset(offset)) return 0;
+        return self.source[self.position + offset];
     }
 
     fn isAtEnd(self: *Lexer) bool {
