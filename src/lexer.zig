@@ -76,7 +76,7 @@ pub const Lexer = struct {
         const start = self.position;
         _ = self.advance();
         const c = self.source[start..self.position];
-        return Lexer.makeToken(token_type, c, self.position, self.position);
+        return Lexer.makeToken(token_type, c, start, self.position);
     }
 
     fn emptyToken(self: *Lexer, token_type: TokenType) Token {
@@ -107,8 +107,8 @@ pub const Lexer = struct {
         return (self.position + offset) >= self.source.len;
     }
 
-    fn makeToken(toke_type: TokenType, lexeme: []const u8, start: usize, end: usize) Token {
-        return Token{ .type = toke_type, .lexeme = lexeme, .span = .{
+    fn makeToken(token_type: TokenType, lexeme: []const u8, start: usize, end: usize) Token {
+        return Token{ .type = token_type, .lexeme = lexeme, .span = .{
             .start = start,
             .end = end
         }};
