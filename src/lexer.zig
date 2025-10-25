@@ -2,6 +2,8 @@ const std = @import("std");
 
 const Token = @import("token.zig").Token;
 const TokenType = @import("token.zig").TokenType;
+const Comment = @import("token.zig").Comment;
+const CommentType = @import("token.zig").CommentType;
 
 const LexError = error{
     UnterminatedString,
@@ -12,24 +14,34 @@ const LexError = error{
     InvalidRegex,
     IncompletePrivateIdentifier,
     InvalidPrivateIdentifierStart,
-    UnexpectedCharacter
+    UnexpectedCharacter,
+    UnterminatedMultiLineComment,
+    OutOfMemory
 };
 
 pub const Lexer = struct {
     source: []const u8,
     position: usize,
     template_depth: usize,
+    comments: std.array_list.Managed(Comment),
+    allocator: std.mem.Allocator,
 
-    pub fn init(source: []const u8) Lexer {
+    pub fn init(allocator: std.mem.Allocator, source: []const u8) Lexer {
         return .{
             .source = source,
             .position = 0,
             .template_depth = 0,
+            .comments = std.array_list.Managed(Comment).init(allocator),
+            .allocator = allocator,
         };
     }
 
+    pub fn deinit(self: *Lexer) void {
+        self.comments.deinit();
+    }
+
     pub fn nextToken(self: *Lexer) LexError!Token {
-        self.skipWhitespace();
+        self.skipSkippable();
 
         if (self.isEof()) {
             return self.createToken(.EOF, "", self.position, self.position);
@@ -364,7 +376,7 @@ pub const Lexer = struct {
         return self.consumeSingleCharToken(.Slash);
     }
 
-    pub fn reScanAsRegex(self: *Lexer, slash_token: Token) Token {
+    pub fn reScanAsRegex(self: *Lexer, slash_token: Token) LexError!Token {
         self.position = slash_token.span.start;
 
         return self.scanRegex();
@@ -744,14 +756,66 @@ pub const Lexer = struct {
         }
     }
 
-    fn skipWhitespace(self: *Lexer) void {
+    fn skipSkippable(self: *Lexer) void {
         while (!self.isEof()) {
             const current_char = self.currentChar();
             switch (current_char) {
                 ' ', '\t', '\r', '\n' => self.advanceBy(1),
+                '/' => {
+                    const next = self.peekAhead(1);
+                    if (next == '/') {
+                        self.skipSingleLineComment() catch return;
+                    } else if (next == '*') {
+                        self.skipMultiLineComment() catch return;
+                    } else {
+                        break;
+                    }
+                },
                 else => break,
             }
         }
+    }
+
+    fn skipSingleLineComment(self: *Lexer) !void {
+        const start = self.position;
+        self.advanceBy(2); // skip //
+
+        while (!self.isEof()) {
+            const c = self.currentChar();
+            if (c == '\n' or c == '\r') {
+                break;
+            }
+            self.advanceBy(1);
+        }
+
+        const end = self.position;
+        try self.comments.append(Comment{
+            .type = .SingleLine,
+            .content = self.source[start..end],
+            .span = .{ .start = start, .end = end },
+        });
+    }
+
+    fn skipMultiLineComment(self: *Lexer) !void {
+        const start = self.position;
+        self.advanceBy(2); // skip /*
+
+        while (!self.isEof()) {
+            const c = self.currentChar();
+            if (c == '*' and self.peekAhead(1) == '/') {
+                self.advanceBy(2); // skip */
+                const end = self.position;
+                try self.comments.append(Comment{
+                    .type = .MultiLine,
+                    .content = self.source[start..end],
+                    .span = .{ .start = start, .end = end },
+                });
+                return;
+            }
+            self.advanceBy(1);
+        }
+
+        return error.UnterminatedMultiLineComment;
     }
 
     fn consumeSingleCharToken(self: *Lexer, comptime token_type: TokenType) Token {

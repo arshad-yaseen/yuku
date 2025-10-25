@@ -172,3 +172,14 @@ pub const Span = struct {
 };
 
 pub const Token = struct { type: TokenType, lexeme: []const u8, span: Span };
+
+pub const CommentType = enum {
+    SingleLine, // // comment
+    MultiLine, // /* comment */
+};
+
+pub const Comment = struct {
+    type: CommentType,
+    content: []const u8,
+    span: Span,
+};
