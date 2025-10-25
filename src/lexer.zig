@@ -31,7 +31,7 @@ pub const Lexer = struct {
     pub fn nextToken(self: *Lexer) LexError!Token {
         self.skipWhitespace();
 
-        if (self.isAtEnd()) {
+        if (self.isEof()) {
             return self.createToken(.EOF, "", self.position, self.position);
         }
 
@@ -232,7 +232,7 @@ pub const Lexer = struct {
         const quote = self.currentChar();
         self.advanceBy(1);
 
-        while (!self.isAtEnd()) {
+        while (!self.isEof()) {
             const c = self.currentChar();
 
             // found closing quote
@@ -245,7 +245,7 @@ pub const Lexer = struct {
             if (c == '\\') {
                 self.advanceBy(1);
 
-                if (self.isAtEnd()) {
+                if (self.isEof()) {
                     break;
                 }
 
@@ -256,7 +256,7 @@ pub const Lexer = struct {
                     self.advanceBy(1);
                 } else if (next == '\r') {
                     self.advanceBy(1);
-                    if (!self.isAtEnd() and self.currentChar() == '\n') {
+                    if (!self.isEof() and self.currentChar() == '\n') {
                         self.advanceBy(1);
                     }
                 } else {
@@ -279,7 +279,7 @@ pub const Lexer = struct {
         const start = self.position;
         self.advanceBy(1);
 
-        while (!self.isAtEnd()) {
+        while (!self.isEof()) {
             const c = self.currentChar();
 
             if (c == '`') {
@@ -297,7 +297,7 @@ pub const Lexer = struct {
 
             if (c == '\\') {
                 self.advanceBy(1);
-                if (!self.isAtEnd()) {
+                if (!self.isEof()) {
                     self.advanceBy(1);
                 }
                 continue;
@@ -313,7 +313,7 @@ pub const Lexer = struct {
         const start = self.position;
         self.advanceBy(1); // consume closing brace
 
-        while (!self.isAtEnd()) {
+        while (!self.isEof()) {
             const c = self.currentChar();
 
             if (c == '`') {
@@ -333,7 +333,7 @@ pub const Lexer = struct {
 
             if (c == '\\') {
                 self.advanceBy(1);
-                if (!self.isAtEnd()) {
+                if (!self.isEof()) {
                     self.advanceBy(1);
                 }
                 continue;
@@ -455,7 +455,7 @@ pub const Lexer = struct {
 
         self.advanceBy(1);
 
-        while (!self.isAtEnd()) {
+        while (!self.isEof()) {
             const c = self.currentChar();
             if (std.ascii.isAlphanumeric(c) or c == '_' or c == '$') {
                 self.advanceBy(1);
@@ -478,7 +478,7 @@ pub const Lexer = struct {
         self.advanceBy(1);
 
         // must have at least one valid identifier character after #
-        if (self.isAtEnd()) {
+        if (self.isEof()) {
             return error.IncompletePrivateIdentifier;
         }
 
@@ -487,7 +487,7 @@ pub const Lexer = struct {
             return error.InvalidPrivateIdentifierStart;
         }
 
-        while (!self.isAtEnd()) {
+        while (!self.isEof()) {
             const c = self.currentChar();
             if (std.ascii.isAlphanumeric(c) or c == '_' or c == '$') {
                 self.advanceBy(1);
@@ -650,7 +650,7 @@ pub const Lexer = struct {
         const start = self.position;
         var token_type: TokenType = .NumericLiteral;
 
-        if (self.currentChar() == '0' and !self.isAtEndWithOffset(1)) {
+        if (self.currentChar() == '0' and !self.isEofWithOffset(1)) {
             const next = std.ascii.toLower(self.peekAhead(1));
             if (next == 'x') {
                 token_type = .HexLiteral;
@@ -673,7 +673,7 @@ pub const Lexer = struct {
 
         if (token_type == .NumericLiteral and
             self.currentChar() == '.' and
-            !self.isAtEndWithOffset(1) and
+            !self.isEofWithOffset(1) and
             std.ascii.isDigit(self.peekAhead(1)))
         {
             self.advanceBy(1);
@@ -686,7 +686,7 @@ pub const Lexer = struct {
                 const next = self.peekAhead(1);
                 if (std.ascii.isDigit(next) or
                     ((next == '+' or next == '-') and
-                        !self.isAtEndWithOffset(2) and
+                        !self.isEofWithOffset(2) and
                         std.ascii.isDigit(self.peekAhead(2))))
                 {
                     self.advanceBy(1);
@@ -699,7 +699,7 @@ pub const Lexer = struct {
         }
 
         if (self.currentChar() == '_') {
-            while (!self.isAtEnd()) {
+            while (!self.isEof()) {
                 const current_char = self.currentChar();
                 const next_char = self.peekAhead(1);
 
@@ -723,7 +723,7 @@ pub const Lexer = struct {
     }
 
     fn consumeWhileOctal(self: *Lexer) void {
-        while (!self.isAtEnd()) {
+        while (!self.isEof()) {
             const c = self.currentChar();
             if (c >= '0' and c <= '7') {
                 self.advanceBy(1);
@@ -734,7 +734,7 @@ pub const Lexer = struct {
     }
 
     fn consumeWhileBinary(self: *Lexer) void {
-        while (!self.isAtEnd()) {
+        while (!self.isEof()) {
             const c = self.currentChar();
             if (c == '0' or c == '1') {
                 self.advanceBy(1);
@@ -745,7 +745,7 @@ pub const Lexer = struct {
     }
 
     fn skipWhitespace(self: *Lexer) void {
-        while (!self.isAtEnd()) {
+        while (!self.isEof()) {
             const current_char = self.currentChar();
             switch (current_char) {
                 ' ', '\t', '\r', '\n' => self.advanceBy(1),
@@ -782,7 +782,7 @@ pub const Lexer = struct {
     }
 
     fn currentChar(self: *Lexer) u8 {
-        if (self.isAtEnd()) return 0;
+        if (self.isEof()) return 0;
         return self.source[self.position];
     }
 
@@ -792,16 +792,16 @@ pub const Lexer = struct {
     }
 
     fn consumeWhile(self: *Lexer, comptime predicate: fn (u8) bool) void {
-        while (!self.isAtEnd() and predicate(self.currentChar())) {
+        while (!self.isEof() and predicate(self.currentChar())) {
             self.advanceBy(1);
         }
     }
 
-    fn isAtEnd(self: *Lexer) bool {
+    fn isEof(self: *Lexer) bool {
         return self.position >= self.source.len;
     }
 
-    fn isAtEndWithOffset(self: *Lexer, comptime offset: u8) bool {
+    fn isEofWithOffset(self: *Lexer, comptime offset: u8) bool {
         return (self.position + offset) >= self.source.len;
     }
 };

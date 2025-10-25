@@ -5,11 +5,6 @@ const Tokenize = @import("js").Tokenizer;
 pub fn main() !void {
     const content = @embedFile("test.js");
 
-    {
-        var lexer = Lexer.init(content);
-        while ((try lexer.nextToken()).type != .EOF) {}
-    }
-
     const num_runs = 10;
     var total_time: u64 = 0;
     var total_tokens: usize = 0;
@@ -20,7 +15,10 @@ pub fn main() !void {
         var token_count: usize = 0;
 
         while (true) {
-            const token = try lexer.nextToken();
+            const token = lexer.nextToken() catch |err| {
+                std.debug.print("Error: {any}\n", .{err});
+                break;
+            };
             if (token.type == .EOF) break;
             token_count += 1;
         }
