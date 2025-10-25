@@ -1,3 +1,5 @@
+const std = @import("std");
+
 pub const TokenType = enum {
     // Numeric literals
     NumericLiteral,              // 123, 3.14, 1e5
@@ -175,3 +177,55 @@ pub const Token = struct {
     lexeme: []const u8,
     span: Span
 };
+
+pub const KeywordMap = std.StaticStringMap(TokenType).initComptime(.{
+    .{ "if", .If },
+    .{ "in", .In },
+    .{ "do", .Do },
+    .{ "as", .As },
+    .{ "of", .Of },
+    .{ "let", .Let },
+    .{ "var", .Var },
+    .{ "for", .For },
+    .{ "new", .New },
+    .{ "try", .Try },
+    .{ "else", .Else },
+    .{ "case", .Case },
+    .{ "this", .This },
+    .{ "void", .Void },
+    .{ "with", .With },
+    .{ "enum", .Enum },
+    .{ "null", .NullLiteral },
+    .{ "true", .True },
+    .{ "from", .From },
+    .{ "const", .Const },
+    .{ "class", .Class },
+    .{ "break", .Break },
+    .{ "catch", .Catch },
+    .{ "throw", .Throw },
+    .{ "while", .While },
+    .{ "yield", .Yield },
+    .{ "super", .Super },
+    .{ "false", .False },
+    .{ "await", .Await },
+    .{ "async", .Async },
+    .{ "return", .Return },
+    .{ "typeof", .Typeof },
+    .{ "delete", .Delete },
+    .{ "switch", .Switch },
+    .{ "export", .Export },
+    .{ "import", .Import },
+    .{ "public", .Public },
+    .{ "static", .Static },
+    .{ "default", .Default },
+    .{ "finally", .Finally },
+    .{ "extends", .Extends },
+    .{ "private", .Private },
+    .{ "function", .Function },
+    .{ "continue", .Continue },
+    .{ "debugger", .Debugger },
+    .{ "interface", .Interface },
+    .{ "protected", .Protected },
+    .{ "instanceof", .Instanceof },
+    .{ "implements", .Implements },
+});

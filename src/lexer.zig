@@ -1,6 +1,7 @@
 const std = @import("std");
 const Token = @import("token.zig").Token;
 const TokenType = @import("token.zig").TokenType;
+const KeywordMap = @import("token.zig").KeywordMap;
 
 pub const Lexer = struct {
     source: []const u8,
@@ -399,86 +400,7 @@ pub const Lexer = struct {
 
     fn getKeywordType(self: *Lexer, lexeme: []const u8) TokenType {
         _ = self;
-
-        return switch (lexeme.len) {
-            2 => {
-                if (std.mem.eql(u8, lexeme, "if")) return .If;
-                if (std.mem.eql(u8, lexeme, "in")) return .In;
-                if (std.mem.eql(u8, lexeme, "do")) return .Do;
-                if (std.mem.eql(u8, lexeme, "as")) return .As;
-                if (std.mem.eql(u8, lexeme, "of")) return .Of;
-                return .Identifier;
-            },
-            3 => {
-                if (std.mem.eql(u8, lexeme, "let")) return .Let;
-                if (std.mem.eql(u8, lexeme, "var")) return .Var;
-                if (std.mem.eql(u8, lexeme, "for")) return .For;
-                if (std.mem.eql(u8, lexeme, "new")) return .New;
-                if (std.mem.eql(u8, lexeme, "try")) return .Try;
-                return .Identifier;
-            },
-            4 => {
-                if (std.mem.eql(u8, lexeme, "else")) return .Else;
-                if (std.mem.eql(u8, lexeme, "case")) return .Case;
-                if (std.mem.eql(u8, lexeme, "this")) return .This;
-                if (std.mem.eql(u8, lexeme, "void")) return .Void;
-                if (std.mem.eql(u8, lexeme, "with")) return .With;
-                if (std.mem.eql(u8, lexeme, "enum")) return .Enum;
-                if (std.mem.eql(u8, lexeme, "null")) return .NullLiteral;
-                if (std.mem.eql(u8, lexeme, "true")) return .True;
-                if (std.mem.eql(u8, lexeme, "from")) return .From;
-                return .Identifier;
-            },
-            5 => {
-                if (std.mem.eql(u8, lexeme, "const")) return .Const;
-                if (std.mem.eql(u8, lexeme, "class")) return .Class;
-                if (std.mem.eql(u8, lexeme, "break")) return .Break;
-                if (std.mem.eql(u8, lexeme, "catch")) return .Catch;
-                if (std.mem.eql(u8, lexeme, "throw")) return .Throw;
-                if (std.mem.eql(u8, lexeme, "while")) return .While;
-                if (std.mem.eql(u8, lexeme, "yield")) return .Yield;
-                if (std.mem.eql(u8, lexeme, "super")) return .Super;
-                if (std.mem.eql(u8, lexeme, "false")) return .False;
-                if (std.mem.eql(u8, lexeme, "await")) return .Await;
-                if (std.mem.eql(u8, lexeme, "async")) return .Async;
-                return .Identifier;
-            },
-            6 => {
-                if (std.mem.eql(u8, lexeme, "return")) return .Return;
-                if (std.mem.eql(u8, lexeme, "typeof")) return .Typeof;
-                if (std.mem.eql(u8, lexeme, "delete")) return .Delete;
-                if (std.mem.eql(u8, lexeme, "switch")) return .Switch;
-                if (std.mem.eql(u8, lexeme, "export")) return .Export;
-                if (std.mem.eql(u8, lexeme, "import")) return .Import;
-                if (std.mem.eql(u8, lexeme, "public")) return .Public;
-                if (std.mem.eql(u8, lexeme, "static")) return .Static;
-                return .Identifier;
-            },
-            7 => {
-                if (std.mem.eql(u8, lexeme, "default")) return .Default;
-                if (std.mem.eql(u8, lexeme, "finally")) return .Finally;
-                if (std.mem.eql(u8, lexeme, "extends")) return .Extends;
-                if (std.mem.eql(u8, lexeme, "private")) return .Private;
-                return .Identifier;
-            },
-            8 => {
-                if (std.mem.eql(u8, lexeme, "function")) return .Function;
-                if (std.mem.eql(u8, lexeme, "continue")) return .Continue;
-                if (std.mem.eql(u8, lexeme, "debugger")) return .Debugger;
-                return .Identifier;
-            },
-            9 => {
-                if (std.mem.eql(u8, lexeme, "interface")) return .Interface;
-                if (std.mem.eql(u8, lexeme, "protected")) return .Protected;
-                return .Identifier;
-            },
-            10 => {
-                if (std.mem.eql(u8, lexeme, "instanceof")) return .Instanceof;
-                if (std.mem.eql(u8, lexeme, "implements")) return .Implements;
-                return .Identifier;
-            },
-            else => .Identifier,
-        };
+        return KeywordMap.get(lexeme) orelse .Identifier;
     }
 
     fn scanNumber(self: *Lexer) Token {
