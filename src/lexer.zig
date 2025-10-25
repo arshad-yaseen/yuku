@@ -360,10 +360,6 @@ pub const Lexer = struct {
         while (!self.isAtEnd()) {
             const c = self.currentChar();
 
-            if (c == ' ') {
-                break;
-            }
-
             if (c == '\\') {
                 self.advanceBy(1);
                 if (!self.isAtEnd()) {
@@ -543,13 +539,13 @@ pub const Lexer = struct {
         }
 
         if (self.currentChar() == '_') {
-            self.advanceBy(1);
             while (!self.isAtEnd()) {
                 const current_char = self.currentChar();
-                if ((std.ascii.isAlphanumeric(current_char) or current_char == '_')
-                // n is handled below to detect .BigIntLiteral, if include the n here because of isAlphanumeric
-                // the separate n check below won't reach if there is a underscore in number
-                and current_char != 'n') {
+                const next_char = self.peekAhead(1);
+
+                const char_to_check = if (current_char == '_') next_char else current_char;
+
+                if ((std.ascii.isDigit(char_to_check) or (token_type == .HexLiteral and std.ascii.isAlphabetic(char_to_check))) and char_to_check != 'n') {
                     self.advanceBy(1);
                 } else {
                     break;
