@@ -16,7 +16,6 @@ const LexError = error{
     InvalidPrivateIdentifierStart,
     UnexpectedCharacter,
     UnterminatedMultiLineComment,
-    OutOfMemory
 };
 
 pub const Lexer = struct {
@@ -43,11 +42,11 @@ pub const Lexer = struct {
     pub fn nextToken(self: *Lexer) LexError!Token {
         self.skipSkippable();
 
-        if (self.isEof()) {
+        if (self.position >= self.source.len) {
             return self.createToken(.EOF, "", self.position, self.position);
         }
 
-        const current_char = self.currentChar();
+        const current_char = self.source[self.position];
 
         return switch (current_char) {
             '+' => self.scanPlus(),
@@ -84,8 +83,8 @@ pub const Lexer = struct {
     }
 
     fn scanQuestionMark(self: *Lexer) Token {
-        const next_1 = self.peekAhead(1);
-        const next_2 = self.peekAhead(2);
+        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
+        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
 
         if (next_1 == '?' and next_2 == '=') {
             return self.consumeMultiCharToken(.NullishAssign, 3);
@@ -99,7 +98,7 @@ pub const Lexer = struct {
     }
 
     fn scanCaret(self: *Lexer) Token {
-        const next_char = self.peekAhead(1);
+        const next_char = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
 
         return switch (next_char) {
             '=' => self.consumeMultiCharToken(.BitwiseXorAssign, 2),
@@ -108,8 +107,8 @@ pub const Lexer = struct {
     }
 
     fn scanOr(self: *Lexer) Token {
-        const next_1 = self.peekAhead(1);
-        const next_2 = self.peekAhead(2);
+        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
+        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
 
         if (next_1 == '|' and next_2 == '=') {
             return self.consumeMultiCharToken(.LogicalOrAssign, 3);
@@ -123,8 +122,8 @@ pub const Lexer = struct {
     }
 
     fn scanAnd(self: *Lexer) Token {
-        const next_1 = self.peekAhead(1);
-        const next_2 = self.peekAhead(2);
+        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
+        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
 
         if (next_1 == '&' and next_2 == '=') {
             return self.consumeMultiCharToken(.LogicalAndAssign, 3);
@@ -138,9 +137,9 @@ pub const Lexer = struct {
     }
 
     fn scanGreaterThan(self: *Lexer) Token {
-        const next_1 = self.peekAhead(1);
-        const next_2 = self.peekAhead(2);
-        const next_3 = self.peekAhead(3);
+        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
+        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
+        const next_3 = if (self.position + 3 < self.source.len) self.source[self.position + 3] else 0;
 
         if (next_1 == '>' and next_2 == '=') {
             return self.consumeMultiCharToken(.RightShiftAssign, 3);
@@ -162,8 +161,8 @@ pub const Lexer = struct {
     }
 
     fn scanLessThan(self: *Lexer) Token {
-        const next_1 = self.peekAhead(1);
-        const next_2 = self.peekAhead(2);
+        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
+        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
 
         if (next_1 == '<' and next_2 == '=') {
             return self.consumeMultiCharToken(.LeftShiftAssign, 3);
@@ -177,8 +176,8 @@ pub const Lexer = struct {
     }
 
     fn scanExclamation(self: *Lexer) Token {
-        const next_1 = self.peekAhead(1);
-        const next_2 = self.peekAhead(2);
+        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
+        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
 
         if (next_1 == '=' and next_2 == '=') {
             return self.consumeMultiCharToken(.StrictNotEqual, 3);
@@ -191,8 +190,8 @@ pub const Lexer = struct {
     }
 
     fn scanAssignOrEqualOrArrow(self: *Lexer) Token {
-        const next_1 = self.peekAhead(1);
-        const next_2 = self.peekAhead(2);
+        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
+        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
 
         if (next_1 == '=' and next_2 == '=') {
             return self.consumeMultiCharToken(.StrictEqual, 3);
@@ -206,7 +205,7 @@ pub const Lexer = struct {
     }
 
     fn scanMinus(self: *Lexer) Token {
-        const next_char = self.peekAhead(1);
+        const next_char = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
 
         return switch (next_char) {
             '-' => self.consumeMultiCharToken(.Decrement, 2),
@@ -216,7 +215,7 @@ pub const Lexer = struct {
     }
 
     fn scanPercent(self: *Lexer) Token {
-        const next_char = self.peekAhead(1);
+        const next_char = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
 
         return switch (next_char) {
             '=' => self.consumeMultiCharToken(.PercentAssign, 2),
@@ -225,8 +224,8 @@ pub const Lexer = struct {
     }
 
     fn scanStar(self: *Lexer) Token {
-        const next_1 = self.peekAhead(1);
-        const next_2 = self.peekAhead(2);
+        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
+        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
 
         if (next_1 == '*' and next_2 == '=') {
             return self.consumeMultiCharToken(.ExponentAssign, 3);
@@ -241,47 +240,48 @@ pub const Lexer = struct {
 
     fn scanString(self: *Lexer) LexError!Token {
         const start = self.position;
-        const quote = self.currentChar();
-        self.advanceBy(1);
+        const quote = self.source[start];
+        var i = start + 1;
 
-        while (!self.isEof()) {
-            const c = self.currentChar();
+        while (i < self.source.len) {
+            const c = self.source[i];
 
-            // found closing quote
-            if (c == quote) {
-                self.advanceBy(1);
-                const end = self.position;
-                return self.createToken(.StringLiteral, self.source[start..end], start, end);
-            }
+            if (c < 128) {
+                @branchHint(.likely);
 
-            if (c == '\\') {
-                self.advanceBy(1);
+                if (c == quote) {
+                    i += 1;
+                    self.position = i;
+                    return self.createToken(.StringLiteral, self.source[start..i], start, i);
+                }
 
-                if (self.isEof()) {
+                if (c == '\\') {
+                    i += 1;
+                    if (i >= self.source.len) break;
+
+                    const next = self.source[i];
+                    if (next == '\n') {
+                        i += 1;
+                    } else if (next == '\r') {
+                        i += 1;
+                        if (i < self.source.len and self.source[i] == '\n') {
+                            i += 1;
+                        }
+                    } else {
+                        i += 1;
+                    }
+                    continue;
+                }
+
+                if (c == '\r' or c == '\n') {
                     break;
                 }
 
-
-                const next = self.currentChar();
-
-                if (next == '\n') {
-                    self.advanceBy(1);
-                } else if (next == '\r') {
-                    self.advanceBy(1);
-                    if (!self.isEof() and self.currentChar() == '\n') {
-                        self.advanceBy(1);
-                    }
-                } else {
-                    self.advanceBy(1);
-                }
-                continue;
+                i += 1;
+            } else {
+                @branchHint(.cold);
+                i += 1;
             }
-
-            if (c == '\r' or c == '\n') {
-                break;
-            }
-
-            self.advanceBy(1);
         }
 
         return error.UnterminatedString;
@@ -289,33 +289,33 @@ pub const Lexer = struct {
 
     fn scanTemplateLiteral(self: *Lexer) LexError!Token {
         const start = self.position;
-        self.advanceBy(1);
+        var i = start + 1;
 
-        while (!self.isEof()) {
-            const c = self.currentChar();
+        while (i < self.source.len) {
+            const c = self.source[i];
 
             if (c == '`') {
-                self.advanceBy(1);
-                const end = self.position;
-                return self.createToken(.NoSubstitutionTemplate, self.source[start..end], start, end);
+                i += 1;
+                self.position = i;
+                return self.createToken(.NoSubstitutionTemplate, self.source[start..i], start, i);
             }
 
-            if (c == '$' and self.peekAhead(1) == '{') {
-                self.advanceBy(2); // consume ${
+            if (c == '$' and i + 1 < self.source.len and self.source[i + 1] == '{') {
+                i += 2;
                 self.template_depth += 1;
-                const end = self.position;
-                return self.createToken(.TemplateHead, self.source[start..end], start, end);
+                self.position = i;
+                return self.createToken(.TemplateHead, self.source[start..i], start, i);
             }
 
             if (c == '\\') {
-                self.advanceBy(1);
-                if (!self.isEof()) {
-                    self.advanceBy(1);
+                i += 1;
+                if (i < self.source.len) {
+                    i += 1;
                 }
                 continue;
             }
 
-            self.advanceBy(1);
+            i += 1;
         }
 
         return error.NonTerminatedTemplateLiteral;
@@ -323,35 +323,35 @@ pub const Lexer = struct {
 
     fn scanTemplateMiddleOrTail(self: *Lexer) LexError!Token {
         const start = self.position;
-        self.advanceBy(1); // consume closing brace
+        var i = start + 1;
 
-        while (!self.isEof()) {
-            const c = self.currentChar();
+        while (i < self.source.len) {
+            const c = self.source[i];
 
             if (c == '`') {
-                self.advanceBy(1); // consume closing backtick
+                i += 1;
                 if (self.template_depth > 0) {
                     self.template_depth -= 1;
                 }
-                const end = self.position;
-                return self.createToken(.TemplateTail, self.source[start..end], start, end);
+                self.position = i;
+                return self.createToken(.TemplateTail, self.source[start..i], start, i);
             }
 
-            if (c == '$' and self.peekAhead(1) == '{') {
-                self.advanceBy(2); // consume ${
-                const end = self.position;
-                return self.createToken(.TemplateMiddle, self.source[start..end], start, end);
+            if (c == '$' and i + 1 < self.source.len and self.source[i + 1] == '{') {
+                i += 2;
+                self.position = i;
+                return self.createToken(.TemplateMiddle, self.source[start..i], start, i);
             }
 
             if (c == '\\') {
-                self.advanceBy(1);
-                if (!self.isEof()) {
-                    self.advanceBy(1);
+                i += 1;
+                if (i < self.source.len) {
+                    i += 1;
                 }
                 continue;
             }
 
-            self.advanceBy(1);
+            i += 1;
         }
 
         return error.NonTerminatedTemplateLiteral;
@@ -367,13 +367,20 @@ pub const Lexer = struct {
     }
 
     fn scanSlash(self: *Lexer) Token {
-        const next = self.peekAhead(1);
+        const next = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
 
         if (next == '=') {
             return self.consumeMultiCharToken(.SlashAssign, 2);
         }
 
-        return self.consumeSingleCharToken(.Slash);
+        const slash = self.consumeSingleCharToken(.Slash);
+        const token = self.reScanAsRegex(slash);
+
+        if(@TypeOf(token) == Token){
+            return token;
+        }
+
+        return slash;
     }
 
     pub fn reScanAsRegex(self: *Lexer, slash_token: Token) LexError!Token {
@@ -438,8 +445,8 @@ pub const Lexer = struct {
     }
 
     fn scanDot(self: *Lexer) Token {
-        const next1 = self.peekAhead(1);
-        const next2 = self.peekAhead(2);
+        const next1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
+        const next2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
 
         if (std.ascii.isDigit(next1)) {
             return self.scanNumber();
@@ -453,7 +460,7 @@ pub const Lexer = struct {
     }
 
     fn scanPlus(self: *Lexer) Token {
-        const next_char = self.peekAhead(1);
+        const next_char = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
 
         return switch (next_char) {
             '+' => self.consumeMultiCharToken(.Increment, 2),
@@ -464,52 +471,56 @@ pub const Lexer = struct {
 
     fn scanIdentifierOrKeyword(self: *Lexer) Token {
         const start = self.position;
+        var i = start + 1;
 
-        self.advanceBy(1);
-
-        while (!self.isEof()) {
-            const c = self.currentChar();
-            if (std.ascii.isAlphanumeric(c) or c == '_' or c == '$') {
-                self.advanceBy(1);
+        while (i < self.source.len) {
+            const c = self.source[i];
+            if (c < 128) {
+                @branchHint(.likely);
+                if (std.ascii.isAlphanumeric(c) or c == '_' or c == '$') {
+                    i += 1;
+                } else {
+                    break;
+                }
             } else {
+                @branchHint(.cold);
                 break;
             }
         }
 
-        const end = self.position;
-        const lexeme = self.source[start..end];
-
+        self.position = i;
+        const lexeme = self.source[start..i];
         const token_type: TokenType = self.getKeywordType(lexeme);
 
-        return self.createToken(token_type, lexeme, start, end);
+        return self.createToken(token_type, lexeme, start, i);
     }
 
     fn scanPrivateIdentifier(self: *Lexer) LexError!Token {
         const start = self.position;
+        var i = start + 1;
 
-        self.advanceBy(1);
-
-        // must have at least one valid identifier character after #
-        if (self.isEof()) {
+        if (i >= self.source.len) {
             return error.IncompletePrivateIdentifier;
         }
 
-        const first = self.currentChar();
+        const first = self.source[i];
         if (!std.ascii.isAlphabetic(first) and first != '_' and first != '$') {
             return error.InvalidPrivateIdentifierStart;
         }
 
-        while (!self.isEof()) {
-            const c = self.currentChar();
+        i += 1;
+
+        while (i < self.source.len) {
+            const c = self.source[i];
             if (std.ascii.isAlphanumeric(c) or c == '_' or c == '$') {
-                self.advanceBy(1);
+                i += 1;
             } else {
                 break;
             }
         }
 
-        const end = self.position;
-        return self.createToken(.PrivateIdentifier, self.source[start..end], start, end);
+        self.position = i;
+        return self.createToken(.PrivateIdentifier, self.source[start..i], start, i);
     }
 
     fn getKeywordType(self: *Lexer, lexeme: []const u8) TokenType {
@@ -661,158 +672,192 @@ pub const Lexer = struct {
     fn scanNumber(self: *Lexer) Token {
         const start = self.position;
         var token_type: TokenType = .NumericLiteral;
+        var i = self.position;
 
-        if (self.currentChar() == '0' and !self.isEofWithOffset(1)) {
-            const next = std.ascii.toLower(self.peekAhead(1));
+        if (self.source[i] == '0' and i + 1 < self.source.len) {
+            const next = std.ascii.toLower(self.source[i + 1]);
             if (next == 'x') {
                 token_type = .HexLiteral;
-                self.advanceBy(2);
-                self.consumeWhile(std.ascii.isHex);
+                i += 2;
+                while (i < self.source.len and std.ascii.isHex(self.source[i])) {
+                    i += 1;
+                }
             } else if (next == 'o') {
                 token_type = .OctalLiteral;
-                self.advanceBy(2);
-                self.consumeWhileOctal();
+                i += 2;
+                while (i < self.source.len and self.source[i] >= '0' and self.source[i] <= '7') {
+                    i += 1;
+                }
             } else if (next == 'b') {
                 token_type = .BinaryLiteral;
-                self.advanceBy(2);
-                self.consumeWhileBinary();
+                i += 2;
+                while (i < self.source.len and (self.source[i] == '0' or self.source[i] == '1')) {
+                    i += 1;
+                }
             } else {
-                self.consumeWhile(std.ascii.isDigit);
+                while (i < self.source.len and std.ascii.isDigit(self.source[i])) {
+                    i += 1;
+                }
             }
         } else {
-            self.consumeWhile(std.ascii.isDigit);
+            while (i < self.source.len and std.ascii.isDigit(self.source[i])) {
+                i += 1;
+            }
         }
 
         if (token_type == .NumericLiteral and
-            self.currentChar() == '.' and
-            !self.isEofWithOffset(1) and
-            std.ascii.isDigit(self.peekAhead(1)))
+            i < self.source.len and self.source[i] == '.' and
+            i + 1 < self.source.len and std.ascii.isDigit(self.source[i + 1]))
         {
-            self.advanceBy(1);
-            self.consumeWhile(std.ascii.isDigit);
+            i += 1;
+            while (i < self.source.len and std.ascii.isDigit(self.source[i])) {
+                i += 1;
+            }
         }
 
-        if (token_type == .NumericLiteral) {
-            const cur = std.ascii.toLower(self.currentChar());
-            if (cur == 'e') {
-                const next = self.peekAhead(1);
+        if (token_type == .NumericLiteral and i < self.source.len) {
+            const cur = std.ascii.toLower(self.source[i]);
+            if (cur == 'e' and i + 1 < self.source.len) {
+                const next = self.source[i + 1];
                 if (std.ascii.isDigit(next) or
                     ((next == '+' or next == '-') and
-                        !self.isEofWithOffset(2) and
-                        std.ascii.isDigit(self.peekAhead(2))))
+                        i + 2 < self.source.len and
+                        std.ascii.isDigit(self.source[i + 2])))
                 {
-                    self.advanceBy(1);
-                    if (self.currentChar() == '+' or self.currentChar() == '-') {
-                        self.advanceBy(1);
+                    i += 1;
+                    if (self.source[i] == '+' or self.source[i] == '-') {
+                        i += 1;
                     }
-                    self.consumeWhile(std.ascii.isDigit);
+                    while (i < self.source.len and std.ascii.isDigit(self.source[i])) {
+                        i += 1;
+                    }
                 }
             }
         }
 
-        if (self.currentChar() == '_') {
-            while (!self.isEof()) {
-                const current_char = self.currentChar();
-                const next_char = self.peekAhead(1);
+        if (i < self.source.len and self.source[i] == '_') {
+            while (i < self.source.len) {
+                const current_char = self.source[i];
+                const next_char = if (i + 1 < self.source.len) self.source[i + 1] else 0;
 
                 const char_to_check = if (current_char == '_') next_char else current_char;
 
                 if ((std.ascii.isDigit(char_to_check) or (token_type == .HexLiteral and std.ascii.isAlphabetic(char_to_check))) and char_to_check != 'n') {
-                    self.advanceBy(1);
+                    i += 1;
                 } else {
                     break;
                 }
             }
         }
 
-        if (self.currentChar() == 'n') {
-            self.advanceBy(1);
+        if (i < self.source.len and self.source[i] == 'n') {
+            i += 1;
             token_type = .BigIntLiteral;
         }
 
-        const end = self.position;
-        return self.createToken(token_type, self.source[start..end], start, end);
+        self.position = i;
+        return self.createToken(token_type, self.source[start..i], start, i);
     }
 
     fn consumeWhileOctal(self: *Lexer) void {
-        while (!self.isEof()) {
-            const c = self.currentChar();
+        var i = self.position;
+        while (i < self.source.len) {
+            const c = self.source[i];
             if (c >= '0' and c <= '7') {
-                self.advanceBy(1);
+                i += 1;
             } else {
                 break;
             }
         }
+        self.position = i;
     }
 
     fn consumeWhileBinary(self: *Lexer) void {
-        while (!self.isEof()) {
-            const c = self.currentChar();
+        var i = self.position;
+        while (i < self.source.len) {
+            const c = self.source[i];
             if (c == '0' or c == '1') {
-                self.advanceBy(1);
+                i += 1;
             } else {
                 break;
             }
         }
+        self.position = i;
     }
 
     fn skipSkippable(self: *Lexer) void {
-        while (!self.isEof()) {
-            const current_char = self.currentChar();
-            switch (current_char) {
-                ' ', '\t', '\r', '\n' => self.advanceBy(1),
+        var i = self.position;
+
+        while (i < self.source.len) {
+            const c = self.source[i];
+            switch (c) {
+                ' ', '\t', '\r', '\n' => {
+                    @branchHint(.likely);
+                    i += 1;
+                },
                 '/' => {
-                    const next = self.peekAhead(1);
+                    @branchHint(.likely);
+                    if (i + 1 >= self.source.len) break;
+                    const next = self.source[i + 1];
                     if (next == '/') {
+                        self.position = i;
                         self.skipSingleLineComment() catch return;
+                        i = self.position;
                     } else if (next == '*') {
+                        self.position = i;
                         self.skipMultiLineComment() catch return;
+                        i = self.position;
                     } else {
                         break;
                     }
                 },
-                else => break,
+                else => {
+                    @branchHint(.likely);
+                    break;
+                },
             }
         }
+
+        self.position = i;
     }
 
     fn skipSingleLineComment(self: *Lexer) !void {
         const start = self.position;
-        self.advanceBy(2); // skip //
+        var i = start + 2;
 
-        while (!self.isEof()) {
-            const c = self.currentChar();
+        while (i < self.source.len) {
+            const c = self.source[i];
             if (c == '\n' or c == '\r') {
                 break;
             }
-            self.advanceBy(1);
+            i += 1;
         }
 
-        const end = self.position;
+        self.position = i;
         try self.comments.append(Comment{
             .type = .SingleLine,
-            .content = self.source[start..end],
-            .span = .{ .start = start, .end = end },
+            .content = self.source[start..i],
+            .span = .{ .start = start, .end = i },
         });
     }
 
     fn skipMultiLineComment(self: *Lexer) !void {
         const start = self.position;
-        self.advanceBy(2); // skip /*
+        var i = start + 2;
 
-        while (!self.isEof()) {
-            const c = self.currentChar();
-            if (c == '*' and self.peekAhead(1) == '/') {
-                self.advanceBy(2); // skip */
-                const end = self.position;
+        while (i < self.source.len) {
+            const c = self.source[i];
+            if (c == '*' and i + 1 < self.source.len and self.source[i + 1] == '/') {
+                i += 2;
+                self.position = i;
                 try self.comments.append(Comment{
                     .type = .MultiLine,
-                    .content = self.source[start..end],
-                    .span = .{ .start = start, .end = end },
+                    .content = self.source[start..i],
+                    .span = .{ .start = start, .end = i },
                 });
                 return;
             }
-            self.advanceBy(1);
+            i += 1;
         }
 
         return error.UnterminatedMultiLineComment;
@@ -820,9 +865,8 @@ pub const Lexer = struct {
 
     fn consumeSingleCharToken(self: *Lexer, comptime token_type: TokenType) Token {
         const start = self.position;
-        self.advanceBy(1);
-        const lexeme = self.source[start..self.position];
-        return self.createToken(token_type, lexeme, start, self.position);
+        self.position += 1;
+        return self.createToken(token_type, self.source[start..self.position], start, self.position);
     }
 
     fn consumeMultiCharToken(self: *Lexer, comptime token_type: TokenType, comptime length: u8) Token {
@@ -856,9 +900,11 @@ pub const Lexer = struct {
     }
 
     fn consumeWhile(self: *Lexer, comptime predicate: fn (u8) bool) void {
-        while (!self.isEof() and predicate(self.currentChar())) {
-            self.advanceBy(1);
+        var i = self.position;
+        while (i < self.source.len and predicate(self.source[i])) {
+            i += 1;
         }
+        self.position = i;
     }
 
     fn isEof(self: *Lexer) bool {
