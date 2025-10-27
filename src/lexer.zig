@@ -780,7 +780,7 @@ pub const Lexer = struct {
                 }
             }
         } else {
-            while (i < self.source.len and std.ascii.isDigit(self.source[i])) {
+            while (i < self.source_len and std.ascii.isDigit(self.source[i])) {
                 i += 1;
             }
         }
@@ -790,7 +790,7 @@ pub const Lexer = struct {
             std.ascii.isDigit(self.source[i + 1]))
         {
             i += 1;
-            while (i < self.source.len and std.ascii.isDigit(self.source[i])) {
+            while (i < self.source_len and std.ascii.isDigit(self.source[i])) {
                 i += 1;
             }
         }
