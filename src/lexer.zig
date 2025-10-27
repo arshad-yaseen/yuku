@@ -24,6 +24,8 @@ const LexError = error{
 // handle some strict mode rules, like octal escapes https://claude.ai/chat/ce282993-8223-4759-bd38-f3ef2cbc57b5
 // and some simd optimizations
 
+const PADDING_SIZE = 4; // four safe lookaheads
+
 pub const Lexer = struct {
     source: []u8,
     source_len: usize,
@@ -32,7 +34,6 @@ pub const Lexer = struct {
     allocator: std.mem.Allocator,
     comments: std.ArrayListUnmanaged(Comment),
 
-    const PADDING_SIZE = 4;
 
     pub fn init(allocator: std.mem.Allocator, source: []const u8) !Lexer {
         const padded_buffer = try allocator.alloc(u8, source.len + PADDING_SIZE);
@@ -349,7 +350,7 @@ pub const Lexer = struct {
         const quote = self.source[start];
         var i = start + 1;
 
-        while (i < self.source.len) {
+        while (i < self.source_len) {
             const c = self.source[i];
 
             if (c < 128) {
@@ -396,7 +397,7 @@ pub const Lexer = struct {
         const start = self.position;
         var i = start + 1;
 
-        while (i < self.source.len) {
+        while (i < self.source_len) {
             const c = self.source[i];
 
             if (c == '`') {
@@ -430,7 +431,7 @@ pub const Lexer = struct {
         const start = self.position;
         var i = start + 1;
 
-        while (i < self.source.len) {
+        while (i < self.source_len) {
             const c = self.source[i];
 
             if (c == '`') {
@@ -484,12 +485,12 @@ pub const Lexer = struct {
 
         var in_class = false;
 
-        while (self.position < self.source.len) {
+        while (self.position < self.source_len) {
             const c = self.source[self.position];
 
             if (c == '\\') {
                 self.position += 1; // skip backslash
-                if (self.position < self.source.len) {
+                if (self.position < self.source_len) {
                     self.position += 1; // skip escaped char
                 }
                 continue;
@@ -510,7 +511,7 @@ pub const Lexer = struct {
             if (c == '/' and !in_class) {
                 self.position += 1;
 
-                while (self.position < self.source.len and
+                while (self.position < self.source_len and
                     std.ascii.isAlphabetic(self.source[self.position]))
                 {
                     self.position += 1;
@@ -552,7 +553,7 @@ pub const Lexer = struct {
         const start = self.position;
         var i = start + 1;
 
-        while (i < self.source.len) {
+        while (i < self.source_len) {
             const c = self.source[i];
             if (c < 128) {
                 @branchHint(.likely);
@@ -578,7 +579,7 @@ pub const Lexer = struct {
         const start = self.position;
         var i = start + 1;
 
-        if (i >= self.source.len) {
+        if (i >= self.source_len) {
             return error.IncompletePrivateIdentifier;
         }
 
@@ -589,7 +590,7 @@ pub const Lexer = struct {
 
         i += 1;
 
-        while (i < self.source.len) {
+        while (i < self.source_len) {
             const c = self.source[i];
             if (std.ascii.isAlphanumeric(c) or c == '_' or c == '$') {
                 i += 1;
@@ -758,23 +759,23 @@ pub const Lexer = struct {
             if (next == 'x') {
                 token_type = .HexLiteral;
                 i += 2;
-                while (i < self.source.len and std.ascii.isHex(self.source[i])) {
+                while (i < self.source_len and std.ascii.isHex(self.source[i])) {
                     i += 1;
                 }
             } else if (next == 'o') {
                 token_type = .OctalLiteral;
                 i += 2;
-                while (i < self.source.len and self.source[i] >= '0' and self.source[i] <= '7') {
+                while (i < self.source_len and self.source[i] >= '0' and self.source[i] <= '7') {
                     i += 1;
                 }
             } else if (next == 'b') {
                 token_type = .BinaryLiteral;
                 i += 2;
-                while (i < self.source.len and (self.source[i] == '0' or self.source[i] == '1')) {
+                while (i < self.source_len and (self.source[i] == '0' or self.source[i] == '1')) {
                     i += 1;
                 }
             } else {
-                while (i < self.source.len and std.ascii.isDigit(self.source[i])) {
+                while (i < self.source_len and std.ascii.isDigit(self.source[i])) {
                     i += 1;
                 }
             }
@@ -785,7 +786,7 @@ pub const Lexer = struct {
         }
 
         if (token_type == .NumericLiteral and
-            i < self.source.len and self.source[i] == '.' and
+            i < self.source_len and self.source[i] == '.' and
             std.ascii.isDigit(self.source[i + 1]))
         {
             i += 1;
@@ -794,7 +795,7 @@ pub const Lexer = struct {
             }
         }
 
-        if (token_type == .NumericLiteral and i < self.source.len) {
+        if (token_type == .NumericLiteral and i < self.source_len) {
             const cur = std.ascii.toLower(self.source[i]);
             if (cur == 'e') {
                 const next = self.source[i + 1];
@@ -806,15 +807,15 @@ pub const Lexer = struct {
                     if (self.source[i] == '+' or self.source[i] == '-') {
                         i += 1;
                     }
-                    while (i < self.source.len and std.ascii.isDigit(self.source[i])) {
+                    while (i < self.source_len and std.ascii.isDigit(self.source[i])) {
                         i += 1;
                     }
                 }
             }
         }
 
-        if (i < self.source.len and self.source[i] == '_') {
-            while (i < self.source.len) {
+        if (i < self.source_len and self.source[i] == '_') {
+            while (i < self.source_len) {
                 const current_char = self.source[i];
                 const next_char = self.source[i + 1];
 
@@ -828,7 +829,7 @@ pub const Lexer = struct {
             }
         }
 
-        if (i < self.source.len and self.source[i] == 'n') {
+        if (i < self.source_len and self.source[i] == 'n') {
             i += 1;
             token_type = .BigIntLiteral;
         }
@@ -840,7 +841,7 @@ pub const Lexer = struct {
     fn skipSkippable(self: *Lexer) void {
         var i = self.position;
 
-        while (i < self.source.len) {
+        while (i < self.source_len) {
             const c = self.source[i];
             switch (c) {
                 ' ', '\t', '\r', '\n' => {
@@ -877,7 +878,7 @@ pub const Lexer = struct {
         const start = self.position;
         var i = start + 2;
 
-        while (i < self.source.len) {
+        while (i < self.source_len) {
             const c = self.source[i];
             if (c == '\n' or c == '\r') {
                 break;
@@ -897,7 +898,7 @@ pub const Lexer = struct {
         const start = self.position;
         var i = start + 2;
 
-        while (i < self.source.len) {
+        while (i < self.source_len) {
             const c = self.source[i];
             if (c == '*' and self.source[i + 1] == '/') {
                 i += 2;
