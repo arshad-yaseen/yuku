@@ -49,367 +49,275 @@ pub const Lexer = struct {
         const current_char = self.source[self.position];
 
         return switch (current_char) {
-            '+' => self.scanPlus(),
-            '*' => self.scanStar(),
-            '-' => self.scanMinus(),
+            '+', '*', '-', '!', '<', '>', '=', '|', '&', '^', '%', '/', '?' => self.scanPunctuation(),
             '.' => self.scanDot(),
-            '!' => self.scanExclamation(),
-            '<' => self.scanLessThan(),
-            '>' => self.scanGreaterThan(),
-            '=' => self.scanAssignOrEqualOrArrow(),
-            '|' => self.scanOr(),
-            '&' => self.scanAnd(),
-            '^' => self.scanCaret(),
-            '%' => self.scanPercent(),
             '0'...'9' => self.scanNumber(),
             '"', '\'' => self.scanString(),
-            '/' => self.scanSlash(),
-            '?' => self.scanQuestionMark(),
             '`' => self.scanTemplateLiteral(),
-            '~' => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.BitwiseNot, self.source[start..self.position], start, self.position);
-            },
-            '(' => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.LeftParen, self.source[start..self.position], start, self.position);
-            },
-            ')' => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.RightParen, self.source[start..self.position], start, self.position);
-            },
-            '{' => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.LeftBrace, self.source[start..self.position], start, self.position);
-            },
+            '~', '(', ')', '{', '[', ']', ';', ',', ':' => self.scanSimplePunctuation(),
             '}' => self.handleRightBrace(),
-            '[' => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.LeftBracket, self.source[start..self.position], start, self.position);
-            },
-            ']' => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.RightBracket, self.source[start..self.position], start, self.position);
-            },
-            ';' => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.Semicolon, self.source[start..self.position], start, self.position);
-            },
-            ',' => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.Comma, self.source[start..self.position], start, self.position);
-            },
-            ':' => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.Colon, self.source[start..self.position], start, self.position);
-            },
             '#' => self.scanPrivateIdentifier(),
             'a'...'z', 'A'...'Z', '_', '$' => self.scanIdentifierOrKeyword(),
             else => error.UnexpectedCharacter,
         };
     }
 
-    fn scanQuestionMark(self: *Lexer) Token {
-        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
-        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
+    inline fn scanSimplePunctuation(self: *Lexer) Token {
+        const start = self.position;
+        const c = self.source[self.position];
+        self.position += 1;
 
-        if (next_1 == '?' and next_2 == '=') {
-            const start = self.position;
-            self.position += 3;
-            return self.createToken(.NullishAssign, self.source[start..self.position], start, self.position);
-        }
-
-        return switch (next_1) {
-            '?' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.NullishCoalescing, self.source[start..self.position], start, self.position);
-            },
-            '.' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.OptionalChaining, self.source[start..self.position], start, self.position);
-            },
-            else => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.Question, self.source[start..self.position], start, self.position);
-            },
+        const token_type: TokenType = switch (c) {
+            '~' => .BitwiseNot,
+            '(' => .LeftParen,
+            ')' => .RightParen,
+            '{' => .LeftBrace,
+            '[' => .LeftBracket,
+            ']' => .RightBracket,
+            ';' => .Semicolon,
+            ',' => .Comma,
+            ':' => .Colon,
+            else => unreachable,
         };
+
+        return self.createToken(token_type, self.source[start..self.position], start, self.position);
     }
 
-    fn scanCaret(self: *Lexer) Token {
-        const next_char = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
+    fn scanPunctuation(self: *Lexer) LexError!Token {
+        const start = self.position;
+        const c0 = self.source[self.position];
+        const c1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
+        const c2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
+        const c3 = if (self.position + 3 < self.source.len) self.source[self.position + 3] else 0;
 
-        return switch (next_char) {
-            '=' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.BitwiseXorAssign, self.source[start..self.position], start, self.position);
+        return switch (c0) {
+            '+' => switch (c1) {
+                '+' => blk: {
+                    self.position += 2;
+                    break :blk self.createToken(.Increment, self.source[start..self.position], start, self.position);
+                },
+                '=' => blk: {
+                    self.position += 2;
+                    break :blk self.createToken(.PlusAssign, self.source[start..self.position], start, self.position);
+                },
+                else => blk: {
+                    self.position += 1;
+                    break :blk self.createToken(.Plus, self.source[start..self.position], start, self.position);
+                },
             },
-            else => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.BitwiseXor, self.source[start..self.position], start, self.position);
+            '-' => switch (c1) {
+                '-' => blk: {
+                    self.position += 2;
+                    break :blk self.createToken(.Decrement, self.source[start..self.position], start, self.position);
+                },
+                '=' => blk: {
+                    self.position += 2;
+                    break :blk self.createToken(.MinusAssign, self.source[start..self.position], start, self.position);
+                },
+                else => blk: {
+                    self.position += 1;
+                    break :blk self.createToken(.Minus, self.source[start..self.position], start, self.position);
+                },
             },
-        };
-    }
-
-    fn scanOr(self: *Lexer) Token {
-        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
-        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
-
-        if (next_1 == '|' and next_2 == '=') {
-            const start = self.position;
-            self.position += 3;
-            return self.createToken(.LogicalOrAssign, self.source[start..self.position], start, self.position);
-        }
-
-        return switch (next_1) {
-            '|' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.LogicalOr, self.source[start..self.position], start, self.position);
-            },
-            '=' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.BitwiseOrAssign, self.source[start..self.position], start, self.position);
-            },
-            else => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.BitwiseOr, self.source[start..self.position], start, self.position);
-            },
-        };
-    }
-
-    fn scanAnd(self: *Lexer) Token {
-        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
-        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
-
-        if (next_1 == '&' and next_2 == '=') {
-            const start = self.position;
-            self.position += 3;
-            return self.createToken(.LogicalAndAssign, self.source[start..self.position], start, self.position);
-        }
-
-        return switch (next_1) {
-            '&' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.LogicalAnd, self.source[start..self.position], start, self.position);
-            },
-            '=' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.BitwiseAndAssign, self.source[start..self.position], start, self.position);
-            },
-            else => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.BitwiseAnd, self.source[start..self.position], start, self.position);
-            },
-        };
-    }
-
-    fn scanGreaterThan(self: *Lexer) Token {
-        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
-        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
-        const next_3 = if (self.position + 3 < self.source.len) self.source[self.position + 3] else 0;
-
-        if (next_1 == '>' and next_2 == '=') {
-            const start = self.position;
-            self.position += 3;
-            return self.createToken(.RightShiftAssign, self.source[start..self.position], start, self.position);
-        }
-
-        if (next_1 == '>' and next_2 == '>') {
-            const start = self.position;
-            if (next_3 == '=') {
-                self.position += 4;
-                return self.createToken(.UnsignedRightShiftAssign, self.source[start..self.position], start, self.position);
-            } else {
-                self.position += 3;
-                return self.createToken(.UnsignedRightShift, self.source[start..self.position], start, self.position);
-            }
-        }
-
-        return switch (next_1) {
-            '>' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.RightShift, self.source[start..self.position], start, self.position);
-            },
-            '=' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.GreaterThanEqual, self.source[start..self.position], start, self.position);
-            },
-            else => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.GreaterThan, self.source[start..self.position], start, self.position);
-            },
-        };
-    }
-
-    fn scanLessThan(self: *Lexer) Token {
-        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
-        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
-
-        if (next_1 == '<' and next_2 == '=') {
-            const start = self.position;
-            self.position += 3;
-            return self.createToken(.LeftShiftAssign, self.source[start..self.position], start, self.position);
-        }
-
-        return switch (next_1) {
-            '<' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.LeftShift, self.source[start..self.position], start, self.position);
-            },
-            '=' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.LessThanEqual, self.source[start..self.position], start, self.position);
-            },
-            else => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.LessThan, self.source[start..self.position], start, self.position);
-            },
-        };
-    }
-
-    fn scanExclamation(self: *Lexer) Token {
-        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
-        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
-
-        if (next_1 == '=' and next_2 == '=') {
-            const start = self.position;
-            self.position += 3;
-            return self.createToken(.StrictNotEqual, self.source[start..self.position], start, self.position);
-        }
-
-        return switch (next_1) {
-            '=' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.NotEqual, self.source[start..self.position], start, self.position);
-            },
-            else => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.LogicalNot, self.source[start..self.position], start, self.position);
-            },
-        };
-    }
-
-    fn scanAssignOrEqualOrArrow(self: *Lexer) Token {
-        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
-        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
-
-        if (next_1 == '=' and next_2 == '=') {
-            const start = self.position;
-            self.position += 3;
-            return self.createToken(.StrictEqual, self.source[start..self.position], start, self.position);
-        }
-
-        return switch (next_1) {
-            '=' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.Equal, self.source[start..self.position], start, self.position);
-            },
-            '>' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.Arrow, self.source[start..self.position], start, self.position);
-            },
-            else => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.Assign, self.source[start..self.position], start, self.position);
-            },
-        };
-    }
-
-    fn scanMinus(self: *Lexer) Token {
-        const next_char = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
-
-        return switch (next_char) {
-            '-' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.Decrement, self.source[start..self.position], start, self.position);
-            },
-            '=' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.MinusAssign, self.source[start..self.position], start, self.position);
-            },
-            else => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.Minus, self.source[start..self.position], start, self.position);
-            },
-        };
-    }
-
-    fn scanPercent(self: *Lexer) Token {
-        const next_char = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
-
-        return switch (next_char) {
-            '=' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.PercentAssign, self.source[start..self.position], start, self.position);
-            },
-            else => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.Percent, self.source[start..self.position], start, self.position);
-            },
-        };
-    }
-
-    fn scanStar(self: *Lexer) Token {
-        const next_1 = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
-        const next_2 = if (self.position + 2 < self.source.len) self.source[self.position + 2] else 0;
-
-        if (next_1 == '*' and next_2 == '=') {
-            const start = self.position;
-            self.position += 3;
-            return self.createToken(.ExponentAssign, self.source[start..self.position], start, self.position);
-        }
-
-        return switch (next_1) {
             '*' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.Exponent, self.source[start..self.position], start, self.position);
+                if (c1 == '*' and c2 == '=') {
+                    self.position += 3;
+                    break :blk self.createToken(.ExponentAssign, self.source[start..self.position], start, self.position);
+                }
+                break :blk switch (c1) {
+                    '*' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.Exponent, self.source[start..self.position], start, self.position);
+                    },
+                    '=' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.StarAssign, self.source[start..self.position], start, self.position);
+                    },
+                    else => blk2: {
+                        self.position += 1;
+                        break :blk2 self.createToken(.Star, self.source[start..self.position], start, self.position);
+                    },
+                };
+            },
+            '/' => blk: {
+                if (c1 == '=') {
+                    self.position += 2;
+                    break :blk self.createToken(.SlashAssign, self.source[start..self.position], start, self.position);
+                }
+                self.position += 1;
+                const slash = self.createToken(.Slash, self.source[start..self.position], start, self.position);
+                const token = self.reScanAsRegex(slash);
+                if (@TypeOf(token) == Token) {
+                    break :blk token;
+                }
+                break :blk slash;
+            },
+            '%' => switch (c1) {
+                '=' => blk: {
+                    self.position += 2;
+                    break :blk self.createToken(.PercentAssign, self.source[start..self.position], start, self.position);
+                },
+                else => blk: {
+                    self.position += 1;
+                    break :blk self.createToken(.Percent, self.source[start..self.position], start, self.position);
+                },
+            },
+            '<' => blk: {
+                if (c1 == '<' and c2 == '=') {
+                    self.position += 3;
+                    break :blk self.createToken(.LeftShiftAssign, self.source[start..self.position], start, self.position);
+                }
+                break :blk switch (c1) {
+                    '<' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.LeftShift, self.source[start..self.position], start, self.position);
+                    },
+                    '=' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.LessThanEqual, self.source[start..self.position], start, self.position);
+                    },
+                    else => blk2: {
+                        self.position += 1;
+                        break :blk2 self.createToken(.LessThan, self.source[start..self.position], start, self.position);
+                    },
+                };
+            },
+            '>' => blk: {
+                if (c1 == '>' and c2 == '=') {
+                    self.position += 3;
+                    break :blk self.createToken(.RightShiftAssign, self.source[start..self.position], start, self.position);
+                }
+                if (c1 == '>' and c2 == '>') {
+                    if (c3 == '=') {
+                        self.position += 4;
+                        break :blk self.createToken(.UnsignedRightShiftAssign, self.source[start..self.position], start, self.position);
+                    } else {
+                        self.position += 3;
+                        break :blk self.createToken(.UnsignedRightShift, self.source[start..self.position], start, self.position);
+                    }
+                }
+                break :blk switch (c1) {
+                    '>' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.RightShift, self.source[start..self.position], start, self.position);
+                    },
+                    '=' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.GreaterThanEqual, self.source[start..self.position], start, self.position);
+                    },
+                    else => blk2: {
+                        self.position += 1;
+                        break :blk2 self.createToken(.GreaterThan, self.source[start..self.position], start, self.position);
+                    },
+                };
             },
             '=' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.StarAssign, self.source[start..self.position], start, self.position);
+                if (c1 == '=' and c2 == '=') {
+                    self.position += 3;
+                    break :blk self.createToken(.StrictEqual, self.source[start..self.position], start, self.position);
+                }
+                break :blk switch (c1) {
+                    '=' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.Equal, self.source[start..self.position], start, self.position);
+                    },
+                    '>' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.Arrow, self.source[start..self.position], start, self.position);
+                    },
+                    else => blk2: {
+                        self.position += 1;
+                        break :blk2 self.createToken(.Assign, self.source[start..self.position], start, self.position);
+                    },
+                };
             },
-            else => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.Star, self.source[start..self.position], start, self.position);
+            '!' => blk: {
+                if (c1 == '=' and c2 == '=') {
+                    self.position += 3;
+                    break :blk self.createToken(.StrictNotEqual, self.source[start..self.position], start, self.position);
+                }
+                break :blk switch (c1) {
+                    '=' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.NotEqual, self.source[start..self.position], start, self.position);
+                    },
+                    else => blk2: {
+                        self.position += 1;
+                        break :blk2 self.createToken(.LogicalNot, self.source[start..self.position], start, self.position);
+                    },
+                };
             },
+            '&' => blk: {
+                if (c1 == '&' and c2 == '=') {
+                    self.position += 3;
+                    break :blk self.createToken(.LogicalAndAssign, self.source[start..self.position], start, self.position);
+                }
+                break :blk switch (c1) {
+                    '&' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.LogicalAnd, self.source[start..self.position], start, self.position);
+                    },
+                    '=' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.BitwiseAndAssign, self.source[start..self.position], start, self.position);
+                    },
+                    else => blk2: {
+                        self.position += 1;
+                        break :blk2 self.createToken(.BitwiseAnd, self.source[start..self.position], start, self.position);
+                    },
+                };
+            },
+            '|' => blk: {
+                if (c1 == '|' and c2 == '=') {
+                    self.position += 3;
+                    break :blk self.createToken(.LogicalOrAssign, self.source[start..self.position], start, self.position);
+                }
+                break :blk switch (c1) {
+                    '|' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.LogicalOr, self.source[start..self.position], start, self.position);
+                    },
+                    '=' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.BitwiseOrAssign, self.source[start..self.position], start, self.position);
+                    },
+                    else => blk2: {
+                        self.position += 1;
+                        break :blk2 self.createToken(.BitwiseOr, self.source[start..self.position], start, self.position);
+                    },
+                };
+            },
+            '^' => switch (c1) {
+                '=' => blk: {
+                    self.position += 2;
+                    break :blk self.createToken(.BitwiseXorAssign, self.source[start..self.position], start, self.position);
+                },
+                else => blk: {
+                    self.position += 1;
+                    break :blk self.createToken(.BitwiseXor, self.source[start..self.position], start, self.position);
+                },
+            },
+            '?' => blk: {
+                if (c1 == '?' and c2 == '=') {
+                    self.position += 3;
+                    break :blk self.createToken(.NullishAssign, self.source[start..self.position], start, self.position);
+                }
+                break :blk switch (c1) {
+                    '?' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.NullishCoalescing, self.source[start..self.position], start, self.position);
+                    },
+                    '.' => blk2: {
+                        self.position += 2;
+                        break :blk2 self.createToken(.OptionalChaining, self.source[start..self.position], start, self.position);
+                    },
+                    else => blk2: {
+                        self.position += 1;
+                        break :blk2 self.createToken(.Question, self.source[start..self.position], start, self.position);
+                    },
+                };
+            },
+            else => unreachable,
         };
     }
 
@@ -542,27 +450,6 @@ pub const Lexer = struct {
         return self.createToken(.RightBrace, self.source[start..self.position], start, self.position);
     }
 
-    fn scanSlash(self: *Lexer) Token {
-        const next = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
-
-        if (next == '=') {
-            const start = self.position;
-            self.position += 2;
-            return self.createToken(.SlashAssign, self.source[start..self.position], start, self.position);
-        }
-
-        const start = self.position;
-        self.position += 1;
-        const slash = self.createToken(.Slash, self.source[start..self.position], start, self.position);
-        const token = self.reScanAsRegex(slash);
-
-        if(@TypeOf(token) == Token){
-            return token;
-        }
-
-        return slash;
-    }
-
     pub fn reScanAsRegex(self: *Lexer, slash_token: Token) LexError!Token {
         self.position = slash_token.span.start;
 
@@ -602,16 +489,12 @@ pub const Lexer = struct {
                 self.position += 1;
 
                 while (self.position < self.source.len and
-                       std.ascii.isAlphabetic(self.source[self.position])) {
+                    std.ascii.isAlphabetic(self.source[self.position]))
+                {
                     self.position += 1;
                 }
 
-                return self.createToken(
-                    .RegexLiteral,
-                    self.source[start..self.position],
-                    start,
-                    self.position
-                );
+                return self.createToken(.RegexLiteral, self.source[start..self.position], start, self.position);
             }
 
             if (c == '\n' or c == '\r') {
@@ -641,28 +524,6 @@ pub const Lexer = struct {
         const start = self.position;
         self.position += 1;
         return self.createToken(.Dot, self.source[start..self.position], start, self.position);
-    }
-
-    fn scanPlus(self: *Lexer) Token {
-        const next_char = if (self.position + 1 < self.source.len) self.source[self.position + 1] else 0;
-
-        return switch (next_char) {
-            '+' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.Increment, self.source[start..self.position], start, self.position);
-            },
-            '=' => blk: {
-                const start = self.position;
-                self.position += 2;
-                break :blk self.createToken(.PlusAssign, self.source[start..self.position], start, self.position);
-            },
-            else => blk: {
-                const start = self.position;
-                self.position += 1;
-                break :blk self.createToken(.Plus, self.source[start..self.position], start, self.position);
-            },
-        };
     }
 
     fn scanIdentifierOrKeyword(self: *Lexer) Token {
@@ -1035,10 +896,6 @@ pub const Lexer = struct {
 
     inline fn createToken(self: *Lexer, token_type: TokenType, lexeme: []const u8, start: usize, end: usize) Token {
         _ = self;
-        return Token{
-            .type = token_type,
-            .lexeme = lexeme,
-            .span = .{ .start = start, .end = end }
-        };
+        return Token{ .type = token_type, .lexeme = lexeme, .span = .{ .start = start, .end = end } };
     }
 };
