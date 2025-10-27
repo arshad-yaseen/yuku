@@ -34,7 +34,6 @@ pub const Lexer = struct {
     allocator: std.mem.Allocator,
     comments: std.ArrayListUnmanaged(Comment),
 
-
     pub fn init(allocator: std.mem.Allocator, source: []const u8) !Lexer {
         const padded_buffer = try allocator.alloc(u8, source.len + PADDING_SIZE);
 
@@ -364,11 +363,11 @@ pub const Lexer = struct {
 
                 if (c == '\\') {
                     i += 1;
-                    const next = self.source[i];
-                    if (next == 0) break;
-                    if (next == '\n') {
+                    const c1 = self.source[i];
+                    if (c1 == 0) break;
+                    if (c1 == '\n') {
                         i += 1;
-                    } else if (next == '\r') {
+                    } else if (c1 == '\r') {
                         i += 1;
                         if (self.source[i] == '\n') {
                             i += 1;
@@ -531,14 +530,14 @@ pub const Lexer = struct {
     }
 
     fn scanDot(self: *Lexer) Token {
-        const next1 = self.source[self.position + 1];
-        const next2 = self.source[self.position + 2];
+        const c1 = self.source[self.position + 1];
+        const c2 = self.source[self.position + 2];
 
-        if (std.ascii.isDigit(next1)) {
+        if (std.ascii.isDigit(c1)) {
             return self.scanNumber();
         }
 
-        if (next1 == '.' and next2 == '.') {
+        if (c1 == '.' and c2 == '.') {
             const start = self.position;
             self.position += 3;
             return self.createToken(.Spread, self.source[start..self.position], start, self.position);
@@ -755,20 +754,20 @@ pub const Lexer = struct {
         var i = self.position;
 
         if (self.source[i] == '0') {
-            const next = std.ascii.toLower(self.source[i + 1]);
-            if (next == 'x') {
+            const c1 = std.ascii.toLower(self.source[i + 1]);
+            if (c1 == 'x') {
                 token_type = .HexLiteral;
                 i += 2;
                 while (i < self.source_len and std.ascii.isHex(self.source[i])) {
                     i += 1;
                 }
-            } else if (next == 'o') {
+            } else if (c1 == 'o') {
                 token_type = .OctalLiteral;
                 i += 2;
                 while (i < self.source_len and self.source[i] >= '0' and self.source[i] <= '7') {
                     i += 1;
                 }
-            } else if (next == 'b') {
+            } else if (c1 == 'b') {
                 token_type = .BinaryLiteral;
                 i += 2;
                 while (i < self.source_len and (self.source[i] == '0' or self.source[i] == '1')) {
@@ -796,11 +795,11 @@ pub const Lexer = struct {
         }
 
         if (token_type == .NumericLiteral and i < self.source_len) {
-            const cur = std.ascii.toLower(self.source[i]);
-            if (cur == 'e') {
-                const next = self.source[i + 1];
-                if (std.ascii.isDigit(next) or
-                    ((next == '+' or next == '-') and
+            const c0 = std.ascii.toLower(self.source[i]);
+            if (c0 == 'e') {
+                const c1 = self.source[i + 1];
+                if (std.ascii.isDigit(c1) or
+                    ((c1 == '+' or c1 == '-') and
                         std.ascii.isDigit(self.source[i + 2])))
                 {
                     i += 1;
@@ -816,10 +815,10 @@ pub const Lexer = struct {
 
         if (i < self.source_len and self.source[i] == '_') {
             while (i < self.source_len) {
-                const current_char = self.source[i];
-                const next_char = self.source[i + 1];
+                const c0 = self.source[i];
+                const c1 = self.source[i + 1];
 
-                const char_to_check = if (current_char == '_') next_char else current_char;
+                const char_to_check = if (c0 == '_') c1 else c0;
 
                 if ((std.ascii.isDigit(char_to_check) or (token_type == .HexLiteral and std.ascii.isAlphabetic(char_to_check))) and char_to_check != 'n') {
                     i += 1;
@@ -850,13 +849,13 @@ pub const Lexer = struct {
                 },
                 '/' => {
                     @branchHint(.likely);
-                    const next = self.source[i + 1];
-                    if (next == 0) break;
-                    if (next == '/') {
+                    const c1 = self.source[i + 1];
+                    if (c1 == 0) break;
+                    if (c1 == '/') {
                         self.position = i;
                         self.skipSingleLineComment() catch return;
                         i = self.position;
-                    } else if (next == '*') {
+                    } else if (c1 == '*') {
                         self.position = i;
                         self.skipMultiLineComment() catch return;
                         i = self.position;

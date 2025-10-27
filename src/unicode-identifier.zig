@@ -1,7 +1,3 @@
-pub fn canStartIdentifier() bool {
+pub fn canStartIdentifier() bool {}
 
-}
-
-pub fn canContinueIdentifier() bool {
-
-}
+pub fn canContinueIdentifier() bool {}
