@@ -18,6 +18,12 @@ const LexError = error{
     UnterminatedMultiLineComment,
 };
 
+// NEXT:
+// handle unicodes in identifiers
+// different escapes in strings
+// handle some strict mode rules, like octal escapes
+// and some simd optimizations
+
 pub const Lexer = struct {
     source: []const u8,
     position: usize,
@@ -145,11 +151,17 @@ pub const Lexer = struct {
                     break :blk self.createToken(.SlashAssign, self.source[start..self.position], start, self.position);
                 }
                 self.position += 1;
+
                 const slash = self.createToken(.Slash, self.source[start..self.position], start, self.position);
+
+                // TODO: remove this, this is added now just for testing
+                // when starting parser, should remove this handle scanning regex from parser.
                 const token = self.reScanAsRegex(slash);
                 if (@TypeOf(token) == Token) {
                     break :blk token;
                 }
+                //
+
                 break :blk slash;
             },
             '%' => switch (c1) {
