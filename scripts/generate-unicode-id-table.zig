@@ -21,21 +21,37 @@ pub fn main() !void {
 
     var id_start_codes, var id_continue_codes = try readSpecToCodes(allocator);
 
-    defer id_start_codes.deinit(allocator);
-    defer id_continue_codes.deinit(allocator);
+    defer id_start_codes.deinit();
+    defer id_continue_codes.deinit();
 
-    std.debug.print("{d} {d}", .{id_start_codes.items.len, id_continue_codes.items.len});
+    try codesToRootAndLeaf(allocator, id_start_codes);
 }
 
-fn codesToRootAndLeaf(codes: Codes) !struct {
-    root: []u32,
-    leaf: []u64
-} {
-    const n_chunk_bits = 512;
+const Chunk = [16]u32;
+
+const init_chunk: Chunk = .{0} ** 16;
+
+fn codesToRootAndLeaf(allocator: std.mem.Allocator, codes: Codes) !void {
+    const n_piece_per_chunk = 16;
+    const n_bits_per_chunk_piece = 32;
+    const n_chunk_items = n_piece_per_chunk * n_bits_per_chunk_piece;
     const n_code_points = std.math.maxInt(u21) + 1;
 
-    while (n_code_points / n_chunk_bits) {
+    var root = std.AutoArrayHashMap(Chunk, void).init(allocator);
+    defer root.deinit();
 
+    for (0..(n_code_points / n_chunk_items)) |chunk_i| {
+        var chunk: Chunk = init_chunk;
+
+        for(0.., &chunk) |i, *piece| {
+            for(0..n_bits_per_chunk_piece) |bi| {
+                const cp: u32 = @intCast(chunk_i * n_chunk_items + i * n_bits_per_chunk_piece + bi);
+                const should: u32 = if(codes.contains(cp)) 1 else 0;
+                piece.* = piece.* | (should << @as(u5, @intCast(bi)));
+            }
+        }
+
+        try root.put(chunk, {});
     }
 }
 
@@ -50,8 +66,8 @@ fn readSpecToCodes(allocator: std.mem.Allocator) !struct {Codes, Codes} {
 
     const delim: u8 = '\n';
 
-    var id_start_codes: Codes = .empty;
-    var id_continue_codes: Codes = .empty;
+    var id_start_codes = Codes.init(allocator);
+    var id_continue_codes = Codes.init(allocator);
 
     var lines = std.mem.splitScalar(u8, content, delim);
 
@@ -66,9 +82,9 @@ fn readSpecToCodes(allocator: std.mem.Allocator) !struct {Codes, Codes} {
 
             for (parsed.start..parsed.end) |c| {
                 if(kind == .Start){
-                    try id_start_codes.append(allocator, @intCast(c));
+                    try id_start_codes.put(@intCast(c), {});
                 } else if(kind == .Continue){
-                    try id_continue_codes.append(allocator, @intCast(c));
+                    try id_continue_codes.put(@intCast(c), {});
                 } else {
                     break;
                 }
