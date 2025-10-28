@@ -4,7 +4,7 @@ const spec_url = "https://www.unicode.org/Public/17.0.0/ucd/UCD.zip";
 const zip_dest = "/tmp/ucd.zip";
 const extracted_dir = "/tmp/ucd";
 
-const Codes = std.AutoHashMapUnmanaged(u32, void);
+const Codes = std.AutoArrayHashMap(u32, void);
 
 const Kind = enum {
     Start,
