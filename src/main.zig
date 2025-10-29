@@ -7,14 +7,14 @@ pub fn main() !void {
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    const content = "const अंडा = 'nice';";
+    const content = "let عمر = 25;";
 
     var lexer = try Lexer.init(allocator, content);
     defer lexer.deinit();
 
     while (true) {
         const token = try lexer.nextToken();
-        std.debug.print("{any}", .{token});
+        std.debug.print("{s}", .{token.lexeme});
         if (token.type == .EOF) break;
     }
 }

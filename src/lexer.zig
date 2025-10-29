@@ -560,12 +560,12 @@ pub const Lexer = struct {
             return error.InvalidIdentifierStart;
         }
 
-        i += 1;
+        i += c_cp.len;
 
         while (i < self.source_len) {
             const cp = util.codePointAt(self.source, i);
             if (unicodeId.canContinueIdentifier(cp.value)) {
-                i += 1;
+                i += cp.len;
             } else {
                 break;
             }
@@ -589,12 +589,12 @@ pub const Lexer = struct {
             return error.InvalidPrivateIdentifierStart;
         }
 
-        i += 1;
+        i += first_cp.len;
 
         while (i < self.source_len) {
             const cp = util.codePointAt(self.source, i);
             if (unicodeId.canContinueIdentifier(cp.value)) {
-                i += 1;
+                i += cp.len;
             } else {
                 break;
             }
