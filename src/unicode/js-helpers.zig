@@ -1,3 +1,5 @@
+// the design is inspired by: https://github.com/dtolnay/unicode-ident
+
 const std = @import("std");
 const tables = @import("id-tables.zig");
 
