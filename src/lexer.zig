@@ -638,7 +638,7 @@ pub const Lexer = struct {
         var pos = i;
         while (pos < self.source_len) {
             const c = self.source[pos];
-            if (c < 128) {
+            if (std.ascii.isAscii(c)) {
                 @branchHint(.likely);
 
                 if (c == '\\') {
@@ -688,7 +688,7 @@ pub const Lexer = struct {
 
         const first_char = self.source[i];
 
-        if (first_char < 128) {
+        if (std.ascii.isAscii(first_char)) {
             @branchHint(.likely);
 
             if (first_char == '\\') {
