@@ -11,7 +11,7 @@ pub fn canStartIdentifier(cp: u32) bool {
             cp == '_' or cp == '$';
     }
 
-    return queryBitTable(cp, tables.id_start_root, tables.id_start_leaf);
+    return queryBitTable(cp, &tables.id_start_root, &tables.id_start_leaf);
 }
 
 pub fn canContinueIdentifier(cp: u32) bool {
@@ -22,7 +22,7 @@ pub fn canContinueIdentifier(cp: u32) bool {
             (cp >= '0' and cp <= '9');
     }
 
-    return queryBitTable(cp, tables.id_continue_root, tables.id_continue_leaf);
+    return queryBitTable(cp, &tables.id_continue_root, &tables.id_continue_leaf);
 }
 
 inline fn queryBitTable(cp: u32, root: []const u8, leaf: []const u64) bool {
