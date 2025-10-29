@@ -380,6 +380,7 @@ pub const Lexer = struct {
                 }
 
                 if (c == '\r' or c == '\n') {
+                    @branchHint(.cold);
                     break;
                 }
 
@@ -557,6 +558,7 @@ pub const Lexer = struct {
                 @branchHint(.likely);
 
                 if (c == '\\') {
+                    @branchHint(.cold);
                     pos = try self.parseUnicodeEscape(pos);
                 } else {
                     if ((c >= 'a' and c <= 'z') or
@@ -605,6 +607,7 @@ pub const Lexer = struct {
                     (first_char >= 'A' and first_char <= 'Z') or
                     first_char == '_' or first_char == '$'))
                 {
+                    @branchHint(.cold);
                     return error.InvalidIdentifierStart;
                 }
                 i += 1;
@@ -929,7 +932,6 @@ pub const Lexer = struct {
                     i += 1;
                 },
                 '/' => {
-                    @branchHint(.likely);
                     const c1 = self.source[i + 1];
                     if (c1 == 0) break;
                     if (c1 == '/') {
