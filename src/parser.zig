@@ -20,7 +20,7 @@ const ParseError = struct {
     type: ParseErrorType,
     message: []const u8,
     span: Span,
-    help: ?[][]const u8,
+    help: []const u8,
     severity: Severity,
 
     const Severity = enum { @"error", warning, info };
@@ -49,9 +49,7 @@ pub const Parser = struct {
             try body.append(self.allocator, stmt);
         }
 
-        return self.createNode(.{ .program = .{
-            .body = try body.toOwnedSlice(self.allocator)
-        }});
+        return self.createNode(.{ .program = .{ .body = try body.toOwnedSlice(self.allocator) } });
     }
 
     fn parseStatement(self: *Parser) !*Node {
@@ -80,16 +78,44 @@ pub const Parser = struct {
 
     fn parseVariableDeclaration(self: *Parser) !*Node {
         _ = try self.advance();
-       return self.createNode(.{
-           .identifier = .{
-               .name = "cool"
-           }
-       });
+        return self.createNode(.{ .identifier = .{ .name = "cool" } });
     }
 
     inline fn advance(self: *Parser) !Token {
         const token = self.current_token;
-        self.current_token = try self.lexer.nextToken();
+        self.current_token = self.lexer.nextToken() catch |err| {
+            const message: []const u8 = switch (err) {
+                error.InvalidHexEscape => "Invalid hex escape sequence",
+                error.UnterminatedString => "Unterminated string literal",
+                error.UnterminatedRegex => "Unterminated regular expression",
+                error.NonTerminatedTemplateLiteral => "Unterminated template literal",
+                error.UnterminatedRegexLiteral => "Unterminated regex literal",
+                error.InvalidRegexLineTerminator => "Invalid line terminator in regex",
+                error.InvalidRegex => "Invalid regular expression",
+                error.InvalidIdentifierStart => "Invalid identifier start character",
+                error.UnterminatedMultiLineComment => "Unterminated multi-line comment",
+                error.InvalidUnicodeEscape => "Invalid unicode escape sequence",
+                error.InvalidOctalEscape => "Invalid octal escape sequence",
+                error.OctalEscapeInStrict => "Octal escape sequences not allowed in strict mode",
+            };
+
+            const help: []const u8 = switch (err) {
+                error.InvalidHexEscape => "Hex escapes must be in format \\xHH where HH are valid hex digits",
+                error.UnterminatedString => "Add closing quote to complete the string literal",
+                error.UnterminatedRegex => "Add closing delimiter to complete the regular expression",
+                error.NonTerminatedTemplateLiteral => "Add closing backtick (`) to complete the template literal",
+                error.UnterminatedRegexLiteral => "Add closing delimiter (/) to complete the regex literal",
+                error.InvalidRegexLineTerminator => "Line terminators are not allowed inside regex literals",
+                error.InvalidRegex => "Check regex syntax for invalid patterns or modifiers",
+                error.InvalidIdentifierStart => "Identifiers must start with a letter, underscore, or dollar sign",
+                error.UnterminatedMultiLineComment => "Add closing */ to complete the multi-line comment",
+                error.InvalidUnicodeEscape => "Unicode escapes must be in format \\uHHHH or \\u{H+}",
+                error.InvalidOctalEscape => "Octal escapes must be in format \\0-7 or \\00-77 or \\000-377",
+                error.OctalEscapeInStrict => "Use \\x or \\u escape sequences instead in strict mode",
+            };
+
+            try self.errors.append(self.allocator, .{ .type = .LexicalError, .message = message, .help = help, .severity = "error", .span = .{ .start = self.current_token.span } });
+        };
         return token;
     }
 

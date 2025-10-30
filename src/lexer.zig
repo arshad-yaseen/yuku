@@ -15,12 +15,11 @@ const LexError = error{
     InvalidRegexLineTerminator,
     InvalidRegex,
     InvalidIdentifierStart,
-    UnexpectedCharacter,
     UnterminatedMultiLineComment,
     InvalidUnicodeEscape,
     InvalidHexEscape,
     InvalidOctalEscape,
-    OctalInStrict,
+    OctalEscapeInStrict,
 };
 
 // TODO:
@@ -440,7 +439,7 @@ pub const Lexer = struct {
                     break :brk;
                 }
 
-                if (self.strict_mode) return error.OctalInStrict;
+                if (self.strict_mode) return error.OctalEscapeInStrict;
 
                 i = try self.consumeOctal(i);
             },
@@ -457,7 +456,7 @@ pub const Lexer = struct {
 
             // octal
             '1'...'7' => {
-                if (self.strict_mode) return error.OctalInStrict;
+                if (self.strict_mode) return error.OctalEscapeInStrict;
 
                 i = try self.consumeOctal(i);
             },
