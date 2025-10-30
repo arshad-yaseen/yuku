@@ -6,7 +6,6 @@ pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
 
-
     const allocator = arena.allocator();
 
     const content = @embedFile("test.js");
@@ -15,5 +14,5 @@ pub fn main() !void {
 
     const ast = try parser.parse();
 
-    std.log.info("{f}", .{std.json.fmt(ast, .{.whitespace = .indent_2})});
+    std.log.info("{f}", .{std.json.fmt(ast, .{ .whitespace = .indent_2 })});
 }
