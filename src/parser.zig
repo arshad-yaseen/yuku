@@ -1,12 +1,10 @@
 const std = @import("std");
 
-const Token = @import("token.zig").Token;
-const Span = @import("token.zig").Span;
-const TokenType = @import("token.zig").TokenType;
-const Lexer = @import("lexer.zig").Lexer;
-const Node = @import("ast.zig").Node;
+const token = @import("token.zig");
+const lexer = @import("lexer.zig");
+const ast = @import("ast.zig");
 
-const ParseErrorType = enum {
+const ParseError = error{
     LexicalError,
     UnexpectedToken,
     ExpectedToken,
@@ -14,12 +12,12 @@ const ParseErrorType = enum {
     InvalidSyntax,
     DuplicateDeclaration,
     InvalidAssignmentTarget,
+    OutOfMemory,
 };
 
-const ParseError = struct {
-    type: ParseErrorType,
+const ParseErrorData = struct {
     message: []const u8,
-    span: Span,
+    span: token.Span,
     help: []const u8,
     severity: Severity,
 
@@ -29,20 +27,20 @@ const ParseError = struct {
 pub const Parser = struct {
     panic_mode: bool,
     source: []const u8,
-    lexer: Lexer,
-    current_token: Token,
+    lexer: lexer.Lexer,
+    current_token: token.Token,
     /// expects arena allocator
     allocator: std.mem.Allocator,
-    errors: std.ArrayList(ParseError),
+    errors: std.ArrayList(ParseErrorData),
 
     pub fn init(allocator: std.mem.Allocator, source: []const u8) !Parser {
-        var lexer = try Lexer.init(allocator, source);
+        var lexer_instance = try lexer.Lexer.init(allocator, source);
 
-        return Parser{ .lexer = lexer, .current_token = try lexer.nextToken(), .source = source, .allocator = allocator, .panic_mode = false, .errors = .empty };
+        return Parser{ .lexer = lexer_instance, .current_token = try lexer_instance.nextToken(), .source = source, .allocator = allocator, .panic_mode = false, .errors = .empty };
     }
 
-    pub fn parse(self: *Parser) !*Node {
-        var body: std.ArrayList(*Node) = .empty;
+    pub fn parse(self: *Parser) !*ast.Node {
+        var body: std.ArrayList(*ast.Node) = .empty;
 
         while (self.current_token.type != .EOF) {
             const stmt = try self.parseStatement();
@@ -52,7 +50,7 @@ pub const Parser = struct {
         return self.createNode(.{ .program = .{ .body = try body.toOwnedSlice(self.allocator) } });
     }
 
-    fn parseStatement(self: *Parser) !*Node {
+    fn parseStatement(self: *Parser) !*ast.Node {
         return switch (self.current_token.type) {
             .Var, .Const, .Let => try self.parseVariableDeclaration(),
             else => {
@@ -61,7 +59,7 @@ pub const Parser = struct {
         };
     }
 
-    fn parseExpression(self: *Parser) !*Node {
+    fn parseExpression(self: *Parser) !*ast.Node {
         return switch (self.current_token.type) {
             .Identifier => {
                 const name = self.current_token.lexeme;
@@ -76,59 +74,21 @@ pub const Parser = struct {
         };
     }
 
-    fn parseVariableDeclaration(self: *Parser) !*Node {
-        _ = try self.advance();
+    fn parseVariableDeclaration(self: *Parser) !*ast.Node {
+        try self.advance();
         return self.createNode(.{ .identifier = .{ .name = "cool" } });
     }
 
-    inline fn advance(self: *Parser) !Token {
-        const token = self.current_token;
+    inline fn advance(self: *Parser) ParseError!void {
         self.current_token = self.lexer.nextToken() catch |err| {
-            const message: []const u8 = switch (err) {
-                error.InvalidHexEscape => "Invalid hex escape sequence",
-                error.UnterminatedString => "Unterminated string literal",
-                error.UnterminatedRegex => "Unterminated regular expression",
-                error.NonTerminatedTemplateLiteral => "Unterminated template literal",
-                error.UnterminatedRegexLiteral => "Unterminated regex literal",
-                error.InvalidRegexLineTerminator => "Invalid line terminator in regex",
-                error.InvalidRegex => "Invalid regular expression",
-                error.InvalidIdentifierStart => "Invalid identifier start character",
-                error.UnterminatedMultiLineComment => "Unterminated multi-line comment",
-                error.InvalidUnicodeEscape => "Invalid unicode escape sequence",
-                error.InvalidOctalEscape => "Invalid octal escape sequence",
-                error.OctalEscapeInStrict => "Octal escape sequences not allowed in strict mode",
-            };
+            try self.errors.append(self.allocator, .{ .message = lexer.getLexErrorMessage(err), .help = lexer.getLexErrorHelp(err), .severity = .@"error", .span = self.current_token.span });
 
-            const help: []const u8 = switch (err) {
-                error.InvalidHexEscape => "Hex escapes must be in format \\xHH where HH are valid hex digits",
-                error.UnterminatedString => "Add closing quote to complete the string literal",
-                error.UnterminatedRegex => "Add closing delimiter to complete the regular expression",
-                error.NonTerminatedTemplateLiteral => "Add closing backtick (`) to complete the template literal",
-                error.UnterminatedRegexLiteral => "Add closing delimiter (/) to complete the regex literal",
-                error.InvalidRegexLineTerminator => "Line terminators are not allowed inside regex literals",
-                error.InvalidRegex => "Check regex syntax for invalid patterns or modifiers",
-                error.InvalidIdentifierStart => "Identifiers must start with a letter, underscore, or dollar sign",
-                error.UnterminatedMultiLineComment => "Add closing */ to complete the multi-line comment",
-                error.InvalidUnicodeEscape => "Unicode escapes must be in format \\uHHHH or \\u{H+}",
-                error.InvalidOctalEscape => "Octal escapes must be in format \\0-7 or \\00-77 or \\000-377",
-                error.OctalEscapeInStrict => "Use \\x or \\u escape sequences instead in strict mode",
-            };
-
-            try self.errors.append(self.allocator, .{ .type = .LexicalError, .message = message, .help = help, .severity = "error", .span = .{ .start = self.current_token.span } });
+            return error.LexicalError;
         };
-        return token;
     }
 
-    inline fn expect(self: *Parser, expected: TokenType) !Token {
-        if (self.current_token.type == expected) {
-            return try self.advance();
-        }
-
-        return error.ExpectedToken;
-    }
-
-    inline fn createNode(self: *Parser, node: Node) !*Node {
-        const ptr = try self.allocator.create(Node);
+    inline fn createNode(self: *Parser, node: ast.Node) !*ast.Node {
+        const ptr = try self.allocator.create(ast.Node);
         ptr.* = node;
         return ptr;
     }

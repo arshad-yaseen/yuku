@@ -1049,3 +1049,37 @@ pub const Lexer = struct {
         return Token{ .type = token_type, .lexeme = lexeme, .span = .{ .start = start, .end = end } };
     }
 };
+
+pub fn getLexErrorMessage(error_type: LexError) []const u8 {
+    return switch (error_type) {
+        error.InvalidHexEscape => "Invalid hex escape sequence",
+        error.UnterminatedString => "Unterminated string literal",
+        error.UnterminatedRegex => "Unterminated regular expression",
+        error.NonTerminatedTemplateLiteral => "Unterminated template literal",
+        error.UnterminatedRegexLiteral => "Unterminated regex literal",
+        error.InvalidRegexLineTerminator => "Invalid line terminator in regex",
+        error.InvalidRegex => "Invalid regular expression",
+        error.InvalidIdentifierStart => "Invalid identifier start character",
+        error.UnterminatedMultiLineComment => "Unterminated multi-line comment",
+        error.InvalidUnicodeEscape => "Invalid unicode escape sequence",
+        error.InvalidOctalEscape => "Invalid octal escape sequence",
+        error.OctalEscapeInStrict => "Octal escape sequences not allowed in strict mode",
+    };
+}
+
+pub fn getLexErrorHelp(error_type: LexError) []const u8 {
+    return switch (error_type) {
+        error.InvalidHexEscape => "Hex escapes must be in format \\xHH where HH are valid hex digits",
+        error.UnterminatedString => "Add closing quote to complete the string literal",
+        error.UnterminatedRegex => "Add closing delimiter to complete the regular expression",
+        error.NonTerminatedTemplateLiteral => "Add closing backtick (`) to complete the template literal",
+        error.UnterminatedRegexLiteral => "Add closing delimiter (/) to complete the regex literal",
+        error.InvalidRegexLineTerminator => "Line terminators are not allowed inside regex literals",
+        error.InvalidRegex => "Check regex syntax for invalid patterns or modifiers",
+        error.InvalidIdentifierStart => "Identifiers must start with a letter, underscore, or dollar sign",
+        error.UnterminatedMultiLineComment => "Add closing */ to complete the multi-line comment",
+        error.InvalidUnicodeEscape => "Unicode escapes must be in format \\uHHHH or \\u{H+}",
+        error.InvalidOctalEscape => "Octal escapes must be in format \\0-7 or \\00-77 or \\000-377",
+        error.OctalEscapeInStrict => "Use \\x or \\u escape sequences instead in strict mode",
+    };
+}
