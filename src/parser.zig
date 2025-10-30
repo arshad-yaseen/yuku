@@ -81,7 +81,10 @@ pub const Parser = struct {
 
     inline fn advance(self: *Parser) ParseError!void {
         self.current_token = self.lexer.nextToken() catch |err| {
-            try self.errors.append(self.allocator, .{ .message = lexer.getLexErrorMessage(err), .help = lexer.getLexErrorHelp(err), .severity = .@"error", .span = self.current_token.span });
+            try self.errors.append(self.allocator, .{ .message = lexer.getLexicalErrorMessage(err), .help = lexer.getLexicalErrorHelp(err), .severity = .@"error", .span = .{
+                .start = self.current_token.span.start,
+                .end = self.lexer.position,
+            } });
 
             return error.LexicalError;
         };

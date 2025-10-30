@@ -7,7 +7,7 @@ const CommentType = @import("token.zig").CommentType;
 const unicodeJsHelpers = @import("unicode/js-helpers.zig");
 const util = @import("util.zig");
 
-const LexError = error{
+const LexicalError = error{
     UnterminatedString,
     UnterminatedRegex,
     NonTerminatedTemplateLiteral,
@@ -57,7 +57,7 @@ pub const Lexer = struct {
         };
     }
 
-    pub fn nextToken(self: *Lexer) LexError!Token {
+    pub fn nextToken(self: *Lexer) LexicalError!Token {
         try self.skipSkippable();
 
         if (self.position >= self.source_len) {
@@ -99,7 +99,7 @@ pub const Lexer = struct {
         return self.createToken(token_type, self.source[start..self.position], start, self.position);
     }
 
-    fn scanPunctuation(self: *Lexer) LexError!Token {
+    fn scanPunctuation(self: *Lexer) LexicalError!Token {
         const start = self.position;
         const c0 = self.source[self.position];
         const c1 = self.source[self.position + 1];
@@ -334,7 +334,7 @@ pub const Lexer = struct {
         };
     }
 
-    fn scanString(self: *Lexer) LexError!Token {
+    fn scanString(self: *Lexer) LexicalError!Token {
         const start = self.position;
         const quote = self.source[start];
         var i = start + 1;
@@ -363,7 +363,7 @@ pub const Lexer = struct {
         return error.UnterminatedString;
     }
 
-    fn scanTemplateLiteral(self: *Lexer) LexError!Token {
+    fn scanTemplateLiteral(self: *Lexer) LexicalError!Token {
         const start = self.position;
         var i = start + 1;
 
@@ -394,7 +394,7 @@ pub const Lexer = struct {
         return error.NonTerminatedTemplateLiteral;
     }
 
-    fn scanTemplateMiddleOrTail(self: *Lexer) LexError!Token {
+    fn scanTemplateMiddleOrTail(self: *Lexer) LexicalError!Token {
         const start = self.position;
         var i = start + 1;
 
@@ -427,7 +427,7 @@ pub const Lexer = struct {
         return error.NonTerminatedTemplateLiteral;
     }
 
-    fn consumeEscape(self: *Lexer, pos: usize) LexError!usize {
+    fn consumeEscape(self: *Lexer, pos: usize) LexicalError!usize {
         var i = pos + 1;
 
         brk: switch (self.source[i]) {
@@ -469,7 +469,7 @@ pub const Lexer = struct {
         return i;
     }
 
-    fn consumeOctal(self: *Lexer, pos: usize) LexError!usize {
+    fn consumeOctal(self: *Lexer, pos: usize) LexicalError!usize {
         var i = pos;
         var count: u8 = 0;
 
@@ -486,7 +486,7 @@ pub const Lexer = struct {
         return if (count > 0) i else error.InvalidOctalEscape;
     }
 
-    fn consumeHex(self: *Lexer, pos: usize) LexError!usize {
+    fn consumeHex(self: *Lexer, pos: usize) LexicalError!usize {
         const c1 = self.source[pos + 1];
         const c2 = self.source[pos + 2];
 
@@ -497,7 +497,7 @@ pub const Lexer = struct {
         return pos + 3;
     }
 
-    fn consumeUnicodeEscape(self: *Lexer, pos: usize) LexError!usize {
+    fn consumeUnicodeEscape(self: *Lexer, pos: usize) LexicalError!usize {
         var i = pos + 1;
 
         if (i < self.source_len and self.source[i] == '{') {
@@ -536,7 +536,7 @@ pub const Lexer = struct {
         }
     }
 
-    fn handleRightBrace(self: *Lexer) LexError!Token {
+    fn handleRightBrace(self: *Lexer) LexicalError!Token {
         if (self.template_depth > 0) {
             return self.scanTemplateMiddleOrTail();
         }
@@ -546,13 +546,13 @@ pub const Lexer = struct {
         return self.createToken(.RightBrace, self.source[start..self.position], start, self.position);
     }
 
-    pub fn a(self: *Lexer, slash_token: Token) LexError!Token {
+    pub fn a(self: *Lexer, slash_token: Token) LexicalError!Token {
         self.position = slash_token.span.start;
 
         return self.scanRegex();
     }
 
-    fn scanRegex(self: *Lexer) LexError!Token {
+    fn scanRegex(self: *Lexer) LexicalError!Token {
         const start = self.position;
         self.position += 1; // consume '/'
 
@@ -955,7 +955,7 @@ pub const Lexer = struct {
         return self.createToken(token_type, self.source[start..i], start, i);
     }
 
-    inline fn skipSkippable(self: *Lexer) LexError!void {
+    inline fn skipSkippable(self: *Lexer) LexicalError!void {
         var i = self.position;
 
         while (i < self.source_len) {
@@ -1000,7 +1000,7 @@ pub const Lexer = struct {
         self.position = i;
     }
 
-    inline fn skipSingleLineComment(self: *Lexer, pos: usize) LexError!usize {
+    inline fn skipSingleLineComment(self: *Lexer, pos: usize) LexicalError!usize {
         const start = pos;
         var i = start + 2;
 
@@ -1021,7 +1021,7 @@ pub const Lexer = struct {
         return i;
     }
 
-    inline fn skipMultiLineComment(self: *Lexer, pos: usize) LexError!usize {
+    inline fn skipMultiLineComment(self: *Lexer, pos: usize) LexicalError!usize {
         const start = pos;
         var i = start + 2;
 
@@ -1050,7 +1050,7 @@ pub const Lexer = struct {
     }
 };
 
-pub fn getLexErrorMessage(error_type: LexError) []const u8 {
+pub fn getLexicalErrorMessage(error_type: LexicalError) []const u8 {
     return switch (error_type) {
         error.InvalidHexEscape => "Invalid hex escape sequence",
         error.UnterminatedString => "Unterminated string literal",
@@ -1067,7 +1067,7 @@ pub fn getLexErrorMessage(error_type: LexError) []const u8 {
     };
 }
 
-pub fn getLexErrorHelp(error_type: LexError) []const u8 {
+pub fn getLexicalErrorHelp(error_type: LexicalError) []const u8 {
     return switch (error_type) {
         error.InvalidHexEscape => "Hex escapes must be in format \\xHH where HH are valid hex digits",
         error.UnterminatedString => "Add closing quote to complete the string literal",
