@@ -34,12 +34,15 @@ pub const Parser = struct {
     errors: std.ArrayList(ParseErrorData),
 
     pub fn init(allocator: std.mem.Allocator, source: []const u8) !Parser {
-        var lexer_instance = try lexer.Lexer.init(allocator, source);
+        const lexer_instance = try lexer.Lexer.init(allocator, source);
 
-        return Parser{ .lexer = lexer_instance, .current_token = try lexer_instance.nextToken(), .source = source, .allocator = allocator, .panic_mode = false, .errors = .empty };
+        return Parser{ .lexer = lexer_instance, .current_token = undefined, .source = source, .allocator = allocator, .panic_mode = false, .errors = .empty };
     }
 
     pub fn parse(self: *Parser) !*ast.Node {
+        // let's start tokenizing
+        self.current_token = try self.lexer.nextToken();
+
         const start = self.current_token.span.start;
         var body: std.ArrayList(*ast.Node) = .empty;
 
@@ -80,9 +83,73 @@ pub const Parser = struct {
 
     fn parseVariableDeclaration(self: *Parser) !*ast.Node {
         const start = self.current_token.span.start;
+
+        const kind: ast.VariableDeclaration.VariableKind = switch (self.current_token.type) {
+            .Var => .@"var",
+            .Let => .let,
+            .Const => .@"const",
+            else => unreachable,
+        };
+
         try self.advance();
+
+        var declarators: std.ArrayList(*ast.Node) = .empty;
+
+        try declarators.append(self.allocator, try self.parseVariableDeclarator());
+
+        // declarators separated by commas
+        while (self.current_token.type == .Comma) {
+            try self.advance(); // consume comma
+            try declarators.append(self.allocator, try self.parseVariableDeclarator());
+        }
+
+        // expect semicolon at the end
+        if (self.current_token.type != .Semicolon) {
+            return error.ExpectedToken;
+        }
+
         const end = self.current_token.span.end;
-        return self.createNode(.{ .identifier = .{ .name = "cool", .span = .{ .start = start, .end = end } } });
+        try self.advance(); // consume semicolon
+
+        return self.createNode(.{
+            .variable_declaration = .{
+                .kind = kind,
+                .declarations = try declarators.toOwnedSlice(self.allocator),
+                .span = .{ .start = start, .end = end }
+            }
+        });
+    }
+
+    fn parseVariableDeclarator(self: *Parser) !*ast.Node {
+        const start = self.current_token.span.start;
+
+        if (self.current_token.type != .Identifier) {
+            return error.ExpectedToken;
+        }
+
+        const id_name = self.current_token.lexeme;
+        const id_span = self.current_token.span;
+
+        try self.advance(); // consume identifier
+
+        const id = try self.createNode(.{ .identifier = .{ .name = id_name, .span = id_span } });
+
+        // optional initializer
+        var initializer: ?*ast.Node = null;
+        if (self.current_token.type == .Assign) {
+            try self.advance(); // consume =
+            initializer = try self.parseExpression();
+        }
+
+        const end = if (initializer) |i| i.getSpan().end else id_span.end;
+
+        return self.createNode(.{
+            .variable_declarator = .{
+                .id = id,
+                .init = initializer,
+                .span = .{ .start = start, .end = end }
+            }
+        });
     }
 
     inline fn advance(self: *Parser) ParseError!void {

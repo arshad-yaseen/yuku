@@ -1,4 +1,5 @@
 const std = @import("std");
+
 const token = @import("token.zig");
 
 pub const Node = union(enum) {
@@ -16,6 +17,18 @@ pub const Node = union(enum) {
     variable_declarator: VariableDeclarator,
 
     directive: Directive,
+
+    pub inline fn getSpan(self: *const Node) token.Span {
+        return switch (self.*) {
+            .program => |p| p.span,
+            .expression_statement => |e| e.span,
+            .variable_declaration => |v| v.span,
+            .identifier => |i| i.span,
+            .literal => |l| l.span,
+            .variable_declarator => |v| v.span,
+            .directive => |d| d.span,
+        };
+    }
 };
 
 pub const Program = struct {
