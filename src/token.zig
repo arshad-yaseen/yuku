@@ -176,6 +176,10 @@ pub const Token = struct {
     lexeme: []const u8,
     span: Span,
     type: TokenType,
+
+    pub inline fn eof(pos: usize) Token {
+        return Token{ .lexeme = "", .span = .{ .start = pos, .end = pos }, .type = .EOF };
+    }
 };
 
 pub const CommentType = enum {

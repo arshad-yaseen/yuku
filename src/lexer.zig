@@ -31,6 +31,7 @@ const LexicalError = error{
 
 // TODO:
 // [ ] some simd optimizations
+
 const padding_size = 4; // four safe lookaheads
 
 pub const Lexer = struct {

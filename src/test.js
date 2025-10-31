@@ -1,3 +1,1 @@
-var x, y = some;
-using resource = res;
-await using asyncResource = asyncRes;
+await using hello, hello = hello;
