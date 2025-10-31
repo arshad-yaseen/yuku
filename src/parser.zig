@@ -40,6 +40,7 @@ pub const Parser = struct {
     }
 
     pub fn parse(self: *Parser) !*ast.Node {
+        const start = self.current_token.span.start;
         var body: std.ArrayList(*ast.Node) = .empty;
 
         while (self.current_token.type != .EOF) {
@@ -47,7 +48,9 @@ pub const Parser = struct {
             try body.append(self.allocator, stmt);
         }
 
-        return self.createNode(.{ .program = .{ .body = try body.toOwnedSlice(self.allocator) } });
+        const end = self.current_token.span.end;
+
+        return self.createNode(.{ .program = .{ .body = try body.toOwnedSlice(self.allocator), .span = .{ .start = start, .end = end } } });
     }
 
     fn parseStatement(self: *Parser) !*ast.Node {
@@ -63,10 +66,11 @@ pub const Parser = struct {
         return switch (self.current_token.type) {
             .Identifier => {
                 const name = self.current_token.lexeme;
+                const span = self.current_token.span;
 
                 try self.advance();
 
-                return self.createNode(.{ .identifier = .{ .name = name } });
+                return self.createNode(.{ .identifier = .{ .name = name, .span = span } });
             },
             else => {
                 return error.InvalidSyntax;
@@ -75,8 +79,10 @@ pub const Parser = struct {
     }
 
     fn parseVariableDeclaration(self: *Parser) !*ast.Node {
+        const start = self.current_token.span.start;
         try self.advance();
-        return self.createNode(.{ .identifier = .{ .name = "cool" } });
+        const end = self.current_token.span.end;
+        return self.createNode(.{ .identifier = .{ .name = "cool", .span = .{ .start = start, .end = end } } });
     }
 
     inline fn advance(self: *Parser) ParseError!void {

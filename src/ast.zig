@@ -1,4 +1,5 @@
 const std = @import("std");
+const token = @import("token.zig");
 
 pub const Node = union(enum) {
     program: Program,
@@ -18,20 +19,26 @@ pub const Node = union(enum) {
 };
 
 pub const Program = struct {
+    type: []const u8 = "Program",
     body: []*Node,
     source_type: SourceType = .script,
+    span: token.Span,
 
     pub const SourceType = enum { script, module };
 };
 
 // statements
 pub const ExpressionStatement = struct {
+    type: []const u8 = "ExpressionStatement",
     expression: *Node,
+    span: token.Span,
 };
 
 pub const VariableDeclaration = struct {
+    type: []const u8 = "VariableDeclaration",
     kind: VariableKind,
     declarations: []*Node,
+    span: token.Span,
 
     pub const VariableKind = enum {
         @"var",
@@ -42,12 +49,16 @@ pub const VariableDeclaration = struct {
 
 // expressions
 pub const Identifier = struct {
+    type: []const u8 = "Identifier",
     name: []const u8,
+    span: token.Span,
 };
 
 pub const Literal = struct {
+    type: []const u8 = "Literal",
     value: LiteralValue,
     raw: ?[]const u8 = null,
+    span: token.Span,
 
     pub const LiteralValue = union(enum) {
         string: []const u8,
@@ -59,12 +70,16 @@ pub const Literal = struct {
 
 // declarations
 pub const VariableDeclarator = struct {
+    type: []const u8 = "VariableDeclarator",
     id: *Node,
     init: ?*Node = null,
+    span: token.Span,
 };
 
 // like "use strict"
 pub const Directive = struct {
+    type: []const u8 = "Directive",
     expression: *Node,
     directive: []const u8,
+    span: token.Span,
 };
