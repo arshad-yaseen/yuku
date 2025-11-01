@@ -28,9 +28,9 @@ pub const Parser = struct {
     errors: std.ArrayList(Error),
     panic_mode: bool = false,
 
-    const estimated_nodes_per_line = 3;
-    const avg_chars_per_line = 60;
-    const initial_error_capacity = 4;
+    const estimated_nodes_per_line = 2;
+    const avg_chars_per_line = 40;
+    const initial_error_capacity = 8;
 
     pub fn init(allocator: std.mem.Allocator, source: []const u8) !Parser {
         var lex = try lexer.Lexer.init(allocator, source);
@@ -51,18 +51,20 @@ pub const Parser = struct {
 
     pub fn parse(self: *Parser) !ParseResult {
         const start = self.current.span.start;
-        var body = std.ArrayList(*ast.Body).empty;
 
         const estimated_lines = self.source.len / avg_chars_per_line;
-        const estimated_capacity = estimated_lines * estimated_nodes_per_line;
+        const estimated_statements = @max(estimated_lines / 2, 16);
+        const estimated_errors = @min(@max(estimated_lines / 50, 2), initial_error_capacity);
 
-        try self.errors.ensureTotalCapacity(self.allocator, initial_error_capacity);
-        try body.ensureTotalCapacity(self.allocator, estimated_capacity);
+        var body = std.ArrayList(*ast.Body).empty;
+        try body.ensureTotalCapacity(self.allocator, estimated_statements);
+
+        try self.errors.ensureTotalCapacity(self.allocator, estimated_errors);
 
         while (self.current.type != .EOF) {
             if (self.parseStatement()) |stmt| {
                 const body_item = try self.createNode(ast.Body, .{ .statement = stmt });
-                body.append(self.allocator, body_item) catch unreachable;
+                body.appendAssumeCapacity(body_item);
                 self.panic_mode = false;
             } else {
                 if (!self.panic_mode) {
@@ -73,10 +75,11 @@ pub const Parser = struct {
         }
 
         const end = self.current.span.end;
-        const program = if (self.errors.items.len == 0) ast.Program{
+
+        const program = ast.Program{
             .body = try body.toOwnedSlice(self.allocator),
             .span = .{ .start = start, .end = end },
-        } else null;
+        };
 
         return ParseResult{
             .program = program,
@@ -138,11 +141,11 @@ pub const Parser = struct {
 
         var declarators = std.ArrayList(*ast.VariableDeclarator).empty;
 
-        declarators.ensureTotalCapacity(self.allocator, 3) catch {};
+        declarators.ensureTotalCapacity(self.allocator, 4) catch {};
 
         // first declarator
         const first_decl = self.parseVariableDeclarator(&kind) orelse return null;
-        declarators.append(self.allocator, first_decl) catch unreachable;
+        declarators.appendAssumeCapacity(first_decl);
 
         // additional declarators
         while (self.current.type == .Comma) {
@@ -179,8 +182,8 @@ pub const Parser = struct {
         }
 
         const requires_init = kind.* == .@"const" or
-                             kind.* == .using or
-                             kind.* == .@"await using";
+            kind.* == .using or
+            kind.* == .@"await using";
 
         if (init_expr == null and requires_init) {
             self.recordError(
