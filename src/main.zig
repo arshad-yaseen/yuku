@@ -9,6 +9,7 @@ pub fn main() !void {
     const start = std.time.nanoTimestamp();
 
     var parser = try Parser.init(std.heap.page_allocator, content);
+    defer parser.deinit();
 
     const result = try parser.parse();
 
