@@ -155,18 +155,14 @@ pub const Parser = struct {
         self.scratch_declarators.ensureTotalCapacity(self.allocator, 4) catch {};
 
         // first declarator
-        const first_decl = self.parseVariableDeclarator(&kind) orelse return null;
+        const first_decl = self.parseVariableDeclarator(kind) orelse return null;
         self.scratch_declarators.appendAssumeCapacity(first_decl);
 
         // additional declarators
         while (self.current.type == .Comma) {
             self.advance();
-            const decl = self.parseVariableDeclarator(&kind) orelse return null;
+            const decl = self.parseVariableDeclarator(kind) orelse return null;
             self.scratch_declarators.append(self.allocator, decl) catch unreachable;
-        }
-
-        if (!self.expect(.Semicolon, "Expected ';'", "Variable declarations must end with semicolon")) {
-            return null;
         }
 
         const end = self.current.span.end;
@@ -184,7 +180,7 @@ pub const Parser = struct {
 
     fn parseVariableDeclarator(
         self: *Parser,
-        kind: *const ast.VariableDeclaration.VariableDeclarationKind,
+        kind: ast.VariableDeclaration.VariableDeclarationKind,
     ) ?*ast.VariableDeclarator {
         const start = self.current.span.start;
         const id = self.parseBindingPattern() orelse return null;
@@ -195,9 +191,9 @@ pub const Parser = struct {
             init_expr = self.parseExpression();
         }
 
-        const requires_init = kind.* == .@"const" or
-            kind.* == .using or
-            kind.* == .@"await using";
+        const requires_init = kind == .@"const" or
+            kind == .using or
+            kind == .@"await using";
 
         if (init_expr == null and requires_init) {
             self.recordError(
