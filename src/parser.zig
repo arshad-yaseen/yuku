@@ -363,11 +363,11 @@ pub const Parser = struct {
     }
 
     inline fn ensureCapacity(self: *Parser, list: anytype, capacity: usize) void {
-        list.ensureTotalCapacity(self.allocator, capacity) catch unreachable;
+        list.ensureTotalCapacity(self.allocator, capacity) catch unreachable; // it's oom, we failed
     }
 
     inline fn appendItem(self: *Parser, list: anytype, item: anytype) void {
-        list.append(self.allocator, item) catch unreachable;
+        list.append(self.allocator, item) catch unreachable; // it's oom, we failed
     }
 
     inline fn appendAssumeCapacity(self: *Parser, list: anytype, item: anytype) void {
@@ -381,10 +381,10 @@ pub const Parser = struct {
     }
 
     inline fn dupeSlice(self: *Parser, comptime T: type, items: []const T) []T {
-        return self.allocator.dupe(T, items) catch unreachable;
+        return self.allocator.dupe(T, items) catch unreachable; // it's oom, we failed
     }
 
     inline fn toOwnedSlice(self: *Parser, list: anytype) @TypeOf(list.*.toOwnedSlice(self.allocator) catch unreachable) {
-        return list.toOwnedSlice(self.allocator) catch unreachable;
+        return list.toOwnedSlice(self.allocator) catch unreachable; // it's oom, we failed
     }
 };
