@@ -101,12 +101,11 @@ pub const Parser = struct {
         return switch (self.current.type) {
             .Var, .Const, .Let, .Using => self.parseVariableDeclaration(),
             .Await => {
-                if (self.peek.type == .Using)
-                    return self.parseVariableDeclaration()
-                else {
-                    self.recordError("Invalid await usage", "Expected 'using' after 'await'");
-                    return null;
+                if (self.peek.type == .Using) {
+                    return self.parseVariableDeclaration();
                 }
+
+                return null;
             },
             else => {
                 self.recordError("Unexpected token", "Expected a statement");
