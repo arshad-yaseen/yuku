@@ -1,1 +1,1 @@
-var hello = null;
+var hello = 12;

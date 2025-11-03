@@ -29,8 +29,7 @@ pub fn main() !void {
         for (result.errors) |parse_err| {
             printError(content, parse_err);
         }
-        std.process.exit(1);
     }
 
-    // std.log.info("{f}", .{std.json.fmt(result.program, .{ .whitespace = .indent_2 })});
+    std.log.info("{f}", .{std.json.fmt(result.program, .{ .whitespace = .indent_2 })});
 }
