@@ -30,7 +30,7 @@ pub const Parser = struct {
     scratch_declarators: std.ArrayList(*ast.VariableDeclarator),
     scratch_expressions: std.ArrayList(*ast.Expression),
 
-    panic_mode: bool = false,
+    recover_on_error: bool = true,
 
     const estimated_nodes_per_line = 2;
     const avg_chars_per_line = 40;
@@ -42,20 +42,7 @@ pub const Parser = struct {
         const current = lex.nextToken() catch token.Token.eof(0);
         const peek = lex.nextToken() catch token.Token.eof(0);
 
-        return .{
-            .source = source,
-            .lexer = lex,
-            .current = current,
-            .peek = peek,
-            .allocator = allocator,
-
-            .errors = .empty,
-            .scratch_body = .empty,
-            .scratch_declarators = .empty,
-            .scratch_expressions = .empty,
-
-            .panic_mode = false,
-        };
+        return .{ .source = source, .lexer = lex, .current = current, .peek = peek, .allocator = allocator, .errors = .empty, .scratch_body = .empty, .scratch_declarators = .empty, .scratch_expressions = .empty, .recover_on_error = true };
     }
 
     pub fn parse(self: *Parser) !ParseResult {
@@ -71,14 +58,14 @@ pub const Parser = struct {
 
         while (self.current.type != .EOF) {
             const stmt = self.parseStatement() orelse {
-                if (!self.panic_mode) self.panic_mode = true;
+                if (!self.recover_on_error) break;
                 self.synchronize();
+                self.recover_on_error = true;
                 continue;
             };
 
             const body_item = self.createNode(ast.Body, .{ .statement = stmt });
             self.appendItem(&self.scratch_body, body_item);
-            self.panic_mode = false;
         }
 
         const end = self.current.span.end;
@@ -426,18 +413,13 @@ pub const Parser = struct {
     inline fn recordError(self: *Parser, message: []const u8, help: ?[]const u8) void {
         self.appendItem(&self.errors, Error{
             .message = message,
-            .span = .{
-                .start = self.current.span.start,
-                .end = self.lexer.position
-            },
+            .span = .{ .start = self.lexer.token_start, .end = self.lexer.cursor },
             .help = help,
         });
     }
 
     // TODO: this is much simple now, this can improve later
     fn synchronize(self: *Parser) void {
-        self.panic_mode = false;
-
         while (self.current.type != .EOF) {
             if (self.current.type == .Semicolon) {
                 self.advance();

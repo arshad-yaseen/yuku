@@ -39,7 +39,10 @@ pub const Lexer = struct {
     strict_mode: bool,
     source: []u8,
     source_len: usize,
-    position: usize,
+    /// token start position, retained for error recovery if scan fails
+    token_start: usize,
+    /// current byte index being scanned in the source
+    cursor: usize,
     template_depth: usize,
     /// expects arena allocator
     allocator: std.mem.Allocator,
@@ -53,7 +56,8 @@ pub const Lexer = struct {
             .strict_mode = false,
             .source = padded_buffer,
             .source_len = source.len,
-            .position = 0,
+            .token_start = 0,
+            .cursor = 0,
             .template_depth = 0,
             .allocator = allocator,
             .comments = .empty,
@@ -62,10 +66,16 @@ pub const Lexer = struct {
 
     pub fn nextToken(self: *Lexer) LexicalError!Token {
         try self.skipSkippable();
-        if (self.position >= self.source_len) {
-            return self.createToken(.EOF, "", self.position, self.position);
+
+        if (self.cursor >= self.source_len) {
+            return self.createToken(.EOF, "", self.cursor, self.cursor);
         }
-        const current_char = self.source[self.position];
+
+        // save token start for error reporting if scan fails
+        self.token_start = self.cursor;
+
+        const current_char = self.source[self.cursor];
+
         return switch (current_char) {
             '+', '*', '-', '!', '<', '>', '=', '|', '&', '^', '%', '/', '?' => self.scanPunctuation(),
             '.' => self.scanDot(),
@@ -79,9 +89,9 @@ pub const Lexer = struct {
     }
 
     inline fn scanSimplePunctuation(self: *Lexer) Token {
-        const start = self.position;
-        const c = self.source[self.position];
-        self.position += 1;
+        const start = self.cursor;
+        const c = self.source[self.cursor];
+        self.cursor += 1;
         const token_type: TokenType = switch (c) {
             '~' => .BitwiseNot,
             '(' => .LeftParen,
@@ -94,237 +104,237 @@ pub const Lexer = struct {
             ':' => .Colon,
             else => unreachable,
         };
-        return self.createToken(token_type, self.source[start..self.position], start, self.position);
+        return self.createToken(token_type, self.source[start..self.cursor], start, self.cursor);
     }
 
     fn scanPunctuation(self: *Lexer) LexicalError!Token {
-        const start = self.position;
-        const c0 = self.source[self.position];
-        const c1 = self.source[self.position + 1];
-        const c2 = self.source[self.position + 2];
-        const c3 = self.source[self.position + 3];
+        const start = self.cursor;
+        const c0 = self.source[self.cursor];
+        const c1 = self.source[self.cursor + 1];
+        const c2 = self.source[self.cursor + 2];
+        const c3 = self.source[self.cursor + 3];
 
         return switch (c0) {
             '+' => switch (c1) {
                 '+' => blk: {
-                    self.position += 2;
-                    break :blk self.createToken(.Increment, self.source[start..self.position], start, self.position);
+                    self.cursor += 2;
+                    break :blk self.createToken(.Increment, self.source[start..self.cursor], start, self.cursor);
                 },
                 '=' => blk: {
-                    self.position += 2;
-                    break :blk self.createToken(.PlusAssign, self.source[start..self.position], start, self.position);
+                    self.cursor += 2;
+                    break :blk self.createToken(.PlusAssign, self.source[start..self.cursor], start, self.cursor);
                 },
                 else => blk: {
-                    self.position += 1;
-                    break :blk self.createToken(.Plus, self.source[start..self.position], start, self.position);
+                    self.cursor += 1;
+                    break :blk self.createToken(.Plus, self.source[start..self.cursor], start, self.cursor);
                 },
             },
             '-' => switch (c1) {
                 '-' => blk: {
-                    self.position += 2;
-                    break :blk self.createToken(.Decrement, self.source[start..self.position], start, self.position);
+                    self.cursor += 2;
+                    break :blk self.createToken(.Decrement, self.source[start..self.cursor], start, self.cursor);
                 },
                 '=' => blk: {
-                    self.position += 2;
-                    break :blk self.createToken(.MinusAssign, self.source[start..self.position], start, self.position);
+                    self.cursor += 2;
+                    break :blk self.createToken(.MinusAssign, self.source[start..self.cursor], start, self.cursor);
                 },
                 else => blk: {
-                    self.position += 1;
-                    break :blk self.createToken(.Minus, self.source[start..self.position], start, self.position);
+                    self.cursor += 1;
+                    break :blk self.createToken(.Minus, self.source[start..self.cursor], start, self.cursor);
                 },
             },
             '*' => blk: {
                 if (c1 == '*' and c2 == '=') {
-                    self.position += 3;
-                    break :blk self.createToken(.ExponentAssign, self.source[start..self.position], start, self.position);
+                    self.cursor += 3;
+                    break :blk self.createToken(.ExponentAssign, self.source[start..self.cursor], start, self.cursor);
                 }
                 break :blk switch (c1) {
                     '*' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.Exponent, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.Exponent, self.source[start..self.cursor], start, self.cursor);
                     },
                     '=' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.StarAssign, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.StarAssign, self.source[start..self.cursor], start, self.cursor);
                     },
                     else => blk2: {
-                        self.position += 1;
-                        break :blk2 self.createToken(.Star, self.source[start..self.position], start, self.position);
+                        self.cursor += 1;
+                        break :blk2 self.createToken(.Star, self.source[start..self.cursor], start, self.cursor);
                     },
                 };
             },
             '/' => blk: {
                 if (c1 == '=') {
-                    self.position += 2;
-                    break :blk self.createToken(.SlashAssign, self.source[start..self.position], start, self.position);
+                    self.cursor += 2;
+                    break :blk self.createToken(.SlashAssign, self.source[start..self.cursor], start, self.cursor);
                 }
 
-                self.position += 1;
+                self.cursor += 1;
 
-                break :blk self.createToken(.Slash, self.source[start..self.position], start, self.position);
+                break :blk self.createToken(.Slash, self.source[start..self.cursor], start, self.cursor);
             },
             '%' => switch (c1) {
                 '=' => blk: {
-                    self.position += 2;
-                    break :blk self.createToken(.PercentAssign, self.source[start..self.position], start, self.position);
+                    self.cursor += 2;
+                    break :blk self.createToken(.PercentAssign, self.source[start..self.cursor], start, self.cursor);
                 },
                 else => blk: {
-                    self.position += 1;
-                    break :blk self.createToken(.Percent, self.source[start..self.position], start, self.position);
+                    self.cursor += 1;
+                    break :blk self.createToken(.Percent, self.source[start..self.cursor], start, self.cursor);
                 },
             },
             '<' => blk: {
                 if (c1 == '<' and c2 == '=') {
-                    self.position += 3;
-                    break :blk self.createToken(.LeftShiftAssign, self.source[start..self.position], start, self.position);
+                    self.cursor += 3;
+                    break :blk self.createToken(.LeftShiftAssign, self.source[start..self.cursor], start, self.cursor);
                 }
                 break :blk switch (c1) {
                     '<' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.LeftShift, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.LeftShift, self.source[start..self.cursor], start, self.cursor);
                     },
                     '=' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.LessThanEqual, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.LessThanEqual, self.source[start..self.cursor], start, self.cursor);
                     },
                     else => blk2: {
-                        self.position += 1;
-                        break :blk2 self.createToken(.LessThan, self.source[start..self.position], start, self.position);
+                        self.cursor += 1;
+                        break :blk2 self.createToken(.LessThan, self.source[start..self.cursor], start, self.cursor);
                     },
                 };
             },
             '>' => blk: {
                 if (c1 == '>' and c2 == '=') {
-                    self.position += 3;
-                    break :blk self.createToken(.RightShiftAssign, self.source[start..self.position], start, self.position);
+                    self.cursor += 3;
+                    break :blk self.createToken(.RightShiftAssign, self.source[start..self.cursor], start, self.cursor);
                 }
                 if (c1 == '>' and c2 == '>') {
                     if (c3 == '=') {
-                        self.position += 4;
-                        break :blk self.createToken(.UnsignedRightShiftAssign, self.source[start..self.position], start, self.position);
+                        self.cursor += 4;
+                        break :blk self.createToken(.UnsignedRightShiftAssign, self.source[start..self.cursor], start, self.cursor);
                     } else {
-                        self.position += 3;
-                        break :blk self.createToken(.UnsignedRightShift, self.source[start..self.position], start, self.position);
+                        self.cursor += 3;
+                        break :blk self.createToken(.UnsignedRightShift, self.source[start..self.cursor], start, self.cursor);
                     }
                 }
                 break :blk switch (c1) {
                     '>' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.RightShift, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.RightShift, self.source[start..self.cursor], start, self.cursor);
                     },
                     '=' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.GreaterThanEqual, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.GreaterThanEqual, self.source[start..self.cursor], start, self.cursor);
                     },
                     else => blk2: {
-                        self.position += 1;
-                        break :blk2 self.createToken(.GreaterThan, self.source[start..self.position], start, self.position);
+                        self.cursor += 1;
+                        break :blk2 self.createToken(.GreaterThan, self.source[start..self.cursor], start, self.cursor);
                     },
                 };
             },
             '=' => blk: {
                 if (c1 == '=' and c2 == '=') {
-                    self.position += 3;
-                    break :blk self.createToken(.StrictEqual, self.source[start..self.position], start, self.position);
+                    self.cursor += 3;
+                    break :blk self.createToken(.StrictEqual, self.source[start..self.cursor], start, self.cursor);
                 }
                 break :blk switch (c1) {
                     '=' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.Equal, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.Equal, self.source[start..self.cursor], start, self.cursor);
                     },
                     '>' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.Arrow, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.Arrow, self.source[start..self.cursor], start, self.cursor);
                     },
                     else => blk2: {
-                        self.position += 1;
-                        break :blk2 self.createToken(.Assign, self.source[start..self.position], start, self.position);
+                        self.cursor += 1;
+                        break :blk2 self.createToken(.Assign, self.source[start..self.cursor], start, self.cursor);
                     },
                 };
             },
             '!' => blk: {
                 if (c1 == '=' and c2 == '=') {
-                    self.position += 3;
-                    break :blk self.createToken(.StrictNotEqual, self.source[start..self.position], start, self.position);
+                    self.cursor += 3;
+                    break :blk self.createToken(.StrictNotEqual, self.source[start..self.cursor], start, self.cursor);
                 }
                 break :blk switch (c1) {
                     '=' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.NotEqual, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.NotEqual, self.source[start..self.cursor], start, self.cursor);
                     },
                     else => blk2: {
-                        self.position += 1;
-                        break :blk2 self.createToken(.LogicalNot, self.source[start..self.position], start, self.position);
+                        self.cursor += 1;
+                        break :blk2 self.createToken(.LogicalNot, self.source[start..self.cursor], start, self.cursor);
                     },
                 };
             },
             '&' => blk: {
                 if (c1 == '&' and c2 == '=') {
-                    self.position += 3;
-                    break :blk self.createToken(.LogicalAndAssign, self.source[start..self.position], start, self.position);
+                    self.cursor += 3;
+                    break :blk self.createToken(.LogicalAndAssign, self.source[start..self.cursor], start, self.cursor);
                 }
                 break :blk switch (c1) {
                     '&' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.LogicalAnd, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.LogicalAnd, self.source[start..self.cursor], start, self.cursor);
                     },
                     '=' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.BitwiseAndAssign, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.BitwiseAndAssign, self.source[start..self.cursor], start, self.cursor);
                     },
                     else => blk2: {
-                        self.position += 1;
-                        break :blk2 self.createToken(.BitwiseAnd, self.source[start..self.position], start, self.position);
+                        self.cursor += 1;
+                        break :blk2 self.createToken(.BitwiseAnd, self.source[start..self.cursor], start, self.cursor);
                     },
                 };
             },
             '|' => blk: {
                 if (c1 == '|' and c2 == '=') {
-                    self.position += 3;
-                    break :blk self.createToken(.LogicalOrAssign, self.source[start..self.position], start, self.position);
+                    self.cursor += 3;
+                    break :blk self.createToken(.LogicalOrAssign, self.source[start..self.cursor], start, self.cursor);
                 }
                 break :blk switch (c1) {
                     '|' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.LogicalOr, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.LogicalOr, self.source[start..self.cursor], start, self.cursor);
                     },
                     '=' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.BitwiseOrAssign, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.BitwiseOrAssign, self.source[start..self.cursor], start, self.cursor);
                     },
                     else => blk2: {
-                        self.position += 1;
-                        break :blk2 self.createToken(.BitwiseOr, self.source[start..self.position], start, self.position);
+                        self.cursor += 1;
+                        break :blk2 self.createToken(.BitwiseOr, self.source[start..self.cursor], start, self.cursor);
                     },
                 };
             },
             '^' => switch (c1) {
                 '=' => blk: {
-                    self.position += 2;
-                    break :blk self.createToken(.BitwiseXorAssign, self.source[start..self.position], start, self.position);
+                    self.cursor += 2;
+                    break :blk self.createToken(.BitwiseXorAssign, self.source[start..self.cursor], start, self.cursor);
                 },
                 else => blk: {
-                    self.position += 1;
-                    break :blk self.createToken(.BitwiseXor, self.source[start..self.position], start, self.position);
+                    self.cursor += 1;
+                    break :blk self.createToken(.BitwiseXor, self.source[start..self.cursor], start, self.cursor);
                 },
             },
             '?' => blk: {
                 if (c1 == '?' and c2 == '=') {
-                    self.position += 3;
-                    break :blk self.createToken(.NullishAssign, self.source[start..self.position], start, self.position);
+                    self.cursor += 3;
+                    break :blk self.createToken(.NullishAssign, self.source[start..self.cursor], start, self.cursor);
                 }
                 break :blk switch (c1) {
                     '?' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.NullishCoalescing, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.NullishCoalescing, self.source[start..self.cursor], start, self.cursor);
                     },
                     '.' => blk2: {
-                        self.position += 2;
-                        break :blk2 self.createToken(.OptionalChaining, self.source[start..self.position], start, self.position);
+                        self.cursor += 2;
+                        break :blk2 self.createToken(.OptionalChaining, self.source[start..self.cursor], start, self.cursor);
                     },
                     else => blk2: {
-                        self.position += 1;
-                        break :blk2 self.createToken(.Question, self.source[start..self.position], start, self.position);
+                        self.cursor += 1;
+                        break :blk2 self.createToken(.Question, self.source[start..self.cursor], start, self.cursor);
                     },
                 };
             },
@@ -333,147 +343,140 @@ pub const Lexer = struct {
     }
 
     fn scanString(self: *Lexer) LexicalError!Token {
-        const start = self.position;
+        const start = self.cursor;
         const quote = self.source[start];
-        var i = start + 1;
+        self.cursor += 1;
 
-        while (i < self.source_len) {
-            const c = self.source[i];
+        while (self.cursor < self.source_len) {
+            const c = self.source[self.cursor];
             if (c == '\\') {
-                i = try self.consumeEscape(i);
+                try self.consumeEscape();
                 continue;
             }
             if (c == quote) {
-                i += 1;
-                self.position = i;
-                return self.createToken(.StringLiteral, self.source[start..i], start, i);
+                self.cursor += 1;
+                return self.createToken(.StringLiteral, self.source[start..self.cursor], start, self.cursor);
             }
             if (c == '\n' or c == '\r' or c == '\u{2028}' or c == '\u{2029}') {
                 return error.UnterminatedString;
             }
-            i += 1;
+            self.cursor += 1;
         }
         return error.UnterminatedString;
     }
 
     fn scanTemplateLiteral(self: *Lexer) LexicalError!Token {
-        const start = self.position;
-        var i = start + 1;
+        const start = self.cursor;
+        self.cursor += 1;
 
-        while (i < self.source_len) {
-            const c = self.source[i];
+        while (self.cursor < self.source_len) {
+            const c = self.source[self.cursor];
             if (c == '\\') {
-                i = try self.consumeEscape(i);
+                try self.consumeEscape();
                 continue;
             }
             if (c == '`') {
-                i += 1;
-                self.position = i;
-                return self.createToken(.NoSubstitutionTemplate, self.source[start..i], start, i);
+                self.cursor += 1;
+                return self.createToken(.NoSubstitutionTemplate, self.source[start..self.cursor], start, self.cursor);
             }
-            if (c == '$' and self.source[i + 1] == '{') {
-                i += 2;
+            if (c == '$' and self.source[self.cursor + 1] == '{') {
+                self.cursor += 2;
                 self.template_depth += 1;
-                self.position = i;
-                return self.createToken(.TemplateHead, self.source[start..i], start, i);
+                return self.createToken(.TemplateHead, self.source[start..self.cursor], start, self.cursor);
             }
-            i += 1;
+            self.cursor += 1;
         }
         return error.NonTerminatedTemplateLiteral;
     }
 
     fn scanTemplateMiddleOrTail(self: *Lexer) LexicalError!Token {
-        const start = self.position;
-        var i = start + 1;
+        const start = self.cursor;
+        self.cursor += 1;
 
-        while (i < self.source_len) {
-            const c = self.source[i];
+        while (self.cursor < self.source_len) {
+            const c = self.source[self.cursor];
             if (c == '\\') {
-                i = try self.consumeEscape(i);
+                try self.consumeEscape();
                 continue;
             }
             if (c == '`') {
-                i += 1;
+                self.cursor += 1;
                 if (self.template_depth > 0) {
                     self.template_depth -= 1;
                 }
-                self.position = i;
-                return self.createToken(.TemplateTail, self.source[start..i], start, i);
+                return self.createToken(.TemplateTail, self.source[start..self.cursor], start, self.cursor);
             }
-            if (c == '$' and self.source[i + 1] == '{') {
-                i += 2;
-                self.position = i;
-                return self.createToken(.TemplateMiddle, self.source[start..i], start, i);
+            if (c == '$' and self.source[self.cursor + 1] == '{') {
+                self.cursor += 2;
+                return self.createToken(.TemplateMiddle, self.source[start..self.cursor], start, self.cursor);
             }
-            i += 1;
+            self.cursor += 1;
         }
         return error.NonTerminatedTemplateLiteral;
     }
 
-    fn consumeEscape(self: *Lexer, pos: usize) LexicalError!usize {
-        var i = pos + 1;
-        brk: switch (self.source[i]) {
+    fn consumeEscape(self: *Lexer) LexicalError!void {
+        self.cursor += 1; // skip backslash
+        brk: switch (self.source[self.cursor]) {
             '0' => {
-                const c1 = self.source[i + 1];
+                const c1 = self.source[self.cursor + 1];
                 // null
                 if (!util.isOctalDigit(c1)) {
-                    i += 1;
+                    self.cursor += 1;
                     break :brk;
                 }
                 if (self.strict_mode) return error.OctalEscapeInStrict;
-                i = try self.consumeOctal(i);
+                try self.consumeOctal();
             },
             // hex
             'x' => {
-                i = try self.consumeHex(i);
+                try self.consumeHex();
             },
             // unicode
             'u' => {
-                i = try self.consumeUnicodeEscape(i);
+                try self.consumeUnicodeEscape();
             },
             // octal
             '1'...'7' => {
                 if (self.strict_mode) return error.OctalEscapeInStrict;
-                i = try self.consumeOctal(i);
+                try self.consumeOctal();
             },
             else => {
-                i += 1;
+                self.cursor += 1;
             },
         }
-        return i;
     }
 
-    fn consumeOctal(self: *Lexer, pos: usize) LexicalError!usize {
-        var i = pos;
+    fn consumeOctal(self: *Lexer) LexicalError!void {
         var count: u8 = 0;
-        while (i < self.source_len and count < 3) {
-            const c = self.source[i];
+        while (self.cursor < self.source_len and count < 3) {
+            const c = self.source[self.cursor];
             if (util.isOctalDigit(c)) {
-                i += 1;
+                self.cursor += 1;
                 count += 1;
             } else {
                 break;
             }
         }
-        return if (count > 0) i else error.InvalidOctalEscape;
+        if (count == 0) return error.InvalidOctalEscape;
     }
 
-    fn consumeHex(self: *Lexer, pos: usize) LexicalError!usize {
-        const c1 = self.source[pos + 1];
-        const c2 = self.source[pos + 2];
+    fn consumeHex(self: *Lexer) LexicalError!void {
+        const c1 = self.source[self.cursor + 1];
+        const c2 = self.source[self.cursor + 2];
         if (!std.ascii.isHex(c1) or !std.ascii.isHex(c2)) {
             return error.InvalidHexEscape;
         }
-        return pos + 3;
+        self.cursor += 3;
     }
 
-    fn consumeUnicodeEscape(self: *Lexer, pos: usize) LexicalError!usize {
-        var i = pos + 1;
-        if (i < self.source_len and self.source[i] == '{') {
+    fn consumeUnicodeEscape(self: *Lexer) LexicalError!void {
+        self.cursor += 1; // skip 'u'
+        if (self.cursor < self.source_len and self.source[self.cursor] == '{') {
             // \u{XXXXX} format
-            i += 1;
-            const start = i;
-            const end = std.mem.indexOfScalarPos(u8, self.source, i, '}') orelse
+            self.cursor += 1;
+            const start = self.cursor;
+            const end = std.mem.indexOfScalarPos(u8, self.source, self.cursor, '}') orelse
                 return error.InvalidUnicodeEscape;
             const hex_len = end - start;
             if (hex_len == 0 or hex_len > 6) {
@@ -484,19 +487,19 @@ pub const Lexer = struct {
                     return error.InvalidUnicodeEscape;
                 }
             }
-            return end + 1;
+            self.cursor = end + 1;
         } else {
             // \uXXXX format
-            const end = i + 4;
+            const end = self.cursor + 4;
             if (end > self.source_len) {
                 return error.InvalidUnicodeEscape;
             }
-            for (self.source[i..end]) |c| {
+            for (self.source[self.cursor..end]) |c| {
                 if (!std.ascii.isHex(c)) {
                     return error.InvalidUnicodeEscape;
                 }
             }
-            return end;
+            self.cursor = end;
         }
     }
 
@@ -504,139 +507,133 @@ pub const Lexer = struct {
         if (self.template_depth > 0) {
             return self.scanTemplateMiddleOrTail();
         }
-        const start = self.position;
-        self.position += 1;
-        return self.createToken(.RightBrace, self.source[start..self.position], start, self.position);
+        const start = self.cursor;
+        self.cursor += 1;
+        return self.createToken(.RightBrace, self.source[start..self.cursor], start, self.cursor);
     }
 
     pub fn reScanAsRegex(self: *Lexer, slash_token: Token) LexicalError!struct { span: Span, pattern: []const u8, flags: []const u8, lexeme: []const u8 } {
-        self.position = slash_token.span.start;
+        self.cursor = slash_token.span.start;
 
-        const start = self.position;
-        var i = start;
-        var closing_delimeter_i: usize = 0;
-        i += 1; // consume '/'
+        const start = self.cursor;
+        var closing_delimeter_pos: usize = 0;
+        self.cursor += 1; // consume '/'
         var in_class = false;
 
-        while (i < self.source_len) {
-            const c = self.source[i];
+        while (self.cursor < self.source_len) {
+            const c = self.source[self.cursor];
             if (c == '\\') {
-                i += 1; // skip backslash
-                if (i < self.source_len) {
-                    i += 1; // skip escaped char
+                self.cursor += 1; // skip backslash
+                if (self.cursor < self.source_len) {
+                    self.cursor += 1; // skip escaped char
                 }
                 continue;
             }
             if (c == '[') {
                 in_class = true;
-                i += 1;
+                self.cursor += 1;
                 continue;
             }
             if (c == ']' and in_class) {
                 in_class = false;
-                i += 1;
+                self.cursor += 1;
                 continue;
             }
             if (c == '/' and !in_class) {
-                i += 1;
+                self.cursor += 1;
 
-                closing_delimeter_i = i;
+                closing_delimeter_pos = self.cursor;
 
-                while (i < self.source_len and
-                    std.ascii.isAlphabetic(self.source[i]))
+                while (self.cursor < self.source_len and
+                    std.ascii.isAlphabetic(self.source[self.cursor]))
                 {
-                    i += 1;
+                    self.cursor += 1;
                 }
 
-                const end = i;
+                const end = self.cursor;
 
-                self.position = end;
-
-                const pattern = self.source[start + 1..closing_delimeter_i - 1];
-                const flags = self.source[closing_delimeter_i..end];
+                const pattern = self.source[start + 1 .. closing_delimeter_pos - 1];
+                const flags = self.source[closing_delimeter_pos..end];
 
                 return .{ .span = .{ .start = start, .end = end }, .lexeme = self.source[start..end], .pattern = pattern, .flags = flags };
             }
             if (c == '\n' or c == '\r') {
                 return error.InvalidRegexLineTerminator;
             }
-            i += 1;
+            self.cursor += 1;
         }
         return error.UnterminatedRegexLiteral;
     }
 
     fn scanDot(self: *Lexer) LexicalError!Token {
-        const c1 = self.source[self.position + 1];
-        const c2 = self.source[self.position + 2];
+        const c1 = self.source[self.cursor + 1];
+        const c2 = self.source[self.cursor + 2];
 
         if (std.ascii.isDigit(c1)) {
             return self.scanNumber();
         }
         if (c1 == '.' and c2 == '.') {
-            const start = self.position;
-            self.position += 3;
-            return self.createToken(.Spread, self.source[start..self.position], start, self.position);
+            const start = self.cursor;
+            self.cursor += 3;
+            return self.createToken(.Spread, self.source[start..self.cursor], start, self.cursor);
         }
-        const start = self.position;
-        self.position += 1;
-        return self.createToken(.Dot, self.source[start..self.position], start, self.position);
+        const start = self.cursor;
+        self.cursor += 1;
+        return self.createToken(.Dot, self.source[start..self.cursor], start, self.cursor);
     }
 
-    inline fn scanIdentifierBody(self: *Lexer, i: usize) !usize {
-        var pos = i;
-        while (pos < self.source_len) {
-            const c = self.source[pos];
+    inline fn scanIdentifierBody(self: *Lexer) !void {
+        while (self.cursor < self.source_len) {
+            const c = self.source[self.cursor];
             if (std.ascii.isAscii(c)) {
                 @branchHint(.likely);
                 if (c == '\\') {
                     @branchHint(.cold);
-                    if (self.source[pos + 1] != 'u') {
+                    if (self.source[self.cursor + 1] != 'u') {
                         return error.InvalidUnicodeEscape;
                     }
-                    pos += 1; // consume u
-                    pos = try self.consumeUnicodeEscape(pos);
+                    self.cursor += 1; // consume backslash to get to 'u'
+                    try self.consumeUnicodeEscape();
                 } else {
                     if ((c >= 'a' and c <= 'z') or
                         (c >= 'A' and c <= 'Z') or
                         (c >= '0' and c <= '9') or
                         c == '_' or c == '$')
                     {
-                        pos += 1;
+                        self.cursor += 1;
                     } else {
                         break;
                     }
                 }
             } else {
                 @branchHint(.cold);
-                const cp = util.codePointAt(self.source, pos);
+                const cp = util.codePointAt(self.source, self.cursor);
                 if (unicodeJsHelpers.canContinueJsIdentifier(cp.value)) {
-                    pos += cp.len;
+                    self.cursor += cp.len;
                 } else {
                     break;
                 }
             }
         }
-        return pos;
     }
 
     fn scanIdentifierOrKeyword(self: *Lexer) !Token {
-        const start = self.position;
-        var i = start;
+        const start = self.cursor;
 
-        const is_private = self.source[i] == '#';
+        const is_private = self.source[self.cursor] == '#';
         if (is_private) {
-            i += 1;
+            self.cursor += 1;
         }
 
-        const first_char = self.source[i];
+        const first_char = self.source[self.cursor];
         if (std.ascii.isAscii(first_char)) {
             @branchHint(.likely);
             if (first_char == '\\') {
-                if (self.source[i + 1] != 'u') {
+                if (self.source[self.cursor + 1] != 'u') {
                     return error.InvalidUnicodeEscape;
                 }
-                i += 1; // consume u
-                i = try self.consumeUnicodeEscape(i);
+                self.cursor += 1; // consume backslash to get to 'u'
+                try self.consumeUnicodeEscape();
             } else {
                 if (!((first_char >= 'a' and first_char <= 'z') or
                     (first_char >= 'A' and first_char <= 'Z') or
@@ -645,23 +642,22 @@ pub const Lexer = struct {
                     @branchHint(.cold);
                     return error.InvalidIdentifierStart;
                 }
-                i += 1;
+                self.cursor += 1;
             }
-            i = try self.scanIdentifierBody(i);
+            try self.scanIdentifierBody();
         } else {
             @branchHint(.cold);
-            const c_cp = util.codePointAt(self.source, i);
+            const c_cp = util.codePointAt(self.source, self.cursor);
             if (!unicodeJsHelpers.canStartJsIdentifier(c_cp.value)) {
                 return error.InvalidIdentifierStart;
             }
-            i += c_cp.len;
-            i = try self.scanIdentifierBody(i);
+            self.cursor += c_cp.len;
+            try self.scanIdentifierBody();
         }
 
-        self.position = i;
-        const lexeme = self.source[start..i];
+        const lexeme = self.source[start..self.cursor];
         const token_type: TokenType = if (is_private) .PrivateIdentifier else self.getKeywordType(lexeme);
-        return self.createToken(token_type, lexeme, start, i);
+        return self.createToken(token_type, lexeme, start, self.cursor);
     }
 
     fn getKeywordType(self: *Lexer, lexeme: []const u8) TokenType {
@@ -803,97 +799,94 @@ pub const Lexer = struct {
     }
 
     fn scanNumber(self: *Lexer) LexicalError!Token {
-        const start = self.position;
+        const start = self.cursor;
         var token_type: TokenType = .NumericLiteral;
-        var i = self.position;
 
         // prefixes 0x, 0o, 0b
-        if (self.source[i] == '0' and i + 1 < self.source_len) {
-            const prefix = std.ascii.toLower(self.source[i + 1]);
+        if (self.source[self.cursor] == '0' and self.cursor + 1 < self.source_len) {
+            const prefix = std.ascii.toLower(self.source[self.cursor + 1]);
             switch (prefix) {
                 'x' => {
                     token_type = .HexLiteral;
-                    i += 2;
-                    const hex_start = i;
-                    i = try self.consumeHexDigits(i);
-                    if (i == hex_start) return error.InvalidHexLiteral;
+                    self.cursor += 2;
+                    const hex_start = self.cursor;
+                    try self.consumeHexDigits();
+                    if (self.cursor == hex_start) return error.InvalidHexLiteral;
                 },
                 'o' => {
                     token_type = .OctalLiteral;
-                    i += 2;
-                    const oct_start = i;
-                    i = try self.consumeOctalDigits(i);
-                    if (i == oct_start) return error.InvalidOctalLiteralDigit;
+                    self.cursor += 2;
+                    const oct_start = self.cursor;
+                    try self.consumeOctalDigits();
+                    if (self.cursor == oct_start) return error.InvalidOctalLiteralDigit;
                 },
                 'b' => {
                     token_type = .BinaryLiteral;
-                    i += 2;
-                    const bin_start = i;
-                    i = try self.consumeBinaryDigits(i);
-                    if (i == bin_start) return error.InvalidBinaryLiteral;
+                    self.cursor += 2;
+                    const bin_start = self.cursor;
+                    try self.consumeBinaryDigits();
+                    if (self.cursor == bin_start) return error.InvalidBinaryLiteral;
                 },
                 else => {
                     // regular or octal
-                    i = try self.consumeDecimalDigits(i);
+                    try self.consumeDecimalDigits();
                 },
             }
         } else {
             // regular
-            i = try self.consumeDecimalDigits(i);
+            try self.consumeDecimalDigits();
         }
 
         // decimal point (only for regular numbers)
         if (token_type == .NumericLiteral and
-            i < self.source_len and self.source[i] == '.')
+            self.cursor < self.source_len and self.source[self.cursor] == '.')
         {
-            const next = if (i + 1 < self.source_len) self.source[i + 1] else 0;
+            const next = if (self.cursor + 1 < self.source_len) self.source[self.cursor + 1] else 0;
             if (std.ascii.isDigit(next)) {
-                i += 1; // consume '.'
-                i = try self.consumeDecimalDigits(i);
+                self.cursor += 1; // consume '.'
+                try self.consumeDecimalDigits();
             }
         }
 
         // exponent (only for regular numbers)
-        if (token_type == .NumericLiteral and i < self.source_len) {
-            const exp_char = std.ascii.toLower(self.source[i]);
+        if (token_type == .NumericLiteral and self.cursor < self.source_len) {
+            const exp_char = std.ascii.toLower(self.source[self.cursor]);
             if (exp_char == 'e') {
-                i = try self.consumeExponent(i);
+                try self.consumeExponent();
             }
         }
 
         // bigint suffix
-        if (i < self.source_len and self.source[i] == 'n') {
+        if (self.cursor < self.source_len and self.source[self.cursor] == 'n') {
             // bigint cannot have decimal point or exponent
             if (token_type == .NumericLiteral) {
-                const lexeme = self.source[start..i];
+                const lexeme = self.source[start..self.cursor];
                 for (lexeme) |c| {
                     if (c == '.' or std.ascii.toLower(c) == 'e') {
                         return error.InvalidBigIntSuffix;
                     }
                 }
             }
-            i += 1;
+            self.cursor += 1;
             token_type = .BigIntLiteral;
         }
 
-        self.position = i;
-        return self.createToken(token_type, self.source[start..i], start, i);
+        return self.createToken(token_type, self.source[start..self.cursor], start, self.cursor);
     }
 
-    inline fn consumeDecimalDigits(self: *Lexer, start: usize) LexicalError!usize {
-        var i = start;
+    inline fn consumeDecimalDigits(self: *Lexer) LexicalError!void {
         var last_was_separator = false;
 
-        while (i < self.source_len) {
-            const c = self.source[i];
+        while (self.cursor < self.source_len) {
+            const c = self.source[self.cursor];
             if (std.ascii.isDigit(c)) {
-                i += 1;
+                self.cursor += 1;
                 last_was_separator = false;
             } else if (c == '_') {
                 if (last_was_separator) {
                     return error.ConsecutiveNumericSeparators;
                 }
-                i += 1;
+                self.cursor += 1;
                 last_was_separator = true;
             } else {
                 break;
@@ -903,24 +896,21 @@ pub const Lexer = struct {
         if (last_was_separator) {
             return error.NumericSeparatorMisuse;
         }
-
-        return i;
     }
 
-    inline fn consumeHexDigits(self: *Lexer, start: usize) LexicalError!usize {
-        var i = start;
+    inline fn consumeHexDigits(self: *Lexer) LexicalError!void {
         var last_was_separator = false;
 
-        while (i < self.source_len) {
-            const c = self.source[i];
+        while (self.cursor < self.source_len) {
+            const c = self.source[self.cursor];
             if (std.ascii.isHex(c)) {
-                i += 1;
+                self.cursor += 1;
                 last_was_separator = false;
             } else if (c == '_') {
                 if (last_was_separator) {
                     return error.ConsecutiveNumericSeparators;
                 }
-                i += 1;
+                self.cursor += 1;
                 last_was_separator = true;
             } else {
                 break;
@@ -930,24 +920,21 @@ pub const Lexer = struct {
         if (last_was_separator) {
             return error.NumericSeparatorMisuse;
         }
-
-        return i;
     }
 
-    inline fn consumeOctalDigits(self: *Lexer, start: usize) LexicalError!usize {
-        var i = start;
+    inline fn consumeOctalDigits(self: *Lexer) LexicalError!void {
         var last_was_separator = false;
 
-        while (i < self.source_len) {
-            const c = self.source[i];
+        while (self.cursor < self.source_len) {
+            const c = self.source[self.cursor];
             if (util.isOctalDigit(c)) {
-                i += 1;
+                self.cursor += 1;
                 last_was_separator = false;
             } else if (c == '_') {
                 if (last_was_separator) {
                     return error.ConsecutiveNumericSeparators;
                 }
-                i += 1;
+                self.cursor += 1;
                 last_was_separator = true;
             } else {
                 break;
@@ -957,24 +944,21 @@ pub const Lexer = struct {
         if (last_was_separator) {
             return error.NumericSeparatorMisuse;
         }
-
-        return i;
     }
 
-    inline fn consumeBinaryDigits(self: *Lexer, start: usize) LexicalError!usize {
-        var i = start;
+    inline fn consumeBinaryDigits(self: *Lexer) LexicalError!void {
         var last_was_separator = false;
 
-        while (i < self.source_len) {
-            const c = self.source[i];
+        while (self.cursor < self.source_len) {
+            const c = self.source[self.cursor];
             if (c == '0' or c == '1') {
-                i += 1;
+                self.cursor += 1;
                 last_was_separator = false;
             } else if (c == '_') {
                 if (last_was_separator) {
                     return error.ConsecutiveNumericSeparators;
                 }
-                i += 1;
+                self.cursor += 1;
                 last_was_separator = true;
             } else {
                 break;
@@ -984,53 +968,48 @@ pub const Lexer = struct {
         if (last_was_separator) {
             return error.NumericSeparatorMisuse;
         }
-
-        return i;
     }
 
-    fn consumeExponent(self: *Lexer, start: usize) LexicalError!usize {
-        var i = start + 1; // skip 'e/E'
+    fn consumeExponent(self: *Lexer) LexicalError!void {
+        self.cursor += 1; // skip 'e/E'
 
-        if (i >= self.source_len) {
+        if (self.cursor >= self.source_len) {
             return error.InvalidExponentPart;
         }
 
         // handle optional sign
-        const c = self.source[i];
+        const c = self.source[self.cursor];
         if (c == '+' or c == '-') {
-            i += 1;
+            self.cursor += 1;
         }
 
-        const exp_start = i;
-        i = try self.consumeDecimalDigits(i);
+        const exp_start = self.cursor;
+        try self.consumeDecimalDigits();
 
-        if (i == exp_start) {
+        if (self.cursor == exp_start) {
             return error.InvalidExponentPart;
         }
-
-        return i;
     }
 
     inline fn skipSkippable(self: *Lexer) LexicalError!void {
-        var i = self.position;
-        while (i < self.source_len) {
-            const c = self.source[i];
+        while (self.cursor < self.source_len) {
+            const c = self.source[self.cursor];
             if (std.ascii.isAscii(c)) {
                 switch (c) {
                     // simple spaces
                     ' ', '\t', '\n', '\r', '\u{000B}', '\u{000C}' => {
-                        i += 1;
+                        self.cursor += 1;
                         continue;
                     },
                     // handle comments, consume and push to the comments array
                     '/' => {
-                        const c1 = self.source[i + 1];
+                        const c1 = self.source[self.cursor + 1];
                         if (c1 == 0) break;
                         if (c1 == '/') {
-                            i = try self.skipSingleLineComment(i);
+                            try self.skipSingleLineComment();
                             continue;
                         } else if (c1 == '*') {
-                            i = try self.skipMultiLineComment(i);
+                            try self.skipMultiLineComment();
                             continue;
                         } else {
                             break;
@@ -1040,50 +1019,48 @@ pub const Lexer = struct {
                 }
             } else {
                 // okay, it maybe a multi-byte space
-                const cp = util.codePointAt(self.source, i);
+                const cp = util.codePointAt(self.source, self.cursor);
                 if (util.isMultiByteSpace(cp.value)) {
-                    i += cp.len;
+                    self.cursor += cp.len;
                     continue;
                 }
             }
             break;
         }
-        self.position = i;
     }
 
-    inline fn skipSingleLineComment(self: *Lexer, pos: usize) LexicalError!usize {
-        const start = pos;
-        var i = start + 2;
-        while (i < self.source_len) {
-            const c = self.source[i];
+    inline fn skipSingleLineComment(self: *Lexer) LexicalError!void {
+        const start = self.cursor;
+        self.cursor += 2; // skip "//"
+        while (self.cursor < self.source_len) {
+            const c = self.source[self.cursor];
             if (c == '\n' or c == '\r') {
                 break;
             }
-            i += 1;
+            self.cursor += 1;
         }
         self.comments.append(self.allocator, Comment{
-            .content = self.source[start..i],
-            .span = .{ .start = start, .end = i },
+            .content = self.source[start..self.cursor],
+            .span = .{ .start = start, .end = self.cursor },
             .type = .SingleLine,
         }) catch unreachable;
-        return i;
     }
 
-    inline fn skipMultiLineComment(self: *Lexer, pos: usize) LexicalError!usize {
-        const start = pos;
-        var i = start + 2;
-        while (i < self.source_len) {
-            const c = self.source[i];
-            if (c == '*' and self.source[i + 1] == '/') {
-                i += 2;
+    inline fn skipMultiLineComment(self: *Lexer) LexicalError!void {
+        const start = self.cursor;
+        self.cursor += 2; // skip "/*"
+        while (self.cursor < self.source_len) {
+            const c = self.source[self.cursor];
+            if (c == '*' and self.source[self.cursor + 1] == '/') {
+                self.cursor += 2;
                 self.comments.append(self.allocator, Comment{
-                    .content = self.source[start..i],
-                    .span = .{ .start = start, .end = i },
+                    .content = self.source[start..self.cursor],
+                    .span = .{ .start = start, .end = self.cursor },
                     .type = .MultiLine,
                 }) catch unreachable;
-                return i;
+                return;
             }
-            i += 1;
+            self.cursor += 1;
         }
         return error.UnterminatedMultiLineComment;
     }
