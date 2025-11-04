@@ -137,37 +137,22 @@ pub const Parser = struct {
     }
 
     inline fn parseVariableDeclarationKind(self: *Parser) ?ast.VariableDeclaration.VariableDeclarationKind {
-        return switch (self.current().type) {
+        const tok = self.current().type;
+        self.advance();
+
+        return switch (tok) {
+            .Let => .let,
+            .Const => .@"const",
+            .Var => .@"var",
+            .Using => .using,
             .Await => blk: {
-                self.advance();
-                if (self.current().type != .Using) {
-                    return null;
+                if (self.current().type == .Using) {
+                    self.advance();
+                    break :blk .@"await using";
                 }
-                self.advance();
-                break :blk .@"await using";
-            },
-            .Var => blk: {
-                self.advance();
-                break :blk .@"var";
-            },
-            .Let => blk: {
-                @branchHint(.likely);
-                self.advance();
-                break :blk .let;
-            },
-            .Const => blk: {
-                @branchHint(.likely);
-                self.advance();
-                break :blk .@"const";
-            },
-            .Using => blk: {
-                self.advance();
-                break :blk .using;
-            },
-            else => {
-                self.recordError("Expected variable declaration keyword", "Try using 'var', 'let', 'const', or 'using' here to start a variable declaration");
                 return null;
             },
+            else => null,
         };
     }
 
@@ -178,24 +163,22 @@ pub const Parser = struct {
         const start = self.current().span.start;
         const id = self.parseBindingPattern() orelse return null;
 
-        const requires_init = kind == .@"const" or
-            kind == .using or
-            kind == .@"await using";
-
         var init_expr: ?*ast.Expression = null;
+        var end = id.getSpan().end;
 
         if (self.current().type == .Assign) {
             self.advance();
-            init_expr = self.parseExpression();
-        } else if (requires_init) {
+            if (self.parseExpression()) |expr| {
+                init_expr = expr;
+                end = expr.getSpan().end;
+            }
+        } else if (kind == .@"const" or kind == .using or kind == .@"await using") {
             self.recordError(
-                "Variable declaration missing required initializer",
-                "Try adding '= value' here to initialize this variable",
-            );
+                           "Variable declaration missing required initializer",
+                           "Try adding '= value' here to initialize this variable",
+                       );
             return null;
         }
-
-        const end = if (init_expr) |expr| expr.getSpan().end else id.getSpan().end;
 
         return self.createNode(ast.VariableDeclarator, .{
             .id = id,
@@ -397,12 +380,11 @@ pub const Parser = struct {
 
     inline fn advance(self: *Parser) void {
         if (self.lookahead_count > 1) {
-            self.lookahead_start = (self.lookahead_start + 1) & 3;
+            self.lookahead_start +%= 1;  // wrapping add
+            self.lookahead_start &= 3;
             self.lookahead_count -= 1;
         } else {
-            // refill
-            const tok = self.lexer.nextToken() catch token.Token.eof(0);
-            self.lookahead[self.lookahead_start] = tok;
+            self.lookahead[self.lookahead_start] = self.lexer.nextToken() catch token.Token.eof(0);
         }
     }
 
