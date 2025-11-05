@@ -289,16 +289,12 @@ pub const Parser = struct {
             return null;
         };
 
-        // TODO: add a method to add a token to lexer manually
-        // const start = regex.span.start;
-        // const end = regex.span.end;
+        const start = regex.span.start;
+        const end = regex.span.end;
 
-        // const regex_token = self.lexer.createToken(.RegexLiteral, self.source[start..end], start, end);
+        const regex_token = self.lexer.createToken(.RegexLiteral, self.source[start..end], start, end);
 
-        // self.position += 1;
-        // self.tokens.append(self.allocator, regex_token) catch {};
-
-        self.advance(); // consume the regex
+        self.replaceTokenAndAdvance(regex_token);
 
         const literal = ast.RegExpLiteral{
             .value = regex.lexeme,
@@ -371,6 +367,11 @@ pub const Parser = struct {
                     break :blk token.Token.eof(0);
                 };
         }
+    }
+
+    inline fn replaceTokenAndAdvance(self: *Parser, tok: token.Token) void {
+        self.lookahead[self.lookahead_start] = tok;
+        self.advance();
     }
 
     inline fn expect(
