@@ -364,7 +364,7 @@ pub const Parser = struct {
 
     inline fn advance(self: *Parser) void {
            if (self.lookahead_count > 1) {
-               self.lookahead_start +%= 1; // safes to wrap naturally, since lookahead_start is u4 (0-4)
+               self.lookahead_start +%= 1; // safes to wrap naturally, since lookahead_start is u2
                self.lookahead_count -= 1;
            } else {
                self.lookahead[self.lookahead_start] =
