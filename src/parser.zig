@@ -30,6 +30,7 @@ pub const Parser = struct {
 
     scratch_declarators: std.ArrayList(*ast.VariableDeclarator),
     scratch_expressions: std.ArrayList(*ast.Expression),
+    scratch_template_elements: std.ArrayList(*ast.TemplateElement),
 
     pub fn init(allocator: std.mem.Allocator, source: []const u8) !Parser {
         var lex = try lexer.Lexer.init(allocator, source);
@@ -37,7 +38,7 @@ pub const Parser = struct {
         var lookahead_buf: [4]token.Token = undefined;
         lookahead_buf[0] = lex.nextToken() catch token.Token.eof(0);
 
-        return .{ .source = source, .lexer = lex, .allocator = allocator, .lookahead = lookahead_buf, .lookahead_start = 0, .lookahead_count = 1, .errors = .empty, .scratch_declarators = .empty, .scratch_expressions = .empty };
+        return .{ .source = source, .lexer = lex, .allocator = allocator, .lookahead = lookahead_buf, .lookahead_start = 0, .lookahead_count = 1, .errors = .empty, .scratch_declarators = .empty, .scratch_expressions = .empty, .scratch_template_elements = .empty };
     }
 
     pub fn parse(self: *Parser) !ParseResult {
@@ -185,6 +186,7 @@ pub const Parser = struct {
             .NumericLiteral, .HexLiteral, .OctalLiteral, .BinaryLiteral => self.parseNumericLiteral(),
             .BigIntLiteral => self.parseBigIntLiteral(),
             .Slash => self.parseRegExpLiteral(),
+            .NoSubstitutionTemplate, .TemplateHead => self.parseTemplateLiteral(),
             else => {
                 self.recordError("Unexpected token in expression position", "Try using a valid expression here such as a variable name, literal value, operator, etc.");
                 return null;
@@ -307,6 +309,127 @@ pub const Parser = struct {
         };
 
         return self.createNode(ast.Expression, .{ .regex_literal = literal });
+    }
+
+    fn parseTemplateLiteral(self: *Parser) ?*ast.Expression {
+        const start = self.current().span.start - 1; // -1 to include starting backtick since lexer won't include it in token, TemplateHead span.start starts after backtick
+        const first_token = self.current();
+
+        self.clearRetainingCapacity(&self.scratch_template_elements);
+        self.clearRetainingCapacity(&self.scratch_expressions);
+        self.ensureCapacity(&self.scratch_template_elements, 4);
+        self.ensureCapacity(&self.scratch_expressions, 4);
+
+        if (first_token.type == .NoSubstitutionTemplate) {
+            self.advance();
+
+            const raw = first_token.lexeme;
+            const element_value = ast.TemplateElementValue{
+                .raw = raw,
+                .cooked = raw, // TODO: process escape sequences for cooked value
+            };
+
+            const element = ast.TemplateElement{
+                .value = element_value,
+                .tail = true,
+                .span = first_token.span,
+            };
+
+            const element_ptr = self.createNode(ast.TemplateElement, element);
+            const quasis = self.dupeSlice(*ast.TemplateElement, &[_]*ast.TemplateElement{element_ptr});
+            const expressions = self.dupeSlice(*ast.Expression, &[_]*ast.Expression{});
+
+            const template_literal = ast.TemplateLiteral{
+                .quasis = quasis,
+                .expressions = expressions,
+                .span = first_token.span,
+            };
+
+            return self.createNode(ast.Expression, .{ .template_literal = template_literal });
+        }
+
+        const head_token = self.current();
+
+        const head_raw = head_token.lexeme;
+        const head_value = ast.TemplateElementValue{
+            .raw = head_raw,
+            .cooked = head_raw, // TODO: process escape sequences for cooked value
+        };
+
+        const head_element = ast.TemplateElement{
+            .value = head_value,
+            .tail = false,
+            .span = head_token.span,
+        };
+
+        self.appendItem(&self.scratch_template_elements, self.createNode(ast.TemplateElement, head_element));
+        self.advance();
+
+        var template_literal_end: usize = undefined;
+
+        while (true) {
+            const expr = self.parseExpression() orelse return null;
+
+            self.appendItem(&self.scratch_expressions, expr);
+
+            // after parsing expression, we should get TemplateMiddle or TemplateTail
+            const template_token = self.current();
+            switch (template_token.type) {
+                .TemplateMiddle => {
+                    const middle_raw = template_token.lexeme;
+
+                    const middle_value = ast.TemplateElementValue{
+                        .raw = middle_raw,
+                        .cooked = middle_raw, // TODO: process escape sequences for cooked value
+                    };
+
+                    const middle_element = ast.TemplateElement{
+                        .value = middle_value,
+                        .tail = false,
+                        .span = template_token.span,
+                    };
+
+                    self.appendItem(&self.scratch_template_elements, self.createNode(ast.TemplateElement, middle_element));
+                    self.advance();
+                    // continue to parse next expression
+                },
+                .TemplateTail => {
+                    const tail_raw = template_token.lexeme;
+                    const tail_value = ast.TemplateElementValue{
+                        .raw = tail_raw,
+                        .cooked = tail_raw, // TODO: process escape sequences for cooked value
+                    };
+
+                    const tail_element = ast.TemplateElement{
+                        .value = tail_value,
+                        .tail = true,
+                        .span = template_token.span,
+                    };
+
+                    self.appendItem(&self.scratch_template_elements, self.createNode(ast.TemplateElement, tail_element));
+
+                    template_literal_end = template_token.span.end + 1; // +1 include the closing backtick, since lexer won't include it in token
+
+                    self.advance();
+                    break;
+                },
+                else => {
+                    self.recordError("Expected template middle or tail after expression", "Try adding '}' here to close the expression and continue the template");
+                    return null;
+                },
+            }
+        }
+
+        const quasis = self.dupeSlice(*ast.TemplateElement, self.scratch_template_elements.items);
+        const expressions = self.dupeSlice(*ast.Expression, self.scratch_expressions.items);
+
+        const template_literal = ast.TemplateLiteral{
+            .quasis = quasis,
+            .expressions = expressions,
+            .span = .{ .start = start, .end = template_literal_end },
+        };
+
+        return self.createNode(ast.Expression, .{ .template_literal = template_literal });
     }
 
     fn parseBindingPattern(self: *Parser) ?*ast.BindingPattern {

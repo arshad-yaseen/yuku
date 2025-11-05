@@ -1,1 +1,1 @@
-const nice = "hel\x00o"
+var hello = `Hello ${nice} cool`

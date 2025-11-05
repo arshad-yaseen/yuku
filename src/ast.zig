@@ -68,6 +68,7 @@ pub const Expression = union(enum) {
     numeric_literal: NumericLiteral,
     bigint_literal: BigIntLiteral,
     regex_literal: RegExpLiteral,
+    template_literal: TemplateLiteral,
     identifier_reference: IdentifierReference,
 
     pub inline fn getSpan(self: *const Expression) token.Span {
@@ -154,6 +155,25 @@ pub const RegExpLiteral = struct {
         pattern: []const u8,
         flags: []const u8,
     };
+};
+
+pub const TemplateElementValue = struct {
+    raw: []const u8,
+    cooked: ?[]const u8 = null,
+};
+
+pub const TemplateElement = struct {
+    type: []const u8 = "TemplateElement",
+    value: TemplateElementValue,
+    tail: bool,
+    span: token.Span,
+};
+
+pub const TemplateLiteral = struct {
+    type: []const u8 = "TemplateLiteral",
+    quasis: []*TemplateElement,
+    expressions: []*Expression,
+    span: token.Span,
 };
 
 pub const IdentifierReference = struct {

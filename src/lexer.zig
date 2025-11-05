@@ -366,7 +366,7 @@ pub const Lexer = struct {
     }
 
     fn scanTemplateLiteral(self: *Lexer) LexicalError!Token {
-        const start = self.cursor;
+        const start = self.cursor + 1; // +1 consume backtick too, we don't need it in the token
         self.cursor += 1;
 
         while (self.cursor < self.source_len) {
@@ -380,9 +380,10 @@ pub const Lexer = struct {
                 return self.createToken(.NoSubstitutionTemplate, self.source[start..self.cursor], start, self.cursor);
             }
             if (c == '$' and self.source[self.cursor + 1] == '{') {
+                const end = self.cursor; // end before consuming ${, because we don't need it the token
                 self.cursor += 2;
                 self.template_depth += 1;
-                return self.createToken(.TemplateHead, self.source[start..self.cursor], start, self.cursor);
+                return self.createToken(.TemplateHead, self.source[start..end], start, end);
             }
             self.cursor += 1;
         }
@@ -390,7 +391,7 @@ pub const Lexer = struct {
     }
 
     fn scanTemplateMiddleOrTail(self: *Lexer) LexicalError!Token {
-        const start = self.cursor;
+        const start = self.cursor + 1; // +1 consume } because we don't need it in the token
         self.cursor += 1;
 
         while (self.cursor < self.source_len) {
@@ -400,15 +401,17 @@ pub const Lexer = struct {
                 continue;
             }
             if (c == '`') {
+                const end = self.cursor; // because we don't need ` in the token
                 self.cursor += 1;
                 if (self.template_depth > 0) {
                     self.template_depth -= 1;
                 }
-                return self.createToken(.TemplateTail, self.source[start..self.cursor], start, self.cursor);
+                return self.createToken(.TemplateTail, self.source[start..end], start, end);
             }
             if (c == '$' and self.source[self.cursor + 1] == '{') {
+                const end = self.cursor; // we don't need ${ in the token
                 self.cursor += 2;
-                return self.createToken(.TemplateMiddle, self.source[start..self.cursor], start, self.cursor);
+                return self.createToken(.TemplateMiddle, self.source[start..end], start, end);
             }
             self.cursor += 1;
         }
