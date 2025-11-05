@@ -345,6 +345,7 @@ pub const Parser = struct {
         // head element
         const head_token = self.current();
         self.appendItem(&self.scratch_template_elements, self.createTemplateElement(head_token, false));
+
         self.advance();
 
         var template_literal_end: usize = undefined;
