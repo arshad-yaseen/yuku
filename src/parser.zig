@@ -189,7 +189,8 @@ pub const Parser = struct {
             .NumericLiteral, .HexLiteral, .OctalLiteral, .BinaryLiteral => self.parseNumericLiteral(),
             .BigIntLiteral => self.parseBigIntLiteral(),
             .Slash => self.parseRegExpLiteral(),
-            .NoSubstitutionTemplate, .TemplateHead => self.parseTemplateLiteral(),
+            .TemplateHead => self.parseTemplateLiteral(),
+            .NoSubstitutionTemplate => self.parseNoSubstitutionTemplateLiteral(),
             else => {
                 self.recordError("Unexpected token in expression position", "Try using a valid expression here such as a variable name, literal value, operator, etc.");
                 return null;
@@ -314,31 +315,32 @@ pub const Parser = struct {
         return self.createNode(ast.Expression, .{ .regex_literal = literal });
     }
 
+    fn parseNoSubstitutionTemplateLiteral(self: *Parser) ?*ast.Expression {
+        const tok = self.current();
+
+        self.advance();
+
+        const element = self.createTemplateElement(tok, true);
+
+        const template_literal = ast.TemplateLiteral{
+            .quasis = self.dupeSlice(*ast.TemplateElement, &[_]*ast.TemplateElement{element}),
+            .expressions = self.dupeSlice(*ast.Expression, &[_]*ast.Expression{}),
+            .span = .{
+                .start = tok.span.start - 1, // -1 to include starting backtick
+                .end = tok.span.start + 1  // +1 include closing backtick
+            },
+        };
+
+        return self.createNode(ast.Expression, .{ .template_literal = template_literal });
+    }
+
     fn parseTemplateLiteral(self: *Parser) ?*ast.Expression {
-        const start = self.current().span.start - 1; // -1 to include starting backtick
+        const template_literal_start = self.current().span.start - 1; // -1 to include starting backtick
 
         self.clearRetainingCapacity(&self.scratch_template_elements);
         self.clearRetainingCapacity(&self.scratch_expressions);
         self.ensureCapacity(&self.scratch_template_elements, 4);
         self.ensureCapacity(&self.scratch_expressions, 4);
-
-        // no substitution template
-        if (self.current().type == .NoSubstitutionTemplate) {
-            const tok = self.current();
-            self.advance();
-
-            const element = self.createTemplateElement(tok, true);
-            const template_literal = ast.TemplateLiteral{
-                .quasis = self.dupeSlice(*ast.TemplateElement, &[_]*ast.TemplateElement{element}),
-                .expressions = self.dupeSlice(*ast.Expression, &[_]*ast.Expression{}),
-                .span = .{
-                    .start = tok.span.start - 1, // -1 to include starting backtick
-                    .end = tok.span.start + 1  // +1 include closing backtick
-                },
-            };
-
-            return self.createNode(ast.Expression, .{ .template_literal = template_literal });
-        }
 
         // head element
         const head_token = self.current();
@@ -381,7 +383,7 @@ pub const Parser = struct {
         const template_literal = ast.TemplateLiteral{
             .quasis = self.dupeSlice(*ast.TemplateElement, self.scratch_template_elements.items),
             .expressions = self.dupeSlice(*ast.Expression, self.scratch_expressions.items),
-            .span = .{ .start = start, .end = template_literal_end },
+            .span = .{ .start = template_literal_start, .end = template_literal_end },
         };
 
         return self.createNode(ast.Expression, .{ .template_literal = template_literal });
