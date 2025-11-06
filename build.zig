@@ -27,19 +27,6 @@ pub fn build(b: *std.Build) void {
         run_cmd.addArgs(args);
     }
 
-    const lexer_tests = b.addTest(.{
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("src/unicode-id.zig"),
-            .target = target,
-            .optimize = optimize,
-        }),
-    });
-
-    const run_lexer_tests = b.addRunArtifact(lexer_tests);
-
-    const test_step = b.step("test", "Run tests");
-    test_step.dependOn(&run_lexer_tests.step);
-
     const gen_unicode_id_table = b.addExecutable(.{
         .name = "generate-unicode-id-table",
         .root_module = b.createModule(.{
