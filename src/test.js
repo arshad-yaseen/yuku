@@ -1,1 +1,1 @@
-var hello = `Hello {hello} nice`
+var hello = undefined;

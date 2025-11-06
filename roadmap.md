@@ -9,7 +9,7 @@
 - [x] RegExp literals
 - [x] Identifier references
 - [x] Template literals (TemplateLiteral, TemplateElement)
-- [ ] Undefined handling
+- [x] Undefined handling
 
 ### 1.2 Variable Declarations
 - [x] var, let, const declarations
