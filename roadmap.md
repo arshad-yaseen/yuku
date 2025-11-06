@@ -8,7 +8,7 @@
 - [x] BigInt literals
 - [x] RegExp literals
 - [x] Identifier references
-- [ ] Template literals (TemplateLiteral, TemplateElement)
+- [x] Template literals (TemplateLiteral, TemplateElement)
 - [ ] Undefined handling
 
 ### 1.2 Variable Declarations

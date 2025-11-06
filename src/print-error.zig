@@ -1,6 +1,5 @@
 // this will be a really bad code since this is AI generated for quick testing of errors while development
 // after the parser work done, we will start working on error formatter without using AI and much better.
-
 const std = @import("std");
 const ParserError = @import("parser.zig").Error;
 
@@ -23,7 +22,6 @@ fn printHighlightedLine(line: []const u8) void {
     var i: usize = 0;
     while (i < line.len) {
         const c = line[i];
-
         // Handle string literals
         if (c == '"' or c == '\'') {
             const quote_char = c;
@@ -51,7 +49,6 @@ fn printHighlightedLine(line: []const u8) void {
             }
             continue;
         }
-
         // Handle template literals
         if (c == '`') {
             std.debug.print("\x1b[32m`", .{});
@@ -78,7 +75,6 @@ fn printHighlightedLine(line: []const u8) void {
             }
             continue;
         }
-
         // Handle comments
         if (i + 1 < line.len and c == '/' and line[i + 1] == '/') {
             std.debug.print("\x1b[2;37m", .{}); // dim gray
@@ -89,7 +85,6 @@ fn printHighlightedLine(line: []const u8) void {
             std.debug.print("\x1b[0m", .{});
             break;
         }
-
         // Handle numeric literals
         if ((c >= '0' and c <= '9') or (c == '.' and i + 1 < line.len and line[i + 1] >= '0' and line[i + 1] <= '9')) {
             std.debug.print("\x1b[33m", .{}); // yellow
@@ -97,7 +92,6 @@ fn printHighlightedLine(line: []const u8) void {
             var has_exp = false;
             std.debug.print("{c}", .{c});
             i += 1;
-
             while (i < line.len) {
                 const next = line[i];
                 if (next >= '0' and next <= '9') {
@@ -116,12 +110,10 @@ fn printHighlightedLine(line: []const u8) void {
                         i += 1;
                     }
                 } else if (next == 'n' and has_exp == false) {
-                    // Check if it's part of a number or a separate identifier
                     std.debug.print("{c}\x1b[0m", .{next});
                     i += 1;
                     break;
                 } else if (std.ascii.isAlphanumeric(next) or next == '_') {
-                    // Might be identifier after number, stop highlighting
                     std.debug.print("\x1b[0m{c}", .{next});
                     i += 1;
                     break;
@@ -132,7 +124,6 @@ fn printHighlightedLine(line: []const u8) void {
             std.debug.print("\x1b[0m", .{});
             continue;
         }
-
         // Handle identifiers and keywords
         if (std.ascii.isAlphabetic(c) or c == '_' or c == '$') {
             const start = i;
@@ -144,7 +135,6 @@ fn printHighlightedLine(line: []const u8) void {
                     break;
                 }
             }
-
             const word = line[start..i];
             if (isKeyword(word)) {
                 std.debug.print("\x1b[35m{s}\x1b[0m", .{word}); // magenta for keywords
@@ -153,7 +143,6 @@ fn printHighlightedLine(line: []const u8) void {
             }
             continue;
         }
-
         // Handle operators and punctuation (light blue/cyan)
         if (c == '+' or c == '-' or c == '*' or c == '/' or c == '%' or
             c == '=' or c == '<' or c == '>' or c == '!' or c == '&' or
@@ -163,7 +152,6 @@ fn printHighlightedLine(line: []const u8) void {
             i += 1;
             continue;
         }
-
         // Handle brackets and delimiters
         if (c == '(' or c == ')' or c == '[' or c == ']' or c == '{' or c == '}' or
             c == ',' or c == ';' or c == ':' or c == '.')
@@ -172,71 +160,48 @@ fn printHighlightedLine(line: []const u8) void {
             i += 1;
             continue;
         }
-
         // Default: print as-is
         std.debug.print("{c}", .{c});
         i += 1;
     }
 }
 
+fn getVisualColumn(line: []const u8, byte_pos: usize) usize {
+    var col: usize = 0;
+    var i: usize = 0;
+    while (i < byte_pos and i < line.len) : (i += 1) {
+        if (line[i] == '\t') {
+            col = (col + 4) & ~@as(usize, 3);
+        } else {
+            col += 1;
+        }
+    }
+    return col;
+}
+
 pub fn printError(source: []const u8, err: ParserError) void {
     var line_start_positions = std.ArrayList(usize).empty;
     defer line_start_positions.deinit(std.heap.page_allocator);
-
     line_start_positions.append(std.heap.page_allocator, 0) catch return;
+
     for (source, 0..) |c, i| {
         if (c == '\n') {
             line_start_positions.append(std.heap.page_allocator, i + 1) catch return;
         }
     }
 
-    var error_line: usize = 0;
-    var error_line_start: usize = 0;
-    var error_line_end: usize = source.len;
+    // Find which lines contain the error span
+    var start_line: usize = 0;
+    var end_line: usize = 0;
 
     for (line_start_positions.items, 0..) |line_start, line_num| {
         if (err.span.start >= line_start) {
-            error_line = line_num;
-            error_line_start = line_start;
-            if (line_num + 1 < line_start_positions.items.len) {
-                error_line_end = line_start_positions.items[line_num + 1] - 1;
-            }
+            start_line = line_num;
+        }
+        if (err.span.end > line_start) {
+            end_line = line_num;
         }
     }
-
-    const start_col = err.span.start - error_line_start;
-    const end_col = if (err.span.end > error_line_end) error_line_end - error_line_start else err.span.end - error_line_start;
-
-    const line_content = source[error_line_start..error_line_end];
-
-    const visual_start_col = blk: {
-        var col: usize = 0;
-        var i: usize = 0;
-        while (i < start_col and i < line_content.len) : (i += 1) {
-            if (line_content[i] == '\t') {
-                col = (col + 4) & ~@as(usize, 3);
-            } else {
-                col += 1;
-            }
-        }
-        break :blk col;
-    };
-
-    const visual_end_col = blk: {
-        var col: usize = 0;
-        var i: usize = 0;
-        while (i < end_col and i < line_content.len) : (i += 1) {
-            if (line_content[i] == '\t') {
-                col = (col + 4) & ~@as(usize, 3);
-            } else {
-                col += 1;
-            }
-        }
-        break :blk col;
-    };
-
-    std.debug.print("\x1b[1;31merror\x1b[0m: {s}\n", .{err.message});
-    std.debug.print("  \x1b[1;34m-->\x1b[0m src/test.js:{}:{}\n\n", .{ error_line + 1, visual_start_col + 1 });
 
     const max_line_num = line_start_positions.items.len;
     const line_num_width = blk: {
@@ -248,86 +213,97 @@ pub fn printError(source: []const u8, err: ParserError) void {
         break :blk width;
     };
 
-    var line_num_buf: [16]u8 = undefined;
-    const line_num_str = std.fmt.bufPrint(&line_num_buf, "{}", .{error_line + 1}) catch "1";
-    var padding: [16]u8 = undefined;
-    const padding_len = if (line_num_str.len < line_num_width) line_num_width - line_num_str.len else 0;
-    @memset(padding[0..padding_len], ' ');
-    const line_num_padded = std.fmt.bufPrint(&padding, "{s}{s}", .{ padding[0..padding_len], line_num_str }) catch line_num_str;
+    // Get the starting line information for error location
+    const first_line_start = line_start_positions.items[start_line];
+    const start_col = err.span.start - first_line_start;
+    const first_line_end = if (start_line + 1 < line_start_positions.items.len)
+        line_start_positions.items[start_line + 1] - 1
+    else
+        source.len;
+    const first_line_content = source[first_line_start..first_line_end];
+    const visual_start_col = getVisualColumn(first_line_content, start_col);
 
-    std.debug.print(" \x1b[2;36m{s}\x1b[0m \x1b[2m|\x1b[0m ", .{line_num_padded});
-    printHighlightedLine(line_content);
-    std.debug.print("\n", .{});
+    std.debug.print("\x1b[1;31merror\x1b[0m: {s}\n", .{err.message});
+    std.debug.print("  \x1b[1;34m-->\x1b[0m src/test.js:{}:{}\n\n", .{ start_line + 1, visual_start_col + 1 });
 
-    var empty_padding: [16]u8 = undefined;
-    @memset(empty_padding[0..line_num_width], ' ');
-    const empty_padded = empty_padding[0..line_num_width];
+    // Print all affected lines
+    var current_line = start_line;
+    while (current_line <= end_line) : (current_line += 1) {
+        const line_start = line_start_positions.items[current_line];
+        const line_end = if (current_line + 1 < line_start_positions.items.len)
+            line_start_positions.items[current_line + 1] - 1
+        else
+            source.len;
+        const line_content = source[line_start..line_end];
 
-    std.debug.print(" \x1b[2;36m{s}\x1b[0m \x1b[2m|\x1b[0m ", .{empty_padded});
+        // Print line number and content
+        var line_num_buf: [16]u8 = undefined;
+        const line_num_str = std.fmt.bufPrint(&line_num_buf, "{}", .{current_line + 1}) catch "1";
+        var padding: [16]u8 = undefined;
+        const padding_len = if (line_num_str.len < line_num_width) line_num_width - line_num_str.len else 0;
+        @memset(padding[0..padding_len], ' ');
+        const line_num_padded = std.fmt.bufPrint(&padding, "{s}{s}", .{ padding[0..padding_len], line_num_str }) catch line_num_str;
 
-    var underline_buf: [1024]u8 = undefined;
-    var underline_len: usize = 0;
+        std.debug.print(" \x1b[2;36m{s}\x1b[0m \x1b[2m|\x1b[0m ", .{line_num_padded});
+        printHighlightedLine(line_content);
+        std.debug.print("\n", .{});
 
-    var visual_col: usize = 0;
-    var byte_pos: usize = 0;
-    while (byte_pos < line_content.len and visual_col < visual_start_col) : (byte_pos += 1) {
-        if (line_content[byte_pos] == '\t') {
-            const next_tab_stop = ((visual_col + 4) & ~@as(usize, 3));
-            while (visual_col < next_tab_stop and underline_len < underline_buf.len) : (visual_col += 1) {
-                underline_buf[underline_len] = ' ';
-                underline_len += 1;
-            }
-        } else {
-            if (underline_len < underline_buf.len) {
-                underline_buf[underline_len] = ' ';
-                underline_len += 1;
-            }
-            visual_col += 1;
+        // Print underline for this line
+        var empty_padding: [16]u8 = undefined;
+        @memset(empty_padding[0..line_num_width], ' ');
+        const empty_padded = empty_padding[0..line_num_width];
+        std.debug.print(" \x1b[2;36m{s}\x1b[0m \x1b[2m|\x1b[0m ", .{empty_padded});
+
+        // Calculate where to start and end the underline for this line
+        const line_error_start = if (current_line == start_line) err.span.start - line_start else 0;
+        const line_error_end = if (current_line == end_line)
+            @min(err.span.end - line_start, line_content.len)
+        else
+            line_content.len;
+
+        const visual_error_start = getVisualColumn(line_content, line_error_start);
+        const visual_error_end = getVisualColumn(line_content, line_error_end);
+
+        // Print spaces up to error start
+        var i: usize = 0;
+        while (i < visual_error_start) : (i += 1) {
+            std.debug.print(" ", .{});
         }
-    }
 
-    if (err.span.start != err.span.end - 1) {
-        while (visual_col < visual_end_col and underline_len < underline_buf.len) {
-            if (byte_pos < line_content.len and line_content[byte_pos] == '\t') {
-                const next_tab_stop = ((visual_col + 4) & ~@as(usize, 3));
-                while (visual_col < next_tab_stop and visual_col < visual_end_col - 1 and underline_len < underline_buf.len) : (visual_col += 1) {
-                    underline_buf[underline_len] = '~';
-                    underline_len += 1;
+        // Print underline
+        const is_single_char = (err.span.start == err.span.end - 1) and (start_line == end_line);
+        if (is_single_char) {
+            std.debug.print("\x1b[1;31m^\x1b[0m", .{});
+        } else {
+            // First character
+            if (current_line == start_line and current_line == end_line) {
+                // Single line span
+                while (i < visual_error_end - 1) : (i += 1) {
+                    std.debug.print("\x1b[1;31m~\x1b[0m", .{});
                 }
-                if (byte_pos < line_content.len - 1) byte_pos += 1;
+                std.debug.print("\x1b[1;31m^\x1b[0m", .{});
+            } else if (current_line == start_line) {
+                // First line of multiline span
+                while (i < visual_error_end) : (i += 1) {
+                    std.debug.print("\x1b[1;31m~\x1b[0m", .{});
+                }
+            } else if (current_line == end_line) {
+                // Last line of multiline span
+                while (i < visual_error_end - 1) : (i += 1) {
+                    std.debug.print("\x1b[1;31m~\x1b[0m", .{});
+                }
+                std.debug.print("\x1b[1;31m^\x1b[0m", .{});
             } else {
-                if (underline_len < underline_buf.len) {
-                    underline_buf[underline_len] = '~';
-                    underline_len += 1;
+                // Middle line of multiline span
+                while (i < visual_error_end) : (i += 1) {
+                    std.debug.print("\x1b[1;31m~\x1b[0m", .{});
                 }
-                visual_col += 1;
-                if (byte_pos < line_content.len) byte_pos += 1;
             }
         }
-
-        if (visual_col < visual_end_col and underline_len < underline_buf.len) {
-            underline_buf[underline_len] = ' ';
-            underline_len += 1;
-            visual_col += 1;
-        }
+        std.debug.print("\n", .{});
     }
 
-    if (underline_len < underline_buf.len) {
-        underline_buf[underline_len] = '^';
-        underline_len += 1;
-    }
-
-    var i: usize = 0;
-    while (i < underline_len) : (i += 1) {
-        const c = underline_buf[i];
-        if (c == '~' or c == '^') {
-            std.debug.print("\x1b[1;31m{c}\x1b[0m", .{c});
-        } else {
-            std.debug.print("{c}", .{c});
-        }
-    }
-
-    std.debug.print("\n\n", .{});
+    std.debug.print("\n", .{});
 
     if (err.help) |help| {
         std.debug.print("\x1b[1;36mhelp\x1b[0m: {s}\n\n", .{help});
