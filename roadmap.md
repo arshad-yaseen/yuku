@@ -15,7 +15,7 @@
 - [x] var, let, const declarations
 - [x] using, await using declarations
 - [x] Basic binding patterns (identifier)
-- [ ] Array destructuring patterns (ArrayPattern)
+- [x] Array destructuring patterns (ArrayPattern)
 - [ ] Object destructuring patterns (ObjectPattern)
 - [ ] Rest elements in destructuring
 - [ ] Default values in destructuring (AssignmentPattern)
