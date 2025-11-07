@@ -66,7 +66,7 @@ pub const Parser = struct {
             };
 
             const body_item = self.createNode(ast.Body, .{ .statement = stmt });
-            self.appendItem(&body_list, body_item);
+            self.append(&body_list, body_item);
         }
 
         const end = if (body_list.items.len > 0)
@@ -75,7 +75,7 @@ pub const Parser = struct {
             start;
 
         const program = ast.Program{
-            .body = self.dupeSlice(*ast.Body, body_list.items),
+            .body = self.dupe(*ast.Body, body_list.items),
             .span = .{ .start = start, .end = end },
         };
 
@@ -123,18 +123,18 @@ pub const Parser = struct {
         const start = self.current_token.span.start;
         const kind = self.parseVariableDeclarationKind() orelse return null;
 
-        self.clearRetainingCapacity(&self.scratch_declarators);
+        self.clear(&self.scratch_declarators);
         self.ensureCapacity(&self.scratch_declarators, 4);
 
         // parse first declarator
         const first_decl = self.parseVariableDeclarator(kind) orelse return null;
-        self.appendItem(&self.scratch_declarators, first_decl);
+        self.append(&self.scratch_declarators, first_decl);
 
         // parse additional declarators
         while (self.current_token.type == .Comma) {
             self.advance();
             const decl = self.parseVariableDeclarator(kind) orelse return null;
-            self.appendItem(&self.scratch_declarators, decl);
+            self.append(&self.scratch_declarators, decl);
         }
 
         self.eatSemi();
@@ -144,7 +144,7 @@ pub const Parser = struct {
         else
             self.current_token.span.start;
 
-        const declarations = self.dupeSlice(*ast.VariableDeclarator, self.scratch_declarators.items);
+        const declarations = self.dupe(*ast.VariableDeclarator, self.scratch_declarators.items);
 
         const var_decl = ast.VariableDeclaration{
             .kind = kind,
@@ -327,12 +327,12 @@ pub const Parser = struct {
     fn parseRegExpLiteral(self: *Parser) ?*ast.Expression {
         const slash_token = self.current_token;
 
-        const regex = self.lexer.reScanAsRegex(slash_token) catch |_error| {
+        const regex = self.lexer.reScanAsRegex(slash_token) catch |err_| {
             self.err(
                 slash_token.span.start,
                 slash_token.span.end,
-                lexer.getLexicalErrorMessage(_error),
-                lexer.getLexicalErrorHelp(_error),
+                lexer.getLexicalErrorMessage(err_),
+                lexer.getLexicalErrorHelp(err_),
             );
             return null;
         };
@@ -364,8 +364,8 @@ pub const Parser = struct {
         const element = self.createTemplateElement(tok, true);
 
         const template_literal = ast.TemplateLiteral{
-            .quasis = self.dupeSlice(*ast.TemplateElement, &[_]*ast.TemplateElement{element}),
-            .expressions = self.dupeSlice(*ast.Expression, &[_]*ast.Expression{}),
+            .quasis = self.dupe(*ast.TemplateElement, &[_]*ast.TemplateElement{element}),
+            .expressions = self.dupe(*ast.Expression, &[_]*ast.Expression{}),
             .span = .{
                 .start = tok.span.start - 1, // -1 include starting backtick
                 .end = tok.span.end + 1, // +1 include closing backtick
@@ -378,14 +378,14 @@ pub const Parser = struct {
     fn parseTemplateLiteral(self: *Parser) ?*ast.Expression {
         const template_literal_start = self.current_token.span.start - 1; // -1 include starting backtick
 
-        self.clearRetainingCapacity(&self.scratch_template_elements);
-        self.clearRetainingCapacity(&self.scratch_expressions);
+        self.clear(&self.scratch_template_elements);
+        self.clear(&self.scratch_expressions);
         self.ensureCapacity(&self.scratch_template_elements, 4);
         self.ensureCapacity(&self.scratch_expressions, 4);
 
         // parse head element
         const head_token = self.current_token;
-        self.appendItem(&self.scratch_template_elements, self.createTemplateElement(head_token, false));
+        self.append(&self.scratch_template_elements, self.createTemplateElement(head_token, false));
         self.advance();
 
         var template_literal_end: usize = undefined;
@@ -394,14 +394,14 @@ pub const Parser = struct {
         while (true) {
             const expr_start = self.current_token.span.start;
             const expr = self.parseExpression() orelse return null;
-            self.appendItem(&self.scratch_expressions, expr);
+            self.append(&self.scratch_expressions, expr);
 
             const template_token = self.current_token;
             const is_tail = template_token.type == .TemplateTail;
 
             switch (template_token.type) {
                 .TemplateMiddle, .TemplateTail => {
-                    self.appendItem(&self.scratch_template_elements, self.createTemplateElement(template_token, is_tail));
+                    self.append(&self.scratch_template_elements, self.createTemplateElement(template_token, is_tail));
 
                     if (is_tail) {
                         template_literal_end = template_token.span.end + 1; // +1 include closing backtick
@@ -424,8 +424,8 @@ pub const Parser = struct {
         }
 
         const template_literal = ast.TemplateLiteral{
-            .quasis = self.dupeSlice(*ast.TemplateElement, self.scratch_template_elements.items),
-            .expressions = self.dupeSlice(*ast.Expression, self.scratch_expressions.items),
+            .quasis = self.dupe(*ast.TemplateElement, self.scratch_template_elements.items),
+            .expressions = self.dupe(*ast.Expression, self.scratch_expressions.items),
             .span = .{ .start = template_literal_start, .end = template_literal_end },
         };
 
@@ -494,7 +494,7 @@ pub const Parser = struct {
             return null;
         }
 
-        self.clearRetainingCapacity(&self.scratch_array_pattern_elements);
+        self.clear(&self.scratch_array_pattern_elements);
         self.ensureCapacity(&self.scratch_array_pattern_elements, 4);
 
         var last_end = self.current_token.span.start;
@@ -504,7 +504,7 @@ pub const Parser = struct {
             // check for rest element
             if (self.current_token.type == .Spread) {
                 const rest_elem = self.parseRestElement() orelse return null;
-                self.appendItem(&self.scratch_array_pattern_elements, rest_elem);
+                self.append(&self.scratch_array_pattern_elements, rest_elem);
                 last_end = rest_elem.getSpan().end;
 
                 // Rest element must be last
@@ -524,12 +524,12 @@ pub const Parser = struct {
             // parse regular element or empty slot
             if (self.current_token.type == .Comma) {
                 // empty slot: [a, , b]
-                self.appendItem(&self.scratch_array_pattern_elements, null);
+                self.append(&self.scratch_array_pattern_elements, null);
                 last_end = self.current_token.span.end;
                 self.advance();
             } else {
                 const elem = self.parseArrayPatternElement() orelse return null;
-                self.appendItem(&self.scratch_array_pattern_elements, elem);
+                self.append(&self.scratch_array_pattern_elements, elem);
                 last_end = elem.getSpan().end;
 
                 if (self.current_token.type == .Comma) {
@@ -556,7 +556,7 @@ pub const Parser = struct {
         };
 
         const array_pattern = ast.ArrayPattern{
-            .elements = self.dupeSlice(?*ast.ArrayPatternElement, self.scratch_array_pattern_elements.items),
+            .elements = self.dupe(?*ast.ArrayPatternElement, self.scratch_array_pattern_elements.items),
             .span = .{ .start = start, .end = end },
         };
 
@@ -599,7 +599,7 @@ pub const Parser = struct {
             return null;
         }
 
-        self.clearRetainingCapacity(&self.scratch_object_pattern_properties);
+        self.clear(&self.scratch_object_pattern_properties);
         self.ensureCapacity(&self.scratch_object_pattern_properties, 4);
 
         var last_end = self.current_token.span.start;
@@ -609,7 +609,7 @@ pub const Parser = struct {
             // check for rest element
             if (self.current_token.type == .Spread) {
                 const rest_prop = self.parseObjectRestElement() orelse return null;
-                self.appendItem(&self.scratch_object_pattern_properties, rest_prop);
+                self.append(&self.scratch_object_pattern_properties, rest_prop);
                 last_end = rest_prop.getSpan().end;
 
                 // rest element must be last
@@ -628,7 +628,7 @@ pub const Parser = struct {
 
             // parse regular property
             const prop = self.parseObjectPatternProperty() orelse return null;
-            self.appendItem(&self.scratch_object_pattern_properties, prop);
+            self.append(&self.scratch_object_pattern_properties, prop);
             last_end = prop.getSpan().end;
 
             if (self.current_token.type == .Comma) {
@@ -654,7 +654,7 @@ pub const Parser = struct {
         };
 
         const object_pattern = ast.ObjectPattern{
-            .properties = self.dupeSlice(*ast.ObjectPatternProperty, self.scratch_object_pattern_properties.items),
+            .properties = self.dupe(*ast.ObjectPatternProperty, self.scratch_object_pattern_properties.items),
             .span = .{ .start = start, .end = end },
         };
 
@@ -792,11 +792,11 @@ pub const Parser = struct {
     }
 
     inline fn advance(self: *Parser) void {
-        self.current_token = self.lexer.nextToken() catch |_error| blk: {
-            self.appendItem(&self.errors, Error{
-                .message = lexer.getLexicalErrorMessage(_error),
+        self.current_token = self.lexer.nextToken() catch |err_| blk: {
+            self.append(&self.errors, Error{
+                .message = lexer.getLexicalErrorMessage(err_),
                 .span = .{ .start = self.lexer.token_start, .end = self.lexer.cursor },
-                .help = lexer.getLexicalErrorHelp(_error),
+                .help = lexer.getLexicalErrorHelp(err_),
             });
             break :blk token.Token.eof(0);
         };
@@ -836,7 +836,7 @@ pub const Parser = struct {
         message: []const u8,
         help: ?[]const u8,
     ) void {
-        self.appendItem(&self.errors, Error{
+        self.append(&self.errors, Error{
             .message = message,
             .span = .{ .start = start, .end = end },
             .help = help,
@@ -876,19 +876,19 @@ pub const Parser = struct {
     }
 
     inline fn ensureCapacity(self: *Parser, list: anytype, capacity: usize) void {
-        list.ensureTotalCapacity(self.allocator, capacity) catch unreachable;
+        list.ensureUnusedCapacity(self.allocator, capacity) catch unreachable;
     }
 
-    inline fn appendItem(self: *Parser, list: anytype, item: anytype) void {
+    inline fn append(self: *Parser, list: anytype, item: anytype) void {
         list.append(self.allocator, item) catch unreachable;
     }
 
-    inline fn clearRetainingCapacity(self: *Parser, list: anytype) void {
+    inline fn clear(self: *Parser, list: anytype) void {
         _ = self;
-        list.clearRetainingCapacity();
+        list.items.len = 0;
     }
 
-    inline fn dupeSlice(self: *Parser, comptime T: type, items: []const T) []T {
+    inline fn dupe(self: *Parser, comptime T: type, items: []const T) []T {
         return self.allocator.dupe(T, items) catch unreachable;
     }
 
