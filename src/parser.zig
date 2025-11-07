@@ -90,17 +90,7 @@ pub const Parser = struct {
             .Var, .Const, .Let, .Using => self.parseVariableDeclaration(),
             .Await => {
                 const await_token = self.current_token;
-                const next = self.peek() orelse {
-                    const span_start = await_token.span.start;
-                    const span_end = await_token.span.end;
-                    self.err(
-                        span_start,
-                        span_end,
-                        "Expected 'using' after 'await'",
-                        "Add 'using' after 'await' to create an 'await using' declaration",
-                    );
-                    return null;
-                };
+                const next = self.lookAhead() orelse return null;
 
                 if (next.type == .Using) {
                     return self.parseVariableDeclaration();
@@ -796,7 +786,8 @@ pub const Parser = struct {
         return self.createNode(ast.ObjectPatternProperty, .{ .rest_element = rest_elem_ptr });
     }
 
-    fn peek(self: *Parser) ?token.Token {
+    fn lookAhead(self: *Parser) ?token.Token {
+        // TODO: add lookahead support, rewind etc.
         return self.current_token;
     }
 
