@@ -140,7 +140,7 @@ pub const Parser = struct {
             self.append(&self.scratch_declarators, decl);
         }
 
-        if(self.eatSemi()) {
+        if (self.eatSemi()) {
             end += 1;
         }
 
@@ -313,7 +313,7 @@ pub const Parser = struct {
         self.advance();
 
         const literal = ast.NumericLiteral{
-            .value = std.fmt.parseFloat(f64, value) catch unreachable,
+            .value = std.fmt.parseFloat(f64, value) catch unreachable, // lexer only tokenizes valid numeric literals
             .raw = value,
             .span = span,
         };
@@ -326,7 +326,7 @@ pub const Parser = struct {
         const span = self.current_token.span;
         self.advance();
 
-        const bigint = raw[0..(raw.len - 1)];
+        const bigint = raw[0..(raw.len - 1)]; // lexer only produces BigInt tokens for valid literals
 
         const literal = ast.BigIntLiteral{
             .value = raw,
@@ -716,15 +716,15 @@ pub const Parser = struct {
             key_span = string_literal.getSpan();
 
             key = self.createNode(ast.PropertyKey, .{ .expression = string_literal });
-        }  else {
-           self.err(
-               self.current_token.span.start,
-               self.current_token.span.end,
-               "Expected property key",
-               "Property key must be an identifier, string, number, or computed property ([expression])",
-           );
-           return null;
-       }
+        } else {
+            self.err(
+                self.current_token.span.start,
+                self.current_token.span.end,
+                "Expected property key",
+                "Property key must be an identifier, string, number, or computed property ([expression])",
+            );
+            return null;
+        }
 
         const is_shorthand = self.current_token.type == .Comma or self.current_token.type == .RightBrace;
         var value: *ast.BindingPattern = undefined;
@@ -733,17 +733,6 @@ pub const Parser = struct {
             // shorthand: only allowed with identifier_name keys
             const identifier_name = switch (key.*) {
                 .identifier_name => |id| id,
-                .private_identifier => {
-                    const key_start = key_span.start;
-                    const key_end = key_span.end;
-                    self.err(
-                        key_start,
-                        key_end,
-                        "Cannot use private identifier as shorthand property",
-                        "Private identifiers require explicit binding. Use ': <pattern>' after the key",
-                    );
-                    return null;
-                },
                 .expression => {
                     const key_start = key_span.start;
                     const key_end = key_span.end;
@@ -755,6 +744,7 @@ pub const Parser = struct {
                     );
                     return null;
                 },
+                else => return null,
             };
 
             const binding_id = ast.BindingIdentifier{
