@@ -721,7 +721,7 @@ pub const Parser = struct {
             key_span = span;
 
             key = self.createNode(ast.PropertyKey, .{ .identifier_name = identifier_name });
-        } else if (self.current_token.type.is(token.Mask.IsNumericLiteral)) {
+        } else if (self.current_token.type.isNumericLiteral()) {
             const numeric_literal = self.parseNumericLiteral() orelse return null;
 
             key_span = numeric_literal.getSpan();

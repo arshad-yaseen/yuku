@@ -2,6 +2,9 @@ const std = @import("std");
 
 pub const Mask = struct {
     pub const IsNumericLiteral: u32 = 1 << 12;
+
+    pub const PrecShift: u32 = 7;
+    pub const PrecOverlap: u32 = 31;
 };
 
 pub const TokenType = enum(u32) {
@@ -23,7 +26,8 @@ pub const TokenType = enum(u32) {
     False = 13,
     NullLiteral = 14,
 
-    Plus = 15, // +
+    // TODO: replace 1 with actual precedence
+    Plus = 15 | (4 << Mask.PrecShift), // +
     Minus = 16, // -
     Star = 17, // *
     Slash = 18, // /
@@ -148,8 +152,16 @@ pub const TokenType = enum(u32) {
 
     EOF = 121, // end of file
 
+    pub fn precedence(self: TokenType) u32 {
+        return (@intFromEnum(self) >> Mask.PrecShift) & Mask.PrecOverlap;
+    }
+
     pub fn is(self: TokenType, mask: u32) bool {
         return (@intFromEnum(self) & mask) != 0;
+    }
+
+    pub fn isNumericLiteral(self: TokenType) bool {
+        return self.is(Mask.IsNumericLiteral);
     }
 };
 
