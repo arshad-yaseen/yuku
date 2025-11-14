@@ -88,6 +88,73 @@ pub const ExpressionStatement = struct {
     span: token.Span,
 };
 
+pub const BinaryOperator = enum {
+    Equal,              // ==
+    NotEqual,           // !=
+    StrictEqual,        // ===
+    StrictNotEqual,     // !==
+
+    LessThan,           // <
+    LessThanEqual,      // <=
+    GreaterThan,        // >
+    GreaterThanEqual,   // >=
+
+    Plus,               // +
+    Minus,              // -
+    Star,               // *
+    Slash,              // /
+    Percent,            // %
+    Exponent,           // **
+
+    LeftShift,          // <<
+    RightShift,         // >>
+    UnsignedRightShift, // >>>
+
+    BitwiseOr,          // |
+    BitwiseXor,         // ^
+    BitwiseAnd,         // &
+
+    In,                 // in
+    Instanceof,         // instanceof
+
+    pub fn fromToken(token_type: token.TokenType) BinaryOperator {
+        return switch (token_type) {
+            .Equal => .Equal,
+            .NotEqual => .NotEqual,
+            .StrictEqual => .StrictEqual,
+            .StrictNotEqual => .StrictNotEqual,
+            .LessThan => .LessThan,
+            .LessThanEqual => .LessThanEqual,
+            .GreaterThan => .GreaterThan,
+            .GreaterThanEqual => .GreaterThanEqual,
+            .Plus => .Plus,
+            .Minus => .Minus,
+            .Star => .Star,
+            .Slash => .Slash,
+            .Percent => .Percent,
+            .Exponent => .Exponent,
+            .LeftShift => .LeftShift,
+            .RightShift => .RightShift,
+            .UnsignedRightShift => .UnsignedRightShift,
+            .BitwiseOr => .BitwiseOr,
+            .BitwiseXor => .BitwiseXor,
+            .BitwiseAnd => .BitwiseAnd,
+            .In => .In,
+            .Instanceof => .Instanceof,
+            else => unreachable, // we are sure we only call fromToken for binary operators
+        };
+    }
+};
+
+pub const BinaryExpression = struct {
+    type: []const u8 = "BinaryExpression",
+    left: *Expression,
+    right: *Expression,
+    operator: BinaryOperator,
+    directive: ?[]const u8 = null,
+    span: token.Span,
+};
+
 pub const VariableDeclaration = struct {
     type: []const u8 = "VariableDeclaration",
     kind: VariableDeclarationKind,

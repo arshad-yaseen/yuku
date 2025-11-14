@@ -206,11 +206,28 @@ pub const Parser = struct {
         });
     }
 
-    fn parseExpression(self: *Parser) ?*ast.Expression {
-        return self.parsePrimaryExpression();
+    fn parseExpression(self: *Parser, prec: u32) ?*ast.Expression {
+        var left: ?*ast.Expression = parseExpressionPrefix();
+
+        const current_token = self.current_token;
+        const current_token_prec = self.current_token.type.precedence();
+
+        while (prec <= current_token_prec and current_token.type != .EOF) {
+            left = parseExpressionInfix();
+        }
+
+        return left;
     }
 
-    fn parsePrimaryExpression(self: *Parser) ?*ast.Expression {
+    fn parseExpressionInfix(self: *Parser) ?*ast.Expression {
+        const current_token = self.current_token;
+
+        if(current_token.type.isBinaryOperator()){
+            return self.parseBinaryExpression();
+        }
+    }
+
+    fn parseExpressionPrefix(self: *Parser) ?*ast.Expression {
         return switch (self.current_token.type) {
             .Identifier => self.parseIdentifierReference(),
             .PrivateIdentifier => self.parsePrivateIdentifier(),
@@ -233,6 +250,10 @@ pub const Parser = struct {
                 return null;
             },
         };
+    }
+
+    fn parseBinaryExpression(self: *Parser) ?*ast.Expression {
+        _ = self;
     }
 
     fn parseIdentifierReference(self: *Parser) ?*ast.Expression {
