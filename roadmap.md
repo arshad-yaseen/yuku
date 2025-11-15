@@ -22,7 +22,7 @@
 
 ### 1.3 Expressions
 **Operators & Binary Expressions:**
-- [ ] Binary expressions (+, -, *, /, %, etc.)
+- [x] Binary expressions (+, -, *, /, %, etc.)
 - [ ] Logical expressions (&&, ||, ??)
 - [ ] Unary expressions (!, ~, +, -, typeof, void, delete)
 - [ ] Update expressions (++, --)
