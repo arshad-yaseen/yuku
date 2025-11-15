@@ -1,1 +1,1 @@
-const hello = 10 ** 20 ** 2;
+const hello = nic || ni && oo

@@ -1,5 +1,6 @@
 const std = @import("std");
 const Parser = @import("parser.zig").Parser;
+const ParseResult = @import("parser.zig").ParseResult;
 const Lexer = @import("lexer.zig").Lexer;
 const Token = @import("token.zig").Token;
 const printError = @import("print-error.zig").printError;
@@ -37,12 +38,18 @@ pub fn main() !void {
     std.debug.print("Running {d} iterations...\n", .{iterations});
 
     var i: usize = 0;
+    var first_result: ParseResult = undefined;
+
     while (i < iterations) : (i += 1) {
         var parser = try Parser.init(allocator, content);
 
         const start = std.time.nanoTimestamp();
         const result = try parser.parse();
         const end = std.time.nanoTimestamp();
+
+        if(i == 0){
+            first_result = result;
+        }
 
         try times.append(allocator, end - start);
 
@@ -91,4 +98,6 @@ pub fn main() !void {
     std.debug.print(" lines/sec\n", .{});
     std.debug.print("  {d:.2} MB/sec\n", .{mb_per_sec});
     std.debug.print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n", .{});
+
+    std.log.info("\n\n{f}", .{std.json.fmt(first_result, .{ .whitespace = .indent_2 })});
 }

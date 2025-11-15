@@ -74,6 +74,7 @@ pub const Expression = union(enum) {
     identifier_reference: IdentifierReference,
     private_identifier: PrivateIdentifier,
     binary_expression: BinaryExpression,
+    logical_expression: LogicalExpression,
 
     pub inline fn getSpan(self: *const Expression) token.Span {
         return switch (self.*) {
@@ -147,12 +148,34 @@ pub const BinaryOperator = enum {
     }
 };
 
+pub const LogicalOperator = enum {
+    LogicalOr, // ||
+    LogicalAnd, // &&
+    NullishCoalescing, // ??
+
+    pub fn fromToken(token_type: token.TokenType) LogicalOperator {
+        return switch (token_type) {
+            .LogicalOr => .LogicalOr,
+            .LogicalAnd => .LogicalAnd,
+            .NullishCoalescing => .NullishCoalescing,
+            else => unreachable, // we are sure we only call fromToken for binary operators
+        };
+    }
+};
+
 pub const BinaryExpression = struct {
     type: []const u8 = "BinaryExpression",
     left: *Expression,
     right: *Expression,
     operator: BinaryOperator,
-    directive: ?[]const u8 = null,
+    span: token.Span,
+};
+
+pub const LogicalExpression = struct {
+    type: []const u8 = "LogicalExpression",
+    left: *Expression,
+    right: *Expression,
+    operator: LogicalOperator,
     span: token.Span,
 };
 

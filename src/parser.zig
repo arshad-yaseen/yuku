@@ -227,6 +227,10 @@ pub const Parser = struct {
             return self.parseBinaryExpression(prec, left);
         }
 
+        if (current_token.type.isLogicalOperator()) {
+            return self.parseLogicalExpression(prec, left);
+        }
+
         unreachable;
     }
 
@@ -277,6 +281,28 @@ pub const Parser = struct {
         };
 
         return self.createNode(ast.Expression, .{ .binary_expression = binary_expression });
+    }
+
+    fn parseLogicalExpression(self: *Parser, prec: u32, left: *ast.Expression) ?*ast.Expression {
+        const operator_token = self.current_token;
+
+        const operator = ast.LogicalOperator.fromToken(operator_token.type);
+
+        self.advance();
+
+        const right = self.parseExpression(prec + 1) orelse return null;
+
+        const logical_expression = ast.LogicalExpression{
+            .span = .{
+                .start = left.getSpan().start,
+                .end = right.getSpan().end,
+            },
+            .operator = operator,
+            .left = left,
+            .right = right,
+        };
+
+        return self.createNode(ast.Expression, .{ .logical_expression = logical_expression });
     }
 
     fn parseIdentifierReference(self: *Parser) ?*ast.Expression {

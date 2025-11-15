@@ -3,6 +3,7 @@ const std = @import("std");
 pub const Mask = struct {
     pub const IsNumericLiteral: u32 = 1 << 12;
     pub const IsBinaryOperator: u32 = 1 << 13;
+    pub const IsLogicalOperator: u32 = 1 << 14;
 
     pub const PrecShift: u32 = 7;
     pub const PrecOverlap: u32 = 31;
@@ -54,8 +55,8 @@ pub const TokenType = enum(u32) {
     LessThanEqual = 36 | (9 << Mask.PrecShift) | Mask.IsBinaryOperator, // <=
     GreaterThanEqual = 37 | (9 << Mask.PrecShift) | Mask.IsBinaryOperator, // >=
 
-    LogicalAnd = 38, // &&
-    LogicalOr = 39, // ||
+    LogicalAnd = 38 | (4 << Mask.PrecShift) | Mask.IsLogicalOperator, // &&
+    LogicalOr = 39 | (3 << Mask.PrecShift) | Mask.IsLogicalOperator, // ||
     LogicalNot = 40, // !
 
     BitwiseAnd = 41 | (7 << Mask.PrecShift) | Mask.IsBinaryOperator, // &
@@ -73,7 +74,7 @@ pub const TokenType = enum(u32) {
     RightShiftAssign = 52, // >>=
     UnsignedRightShiftAssign = 53, // >>>=
 
-    NullishCoalescing = 54, // ??
+    NullishCoalescing = 54 | (3 << Mask.PrecShift) | Mask.IsLogicalOperator, // ??
     NullishAssign = 55, // ??=
     LogicalAndAssign = 56, // &&=
     LogicalOrAssign = 57, // ||=
@@ -166,6 +167,10 @@ pub const TokenType = enum(u32) {
 
     pub fn isBinaryOperator(self: TokenType) bool {
         return self.is(Mask.IsBinaryOperator);
+    }
+
+    pub fn isLogicalOperator(self: TokenType) bool {
+        return self.is(Mask.IsLogicalOperator);
     }
 };
 
