@@ -1,1 +1,1 @@
-const [y = 5] = null;
+const hello = 10 ** 20 ** 2;

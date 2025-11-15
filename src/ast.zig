@@ -73,6 +73,7 @@ pub const Expression = union(enum) {
     template_literal: TemplateLiteral,
     identifier_reference: IdentifierReference,
     private_identifier: PrivateIdentifier,
+    binary_expression: BinaryExpression,
 
     pub inline fn getSpan(self: *const Expression) token.Span {
         return switch (self.*) {
@@ -89,33 +90,33 @@ pub const ExpressionStatement = struct {
 };
 
 pub const BinaryOperator = enum {
-    Equal,              // ==
-    NotEqual,           // !=
-    StrictEqual,        // ===
-    StrictNotEqual,     // !==
+    Equal, // ==
+    NotEqual, // !=
+    StrictEqual, // ===
+    StrictNotEqual, // !==
 
-    LessThan,           // <
-    LessThanEqual,      // <=
-    GreaterThan,        // >
-    GreaterThanEqual,   // >=
+    LessThan, // <
+    LessThanEqual, // <=
+    GreaterThan, // >
+    GreaterThanEqual, // >=
 
-    Plus,               // +
-    Minus,              // -
-    Star,               // *
-    Slash,              // /
-    Percent,            // %
-    Exponent,           // **
+    Plus, // +
+    Minus, // -
+    Star, // *
+    Slash, // /
+    Percent, // %
+    Exponent, // **
 
-    LeftShift,          // <<
-    RightShift,         // >>
+    LeftShift, // <<
+    RightShift, // >>
     UnsignedRightShift, // >>>
 
-    BitwiseOr,          // |
-    BitwiseXor,         // ^
-    BitwiseAnd,         // &
+    BitwiseOr, // |
+    BitwiseXor, // ^
+    BitwiseAnd, // &
 
-    In,                 // in
-    Instanceof,         // instanceof
+    In, // in
+    Instanceof, // instanceof
 
     pub fn fromToken(token_type: token.TokenType) BinaryOperator {
         return switch (token_type) {

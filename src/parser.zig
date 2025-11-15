@@ -184,7 +184,7 @@ pub const Parser = struct {
 
         if (self.current_token.type == .Assign) {
             self.advance();
-            if (self.parseExpression()) |expr| {
+            if (self.parseExpression(0)) |expr| {
                 init_expr = expr;
                 end = expr.getSpan().end;
             }
@@ -207,24 +207,27 @@ pub const Parser = struct {
     }
 
     fn parseExpression(self: *Parser, prec: u32) ?*ast.Expression {
-        var left: ?*ast.Expression = parseExpressionPrefix();
+        var left: *ast.Expression = self.parseExpressionPrefix() orelse return null;
 
-        const current_token = self.current_token;
-        const current_token_prec = self.current_token.type.precedence();
+        while (self.current_token.type != .EOF) {
+            const current_prec = self.current_token.type.precedence();
 
-        while (prec <= current_token_prec and current_token.type != .EOF) {
-            left = parseExpressionInfix();
+            if (prec > current_prec or current_prec == 0) break;
+
+            left = self.parseExpressionInfix(current_prec, left) orelse return null;
         }
 
         return left;
     }
 
-    fn parseExpressionInfix(self: *Parser) ?*ast.Expression {
+    fn parseExpressionInfix(self: *Parser, prec: u32, left: *ast.Expression) ?*ast.Expression {
         const current_token = self.current_token;
 
-        if(current_token.type.isBinaryOperator()){
-            return self.parseBinaryExpression();
+        if (current_token.type.isBinaryOperator()) {
+            return self.parseBinaryExpression(prec, left);
         }
+
+        unreachable;
     }
 
     fn parseExpressionPrefix(self: *Parser) ?*ast.Expression {
@@ -252,8 +255,28 @@ pub const Parser = struct {
         };
     }
 
-    fn parseBinaryExpression(self: *Parser) ?*ast.Expression {
-        _ = self;
+    fn parseBinaryExpression(self: *Parser, prec: u32, left: *ast.Expression) ?*ast.Expression {
+        const operator_token = self.current_token;
+        const operator = ast.BinaryOperator.fromToken(operator_token.type);
+
+        self.advance();
+
+        // ** is right assosiative
+        const next_prec = if (operator == .Exponent) prec else prec + 1;
+
+        const right = self.parseExpression(next_prec) orelse return null;
+
+        const binary_expression = ast.BinaryExpression{
+            .span = .{
+                .start = left.getSpan().start,
+                .end = right.getSpan().end,
+            },
+            .operator = operator,
+            .left = left,
+            .right = right,
+        };
+
+        return self.createNode(ast.Expression, .{ .binary_expression = binary_expression });
     }
 
     fn parseIdentifierReference(self: *Parser) ?*ast.Expression {
@@ -425,7 +448,7 @@ pub const Parser = struct {
         // parse expressions and middle/tail elements
         while (true) {
             const expr_start = self.current_token.span.start;
-            const expr = self.parseExpression() orelse return null;
+            const expr = self.parseExpression(0) orelse return null;
             self.append(&self.scratch_expressions, expr);
 
             const template_token = self.current_token;
@@ -712,7 +735,7 @@ pub const Parser = struct {
             const bracket_start = self.current_token.span.start;
             self.advance();
 
-            const key_expr = self.parseExpression() orelse return null;
+            const key_expr = self.parseExpression(0) orelse return null;
             key = self.createNode(ast.PropertyKey, .{ .expression = key_expr });
             key_span = .{ .start = bracket_start, .end = key_expr.getSpan().end };
 
@@ -859,7 +882,7 @@ pub const Parser = struct {
         self.advance();
 
         // parse the default expression
-        const right = self.parseExpression() orelse return null;
+        const right = self.parseExpression(0) orelse return null;
 
         const end = right.getSpan().end;
 
