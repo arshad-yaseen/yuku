@@ -2,7 +2,7 @@ const std = @import("std");
 
 pub const CodePoint = struct { len: u3, value: u21 };
 
-pub fn codePointAt(str: []const u8, i: usize) CodePoint {
+pub fn codePointAt(str: []const u8, i: u32) CodePoint {
     const len = std.unicode.utf8ByteSequenceLength(str[i]) catch unreachable;
     const codepoint = switch (len) {
         1 => str[i],

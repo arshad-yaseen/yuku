@@ -443,7 +443,7 @@ pub const Parser = struct {
         self.append(&self.scratch_template_elements, self.createTemplateElement(head_token, false));
         self.advance();
 
-        var template_literal_end: usize = undefined;
+        var template_literal_end: u32 = undefined;
 
         // parse expressions and middle/tail elements
         while (true) {
@@ -943,8 +943,8 @@ pub const Parser = struct {
 
     inline fn err(
         self: *Parser,
-        start: usize,
-        end: usize,
+        start: u32,
+        end: u32,
         message: []const u8,
         help: ?[]const u8,
     ) void {
@@ -987,7 +987,7 @@ pub const Parser = struct {
         return ptr;
     }
 
-    inline fn ensureCapacity(self: *Parser, list: anytype, capacity: usize) void {
+    inline fn ensureCapacity(self: *Parser, list: anytype, capacity: u32) void {
         list.ensureUnusedCapacity(self.allocator, capacity) catch unreachable;
     }
 

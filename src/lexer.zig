@@ -38,12 +38,12 @@ const padding_size = 4; // four safe lookaheads
 pub const Lexer = struct {
     strict_mode: bool,
     source: []u8,
-    source_len: usize,
+    source_len: u32,
     /// token start position, retained for lexical error recovery if scan fails
-    token_start: usize,
+    token_start: u32,
     /// current byte index being scanned in the source
-    cursor: usize,
-    template_depth: usize,
+    cursor: u32,
+    template_depth: u32,
     /// expects arena allocator
     allocator: std.mem.Allocator,
     comments: std.ArrayList(Comment),
@@ -55,7 +55,7 @@ pub const Lexer = struct {
         return .{
             .strict_mode = false,
             .source = padded_buffer,
-            .source_len = source.len,
+            .source_len = @intCast(source.len),
             .token_start = 0,
             .cursor = 0,
             .template_depth = 0,
@@ -490,7 +490,7 @@ pub const Lexer = struct {
                     return error.InvalidUnicodeEscape;
                 }
             }
-            self.cursor = end + 1;
+            self.cursor = @intCast(end + 1);
         } else {
             // \uXXXX format
             const end = self.cursor + 4;
@@ -519,7 +519,7 @@ pub const Lexer = struct {
         self.cursor = slash_token.span.start;
 
         const start = self.cursor;
-        var closing_delimeter_pos: usize = 0;
+        var closing_delimeter_pos: u32 = 0;
         self.cursor += 1; // consume '/'
         var in_class = false;
 
@@ -1001,6 +1001,7 @@ pub const Lexer = struct {
         while (self.cursor < self.source_len) {
             const c = self.source[self.cursor];
             if (std.ascii.isAscii(c)) {
+                @branchHint(.likely);
                 switch (c) {
                     // simple spaces
                     ' ', '\t', '\n', '\r', '\u{000B}', '\u{000C}' => {
@@ -1024,6 +1025,7 @@ pub const Lexer = struct {
                     else => break,
                 }
             } else {
+                @branchHint(.unlikely);
                 // okay, it maybe a multi-byte space
                 const cp = util.codePointAt(self.source, self.cursor);
                 if (util.isMultiByteSpace(cp.value)) {
@@ -1071,7 +1073,7 @@ pub const Lexer = struct {
         return error.UnterminatedMultiLineComment;
     }
 
-    pub inline fn createToken(self: *Lexer, token_type: TokenType, lexeme: []const u8, start: usize, end: usize) Token {
+    pub inline fn createToken(self: *Lexer, token_type: TokenType, lexeme: []const u8, start: u32, end: u32) Token {
         _ = self;
         return Token{ .type = token_type, .lexeme = lexeme, .span = .{ .start = start, .end = end } };
     }

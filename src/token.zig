@@ -170,16 +170,16 @@ pub const TokenType = enum(u32) {
 };
 
 pub const Span = struct {
-    start: usize,
-    end: usize,
+    start: u32,
+    end: u32,
 };
 
 pub const Token = struct {
-    lexeme: []const u8,
     span: Span,
     type: TokenType,
+    lexeme: []const u8,
 
-    pub inline fn eof(pos: usize) Token {
+    pub inline fn eof(pos: u32) Token {
         return Token{ .lexeme = "", .span = .{ .start = pos, .end = pos }, .type = .EOF };
     }
 };
@@ -190,7 +190,7 @@ pub const CommentType = enum {
 };
 
 pub const Comment = struct {
-    content: []const u8,
     span: Span,
+    content: []const u8,
     type: CommentType,
 };
