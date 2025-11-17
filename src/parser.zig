@@ -274,6 +274,10 @@ pub const Parser = struct {
             return self.parseUnaryExpression();
         }
 
+        return self.parsePrimaryExpression();
+    }
+
+    fn parsePrimaryExpression(self: *Parser) ?*ast.Expression {
         return switch (self.current_token.type) {
             .Identifier => self.parseIdentifierReference(),
             .PrivateIdentifier => self.parsePrivateIdentifier(),
