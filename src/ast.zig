@@ -25,6 +25,7 @@ pub const Program = struct {
     }
 };
 
+// statements
 pub const Statement = union(enum) {
     expression_statement: ExpressionStatement,
     variable_declaration: VariableDeclaration,
@@ -36,6 +37,7 @@ pub const Statement = union(enum) {
     }
 };
 
+// patterns
 pub const BindingPattern = union(enum) {
     binding_identifier: BindingIdentifier,
     array_pattern: ArrayPattern,
@@ -49,6 +51,7 @@ pub const BindingPattern = union(enum) {
     }
 };
 
+// declarations
 pub const Declaration = union(enum) {
     variable_declarator: VariableDeclarator,
 
@@ -59,6 +62,7 @@ pub const Declaration = union(enum) {
     }
 };
 
+// expressions
 pub const Expression = union(enum) {
     string_literal: StringLiteral,
     boolean_literal: BooleanLiteral,
@@ -89,33 +93,33 @@ pub const ExpressionStatement = struct {
 };
 
 pub const BinaryOperator = enum {
-    Equal,
-    NotEqual,
-    StrictEqual,
-    StrictNotEqual,
+    Equal, // ==
+    NotEqual, // !=
+    StrictEqual, // ===
+    StrictNotEqual, // !==
 
-    LessThan,
-    LessThanEqual,
-    GreaterThan,
-    GreaterThanEqual,
+    LessThan, // <
+    LessThanEqual, // <=
+    GreaterThan, // >
+    GreaterThanEqual, // >=
 
-    Plus,
-    Minus,
-    Star,
-    Slash,
-    Percent,
-    Exponent,
+    Plus, // +
+    Minus, // -
+    Star, // *
+    Slash, // /
+    Percent, // %
+    Exponent, // **
 
-    LeftShift,
-    RightShift,
-    UnsignedRightShift,
+    LeftShift, // <<
+    RightShift, // >>
+    UnsignedRightShift, // >>>
 
-    BitwiseOr,
-    BitwiseXor,
-    BitwiseAnd,
+    BitwiseOr, // |
+    BitwiseXor, // ^
+    BitwiseAnd, // &
 
-    In,
-    Instanceof,
+    In, // in
+    Instanceof, // instanceof
 
     pub fn fromToken(token_type: token.TokenType) BinaryOperator {
         return switch (token_type) {
@@ -141,34 +145,34 @@ pub const BinaryOperator = enum {
             .BitwiseAnd => .BitwiseAnd,
             .In => .In,
             .Instanceof => .Instanceof,
-            else => unreachable,
+            else => unreachable, // safety: we are sure we only call fromToken for binary operators
         };
     }
 };
 
 pub const LogicalOperator = enum {
-    LogicalOr,
-    LogicalAnd,
-    NullishCoalescing,
+    LogicalOr, // ||
+    LogicalAnd, // &&
+    NullishCoalescing, // ??
 
     pub fn fromToken(token_type: token.TokenType) LogicalOperator {
         return switch (token_type) {
             .LogicalOr => .LogicalOr,
             .LogicalAnd => .LogicalAnd,
             .NullishCoalescing => .NullishCoalescing,
-            else => unreachable,
+            else => unreachable, // safety: we are sure we only call fromToken for logical operators
         };
     }
 };
 
 pub const UnaryOperator = enum {
-    Plus,
-    Minus,
-    LogicalNot,
-    BitwiseNot,
-    Typeof,
-    Void,
-    Delete,
+    Plus, // +
+    Minus, // -
+    LogicalNot, // !
+    BitwiseNot, // ~
+    Typeof, // typeof
+    Void, // void
+    Delete, // delete
 
     pub fn fromToken(token_type: token.TokenType) UnaryOperator {
         return switch (token_type) {
@@ -179,20 +183,20 @@ pub const UnaryOperator = enum {
             .Typeof => .Typeof,
             .Void => .Void,
             .Delete => .Delete,
-            else => unreachable,
+            else => unreachable, // safety: we are sure we only call fromToken for unary operators
         };
     }
 };
 
 pub const UpdateOperator = enum {
-    Increment,
-    Decrement,
+    Increment, // ++
+    Decrement, // --
 
     pub fn fromToken(token_type: token.TokenType) UpdateOperator {
         return switch (token_type) {
             .Increment => .Increment,
             .Decrement => .Decrement,
-            else => unreachable,
+            else => unreachable, // safety: we are sure we only call fromToken for update operators
         };
     }
 };
@@ -244,6 +248,7 @@ pub const VariableDeclaration = struct {
     };
 };
 
+// directive (like "use strict")
 // ExpressionStatement
 pub const Directive = struct {
     expression: *StringLiteral,
