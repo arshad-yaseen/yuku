@@ -53,13 +53,13 @@ pub fn main() !void {
 
         try times.append(allocator, end - start);
 
-        // if (i == 0 and result.hasErrors()) {
-        //     std.debug.print("\nErrors found:\n", .{});
-        //     for (result.errors) |parse_err| {
-        //         printError(content, parse_err);
-        //     }
-        //     std.debug.print("\n", .{});
-        // }
+        if (i == 0 and result.hasErrors()) {
+            std.debug.print("\nErrors found:\n", .{});
+            for (result.errors) |parse_err| {
+                printError(content, parse_err);
+            }
+            std.debug.print("\n", .{});
+        }
     }
 
     var total: i128 = 0;
@@ -99,5 +99,5 @@ pub fn main() !void {
     std.debug.print("  {d:.2} MB/sec\n", .{mb_per_sec});
     std.debug.print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n", .{});
 
-    // std.log.info("\n\n{f}", .{std.json.fmt(first_result, .{ .whitespace = .indent_2 })});
+    std.log.info("\n\n{f}", .{std.json.fmt(first_result, .{ .whitespace = .indent_2 })});
 }

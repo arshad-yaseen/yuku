@@ -299,7 +299,7 @@ pub const Parser = struct {
             else => {
                 const bad_token = self.current_token;
                 self.err(
-                    bad_token.span.start - 1,
+                    bad_token.span.start,
                     bad_token.span.end,
                     "Unexpected token in expression position",
                     "Expected an expression like a variable name, number, string, or other literal value",
@@ -478,7 +478,7 @@ pub const Parser = struct {
         // assignment is right-associative, so parse with same precedence
         const right = self.parseExpression(prec) orelse return null;
 
-        const target = ast.AssignmentTarget{ .simple_assignment_target = left };
+        const target = self.parseAssignmentTarget(left) orelse return null;
 
         const assignment_expression = ast.AssignmentExpression{
             .span = .{
@@ -491,6 +491,15 @@ pub const Parser = struct {
         };
 
         return self.createNode(ast.Expression, .{ .assignment_expression = assignment_expression });
+    }
+
+    fn parseAssignmentTarget(self: *Parser, expr: *ast.Expression) ?*ast.AssignmentTarget {
+        if (!self.isValidAssignmentTarget(expr)) {
+            return null;
+        }
+
+        const target = ast.AssignmentTarget{ .simple_assignment_target = expr };
+        return self.createNode(ast.AssignmentTarget, target);
     }
 
     fn parseIdentifierReference(self: *Parser) ?*ast.Expression {

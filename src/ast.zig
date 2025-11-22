@@ -275,14 +275,13 @@ pub const LogicalExpression = struct {
     span: token.Span,
 };
 
-// AssignmentTarget (SimpleAssignmentTarget for now)
-// Note: Full destructuring assignment targets will be added when needed
+// AssignmentTarget
 pub const AssignmentTarget = union(enum) {
-    simple_assignment_target: *Expression, // IdentifierReference or MemberExpression
+    simple_assignment_target: *Expression,
 
     pub inline fn getSpan(self: *const AssignmentTarget) token.Span {
         return switch (self.*) {
-            .simple_assignment_target => |expr| expr.getSpan(),
+            inline else => |target| target.getSpan(),
         };
     }
 };
@@ -290,7 +289,7 @@ pub const AssignmentTarget = union(enum) {
 // AssignmentExpression
 pub const AssignmentExpression = struct {
     operator: AssignmentOperator,
-    left: AssignmentTarget,
+    left: *AssignmentTarget,
     right: *Expression,
     span: token.Span,
 };
@@ -310,7 +309,6 @@ pub const VariableDeclaration = struct {
     };
 };
 
-// directive (like "use strict")
 // ExpressionStatement
 pub const Directive = struct {
     expression: *StringLiteral,
