@@ -123,8 +123,8 @@ pub fn parseNoSubstitutionTemplateLiteral(parser: *Parser) ?*ast.Expression {
         .quasis = parser.dupe(*ast.TemplateElement, &[_]*ast.TemplateElement{element}),
         .expressions = parser.dupe(*ast.Expression, &[_]*ast.Expression{}),
         .span = .{
-            .start = tok.span.start - 1, // -1 include starting backtick
-            .end = tok.span.end + 1, // +1 include closing backtick
+            .start = tok.span.start,
+            .end = tok.span.end,
         },
     };
 
@@ -132,7 +132,7 @@ pub fn parseNoSubstitutionTemplateLiteral(parser: *Parser) ?*ast.Expression {
 }
 
 pub fn parseTemplateLiteral(parser: *Parser) ?*ast.Expression {
-    const template_literal_start = parser.current_token.span.start - 1; // -1 include starting backtick
+    const template_literal_start = parser.current_token.span.start;
 
     parser.clear(&parser.scratch_template_elements);
     parser.clear(&parser.scratch_expressions);
@@ -141,6 +141,7 @@ pub fn parseTemplateLiteral(parser: *Parser) ?*ast.Expression {
 
     // parse head element
     const head_token = parser.current_token;
+
     parser.append(&parser.scratch_template_elements, createTemplateElement(parser, head_token, false));
     parser.advance();
 
@@ -160,7 +161,7 @@ pub fn parseTemplateLiteral(parser: *Parser) ?*ast.Expression {
                 parser.append(&parser.scratch_template_elements, createTemplateElement(parser, template_token, is_tail));
 
                 if (is_tail) {
-                    template_literal_end = template_token.span.end + 1; // +1 include closing backtick
+                    template_literal_end = template_token.span.end;
                     parser.advance();
                     break;
                 }
@@ -189,13 +190,26 @@ pub fn parseTemplateLiteral(parser: *Parser) ?*ast.Expression {
 }
 
 inline fn createTemplateElement(parser: *Parser, tok: token.Token, is_tail: bool) *ast.TemplateElement {
+    // the template literal tokens includes the template literal punctuators, like `, ${}
+    const actual_start = tok.span.start;
+    const actual_end = tok.span.end;
+
+    // so we don't need those punctuators in the elements as per spec
+    const span: token.Span  = switch (tok.type) {
+        .TemplateHead, .TemplateMiddle => token.Span{.start = actual_start + 1, .end = actual_end - 2},
+        .TemplateTail => token.Span{.start = actual_start + 1, .end = actual_end - 1},
+        else => unreachable
+    };
+
+    const lexeme = parser.source[span.start..span.end];
+
     const element = ast.TemplateElement{
         .value = .{
-            .raw = tok.lexeme,
-            .cooked = tok.lexeme, // TODO: process escape sequences
+            .raw = lexeme,
+            .cooked = lexeme, // TODO: process escape sequences
         },
         .tail = is_tail,
-        .span = tok.span,
+        .span = span,
     };
     return parser.createNode(ast.TemplateElement, element);
 }

@@ -242,15 +242,14 @@ fn runTest(
         var i: usize = 0;
         while (i < @min(output.len, expected.len)) : (i += 1) {
             if (output[i] != expected[i]) {
-                const context_start = if (i > 40) i - 40 else 0;
-                const context_end = @min(i + 40, output.len);
+                const context_start = if (i > 100) i - 100 else 0;
+                const context_end = @min(i + 100, output.len);
 
                 const error_msg = try std.fmt.allocPrint(
                     allocator,
-                    "Snapshot mismatch at position {d}.\n    Expected: ...{s}...\n    Got:      ...{s}...\n    Run with --update to update snapshots",
+                    "Snapshot mismatch.\n\n   Expected: ...{s}...\n\n    Got:      ...{s}...\n    Run with --update to update snapshots",
                     .{
-                        i,
-                        expected[context_start..@min(i + 40, expected.len)],
+                        expected[context_start..@min(i + 100, expected.len)],
                         output[context_start..context_end],
                     },
                 );
