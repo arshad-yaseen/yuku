@@ -158,15 +158,8 @@ pub const TokenType = enum(u32) {
 
     EOF = 121, // end of file
 
-    // for expressions parsing
-    pub fn leftBindingPower(self: TokenType) u5 {
-        if (self.isBinaryOperator() or self.isLogicalOperator() or
-            self.isAssignmentOperator() or self == .Increment or self == .Decrement) {
-            const precedence: u5 = @intCast((@intFromEnum(self) >> Mask.PrecShift) & Mask.PrecOverlap);
-            return precedence;
-        }
-
-        return 0;  // can't be infix
+    pub fn precedence(self: TokenType) u5 {
+        return @intCast((@intFromEnum(self) >> Mask.PrecShift) & Mask.PrecOverlap);
     }
 
     pub fn is(self: TokenType, mask: u32) bool {
@@ -227,5 +220,22 @@ pub const Token = struct {
 
     pub inline fn eof(pos: u32) Token {
         return Token{ .lexeme = "", .span = .{ .start = pos, .end = pos }, .type = .EOF, .has_line_terminator_before = false };
+    }
+
+    // for expressions parsing (pratt)
+    pub fn leftBindingPower(self: *const Token) u5 {
+        // [no LineTerminator here] --
+        // [no LineTerminator here] ++
+        if ((self.type == .Increment or self.type == .Decrement) and self.has_line_terminator_before) {
+            return 0; // can't be infix, start new
+        }
+
+        if (self.type.isBinaryOperator() or self.type.isLogicalOperator() or
+            self.type.isAssignmentOperator() or self.type == .Increment or self.type == .Decrement)
+        {
+            return self.type.precedence();
+        }
+
+        return 0; // can't be infix
     }
 };

@@ -9,11 +9,11 @@ pub fn parseExpression(parser: *Parser, prec: u5) ?*ast.Expression {
     var left: *ast.Expression = parseExpressionPrefix(parser) orelse return null;
 
     while (parser.current_token.type != .EOF) {
-        const lbp = parser.current_token.type.leftBindingPower();
+        const lbp = parser.current_token.leftBindingPower();
 
-           if (prec > lbp or lbp == 0) break;
+        if (prec > lbp or lbp == 0) break;
 
-           left = parseExpressionInfix(parser, lbp, left) orelse return null;
+        left = parseExpressionInfix(parser, lbp, left) orelse return null;
     }
 
     return left;
@@ -111,16 +111,6 @@ fn parseUnaryExpression(parser: *Parser) ?*ast.Expression {
 
 fn parseUpdateExpression(parser: *Parser, is_prefix: bool, left: ?*ast.Expression) ?*ast.Expression {
     const operator_token = parser.current_token;
-
-    if (!is_prefix and operator_token.has_line_terminator_before) {
-        parser.err(
-            operator_token.span.start - 1,
-            operator_token.span.end,
-            "Line terminator not allowed before postfix operator",
-            parser.formatMessage("Remove the line break before '{s}'", .{operator_token.lexeme}),
-        );
-        return null;
-    }
 
     const operator = ast.UpdateOperator.fromToken(operator_token.type);
 

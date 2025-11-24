@@ -39,7 +39,7 @@ pub fn isMultiByteSpace(cp: u21) bool {
 pub fn parseAnyNumberStrToFloatUnsafe(str: []const u8) !f64 {
     const float = try std.fmt.parseFloat(f64, str) catch null;
 
-    if(float == null){
+    if (float == null) {
         const int = try std.fmt.parseInt(u64, str, 0);
         return @as(f64, @floatFromInt(int));
     }

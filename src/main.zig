@@ -1,5 +1,6 @@
 const std = @import("std");
 const js = @import("js");
+const printError = @import("print-error.zig").printError;
 
 pub fn main() !void {
     const content = @embedFile("test.js");
@@ -22,6 +23,14 @@ pub fn main() !void {
     const time_ms = time_ns_float / 1_00_00_00.0;
 
     std.log.info("\n\n{f}\n\n", .{std.json.fmt(result, .{ .whitespace = .indent_2 })});
+
+    if (result.hasErrors()) {
+        std.debug.print("\n\n", .{});
+        for (result.errors) |parse_err| {
+            printError(content, parse_err);
+        }
+        std.debug.print("\n\n", .{});
+    }
 
     std.debug.print("{d:.2}ms\n", .{time_ms});
 }

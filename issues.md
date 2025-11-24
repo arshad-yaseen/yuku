@@ -11,11 +11,6 @@
    - Problem: Incomplete - only covers 16 of 27 test lines
    - Missing: Lines 17-27 including a + !b, ++a * b, a * ++b, a++ * b, a * b++, typeof a + b, a + typeof b, -a ** b, (-a) ** b, ~a & b, a & ~b
    - Current: Cuts off with a postfix operator error
-4. array-patterns.snap.json (test/snapshots/array-patterns.snap.json:544-814)
-   - Problem: Nested array patterns (lines 10-12) show duplicated elements
-   - Example: let [[a]] = arr shows both a standalone a AND a nested array containing a
-   - Expected: Single nested array_pattern structure
-   - Lines affected: Test lines 10, 11, 12, 16
 5. numeric-errors.snap.json (test/snapshots/numeric-errors.snap.json)
    - Problem: Only contains 1 error (0x) but test has 10 error cases
    - Missing errors for: 0b, 0o, 1__2, 1_, 1.5e, 1.5e+, 1.5e-, 1.5n, 0xFFn.toString()

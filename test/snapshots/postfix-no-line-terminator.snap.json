@@ -60,6 +60,56 @@
             }
           }
         }
+      },
+      {
+        "statement": {
+          "expression_statement": {
+            "expression": {
+              "identifier_reference": {
+                "name": "x",
+                "span": {
+                  "start": 8,
+                  "end": 9
+                }
+              }
+            },
+            "directive": null,
+            "span": {
+              "start": 8,
+              "end": 9
+            }
+          }
+        }
+      },
+      {
+        "statement": {
+          "expression_statement": {
+            "expression": {
+              "update_expression": {
+                "operator": "Increment",
+                "prefix": true,
+                "argument": {
+                  "identifier_reference": {
+                    "name": "x",
+                    "span": {
+                      "start": 13,
+                      "end": 14
+                    }
+                  }
+                },
+                "span": {
+                  "start": 10,
+                  "end": 14
+                }
+              }
+            },
+            "directive": null,
+            "span": {
+              "start": 10,
+              "end": 14
+            }
+          }
+        }
       }
     ],
     "source_type": "script",
@@ -70,12 +120,12 @@
   },
   "errors": [
     {
-      "message": "Line terminator not allowed before postfix operator",
+      "message": "Unexpected token in expression position",
       "span": {
-        "start": 9,
-        "end": 12
+        "start": 18,
+        "end": 18
       },
-      "help": "Remove the line break before '++'"
+      "help": "Expected an expression like a variable name, number, string, or other literal value"
     }
   ]
 }
