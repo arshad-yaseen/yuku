@@ -49,9 +49,7 @@ pub fn build(b: *std.Build) void {
         .root_module = b.createModule(.{
             .root_source_file = b.path("scripts/generate-unicode-id.zig"),
             .target = b.graph.host,
-            .optimize = b.standardOptimizeOption(.{
-                .preferred_optimize_mode = std.builtin.OptimizeMode.ReleaseFast,
-            }),
+            .optimize = optimize,
         }),
     });
 
