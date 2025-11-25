@@ -159,7 +159,7 @@ fn runTest(
 
     defer allocator.free(snapshot_filename);
 
-    const input = test_dir.readFileAlloc(test_filename, allocator, std.Io.Limit.limited(10 * 1024 * 1024)) catch |err| {
+    const input = test_dir.readFileAlloc(allocator, test_filename, 10 * 1024 * 1024) catch |err| {
         return TestResult{
             .name = test_filename,
             .passed = false,
@@ -223,7 +223,7 @@ fn runTest(
         };
     }
 
-    const expected = test_dir.readFileAlloc(snapshot_filename, allocator, std.Io.Limit.limited(10 * 1024 * 1024)) catch |err| {
+    const expected = test_dir.readFileAlloc(allocator, snapshot_filename, 10 * 1024 * 1024) catch |err| {
         return TestResult{
             .name = test_filename,
             .passed = false,

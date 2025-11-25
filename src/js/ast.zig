@@ -78,6 +78,8 @@ pub const Expression = union(enum) {
     unary_expression: UnaryExpression,
     update_expression: UpdateExpression,
     assignment_expression: AssignmentExpression,
+    array_expression: ArrayExpression,
+    object_expression: ObjectExpression,
 
     pub inline fn getSpan(self: *const Expression) token.Span {
         return switch (self.*) {
@@ -484,5 +486,64 @@ pub const ObjectPatternProperty = union(enum) {
 // ObjectPattern
 pub const ObjectPattern = struct {
     properties: []*ObjectPatternProperty,
+    span: token.Span,
+};
+
+// SpreadElement
+pub const SpreadElement = struct {
+    argument: *Expression,
+    span: token.Span,
+};
+
+// ArrayExpression
+pub const ArrayExpression = struct {
+    elements: []?*ArrayExpressionElement,
+    span: token.Span,
+};
+
+pub const ArrayExpressionElement = union(enum) {
+    expression: *Expression,
+    spread_element: *SpreadElement,
+
+    pub inline fn getSpan(self: *const ArrayExpressionElement) token.Span {
+        return switch (self.*) {
+            .expression => |expr| expr.getSpan(),
+            .spread_element => |spread| spread.span,
+        };
+    }
+};
+
+// ObjectExpression
+pub const ObjectExpression = struct {
+    properties: []*ObjectExpressionProperty,
+    span: token.Span,
+};
+
+pub const ObjectExpressionProperty = union(enum) {
+    property: *ObjectProperty,
+    spread_element: *SpreadElement,
+
+    pub inline fn getSpan(self: *const ObjectExpressionProperty) token.Span {
+        return switch (self.*) {
+            .property => |prop| prop.span,
+            .spread_element => |spread| spread.span,
+        };
+    }
+};
+
+pub const PropertyKind = enum {
+    init,
+    get,
+    set,
+};
+
+// Property
+pub const ObjectProperty = struct {
+    kind: PropertyKind = .init,
+    key: *PropertyKey,
+    value: *Expression,
+    method: bool = false,
+    shorthand: bool,
+    computed: bool,
     span: token.Span,
 };
