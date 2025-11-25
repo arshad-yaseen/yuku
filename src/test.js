@@ -1,2 +1,5 @@
-let arr = [1, 2, ...items]
-let obj = { a: 1, b, [key]: value, ...rest }
+const obj = {
+  name: "John",
+  age: 30,
+  getValue () {  }
+};

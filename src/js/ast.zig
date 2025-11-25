@@ -279,6 +279,11 @@ pub const LogicalExpression = struct {
 
 pub const AssignmentTarget = union(enum) {
     simple_assignment_target: *Expression,
+    // TODO: implement assigment_target_pattern
+    // we already have ArrayExpression, good
+    // but we first need to finish ObjectExpression to add assigment_target_pattern, to finish ObjectExpression
+    // we need to implement the FunctionExpression
+    // lol
 
     pub inline fn getSpan(self: *const AssignmentTarget) token.Span {
         return switch (self.*) {

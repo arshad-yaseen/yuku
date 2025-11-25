@@ -42,8 +42,8 @@
 - [ ] Function expressions (FunctionExpression)
 - [ ] Class expressions (ClassExpression)
 - [ ] Object expressions (ObjectExpression)
-- [ ] Array expressions (ArrayExpression)
-- [ ] Spread elements (SpreadElement)
+- [x] Array expressions (ArrayExpression)
+- [x] Spread elements (SpreadElement)
 - [ ] Await expressions
 - [ ] Yield expressions
 - [ ] Meta property (new.target, import.meta)

@@ -431,7 +431,7 @@ fn parseObjectProperty(parser: *Parser) ?*ast.ObjectExpressionProperty {
     // computed property: { [expr]: value }
     if (parser.current_token.type == .LeftBracket) {
         computed = true;
-        parser.advance(); // consume '['
+        parser.advance();
 
         const key_expr = parseExpression(parser, 0) orelse return null;
         key = parser.createNode(ast.PropertyKey, .{ .expression = key_expr });
@@ -445,15 +445,18 @@ fn parseObjectProperty(parser: *Parser) ?*ast.ObjectExpressionProperty {
             );
             return null;
         }
-        parser.advance(); // consume ']'
+        parser.advance();
     } else if (parser.current_token.type.isIdentifierLike()) {
         // identifier key: { foo: value } or shorthand { foo }
         shorthand_identifier_token = parser.current_token;
+
         const id_name = ast.IdentifierName{
             .name = parser.current_token.lexeme,
             .span = parser.current_token.span,
         };
+
         key = parser.createNode(ast.PropertyKey, .{ .identifier_name = id_name });
+
         parser.advance();
     } else if (parser.current_token.type.isNumericLiteral()) {
         // numeric key: { 0: value }
@@ -473,7 +476,7 @@ fn parseObjectProperty(parser: *Parser) ?*ast.ObjectExpressionProperty {
         return null;
     }
 
-    // check for shorthand: { foo } or shorthand with value: { foo = default } (only in patterns, not expressions)
+    // check for shorthand: { foo } or shorthand with value: { foo = default }
     const is_shorthand = !computed and
         shorthand_identifier_token != null and
         (parser.current_token.type == .Comma or parser.current_token.type == .RightBrace);
@@ -517,4 +520,7 @@ fn parseObjectProperty(parser: *Parser) ?*ast.ObjectExpressionProperty {
 
     const prop_ptr = parser.createNode(ast.ObjectProperty, prop);
     return parser.createNode(ast.ObjectExpressionProperty, .{ .property = prop_ptr });
+
+    // TODO: handle method, and set/get property kinds, currently only handling 'init' and not handling the method.
+    // Since we need to implement the FunctionExpression/ArrowFunctionExpression first.
 }
