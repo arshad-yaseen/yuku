@@ -126,7 +126,7 @@ pub const Parser = struct {
         return self.createNode(ast.Statement, .{ .expression_statement = expr_stmt });
     }
 
-    pub inline fn ensureValidIdentifier(self: *Parser, tok: token.Token, comptime as_what: []const u8, help: []const u8) bool {
+    pub inline fn ensureValidIdentifier(self: *Parser, tok: token.Token, comptime as_what: []const u8, comptime help: []const u8, help_args: anytype) bool {
         if (self.strict_mode and (tok.type == .Identifier)) {
             if (std.mem.eql(u8, tok.lexeme, "eval") or std.mem.eql(u8, tok.lexeme, "arguments")) {
                 self.err(tok.span.start, tok.span.end, self.formatMessage("'{s}' cannot be used {s} in strict mode", .{ tok.lexeme, as_what }), help);
@@ -150,7 +150,7 @@ pub const Parser = struct {
         }
 
         if (tok.type.isStrictReserved()) {
-            self.err(tok.span.start, tok.span.end, self.formatMessage("'{s}' is a reserved word and cannot be used {s}", .{ tok.lexeme, as_what }), help);
+            self.err(tok.span.start, tok.span.end, self.formatMessage("'{s}' is a reserved word and cannot be used {s}", .{ tok.lexeme, as_what }), self.formatMessage(help, help_args));
             return false;
         }
 
