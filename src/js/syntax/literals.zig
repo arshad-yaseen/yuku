@@ -5,7 +5,7 @@ const Parser = @import("../parser.zig").Parser;
 const util = @import("util");
 const expressions = @import("expressions.zig");
 
-pub fn parseStringLiteral(parser: *Parser) ?ast.NodeIndex {
+pub inline fn parseStringLiteral(parser: *Parser) ?ast.NodeIndex {
     const token = parser.current_token;
     parser.advance();
     return parser.addNode(.{
@@ -16,7 +16,7 @@ pub fn parseStringLiteral(parser: *Parser) ?ast.NodeIndex {
     }, token.span);
 }
 
-pub fn parseBooleanLiteral(parser: *Parser) ?ast.NodeIndex {
+pub inline fn parseBooleanLiteral(parser: *Parser) ?ast.NodeIndex {
     const token = parser.current_token;
     parser.advance();
     return parser.addNode(.{
@@ -24,13 +24,13 @@ pub fn parseBooleanLiteral(parser: *Parser) ?ast.NodeIndex {
     }, token.span);
 }
 
-pub fn parseNullLiteral(parser: *Parser) ?ast.NodeIndex {
+pub inline fn parseNullLiteral(parser: *Parser) ?ast.NodeIndex {
     const token = parser.current_token;
     parser.advance();
     return parser.addNode(.null_literal, token.span);
 }
 
-pub fn parseNumericLiteral(parser: *Parser) ?ast.NodeIndex {
+pub inline fn parseNumericLiteral(parser: *Parser) ?ast.NodeIndex {
     const token = parser.current_token;
     parser.advance();
     return parser.addNode(.{
@@ -40,7 +40,7 @@ pub fn parseNumericLiteral(parser: *Parser) ?ast.NodeIndex {
     }, token.span);
 }
 
-pub fn parseBigIntLiteral(parser: *Parser) ?ast.NodeIndex {
+pub inline fn parseBigIntLiteral(parser: *Parser) ?ast.NodeIndex {
     const token = parser.current_token;
     parser.advance();
     return parser.addNode(.{
@@ -173,7 +173,7 @@ inline fn getTemplateElementSpan(token: @import("../token.zig").Token) ast.Span 
     };
 }
 
-pub fn parseIdentifier(parser: *Parser) ?ast.NodeIndex {
+pub inline fn parseIdentifier(parser: *Parser) ?ast.NodeIndex {
     const token = parser.current_token;
     parser.advance();
     return parser.addNode(.{
@@ -184,7 +184,7 @@ pub fn parseIdentifier(parser: *Parser) ?ast.NodeIndex {
     }, token.span);
 }
 
-pub fn parsePrivateIdentifier(parser: *Parser) ?ast.NodeIndex {
+pub inline fn parsePrivateIdentifier(parser: *Parser) ?ast.NodeIndex {
     const token = parser.current_token;
     parser.advance();
     return parser.addNode(.{

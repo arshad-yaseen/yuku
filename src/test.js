@@ -1,1 +1,1 @@
-let {hello, ...hello, looi} = obj
+let [cool] = []

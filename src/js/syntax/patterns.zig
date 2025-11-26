@@ -5,7 +5,7 @@ const Parser = @import("../parser.zig").Parser;
 const literals = @import("literals.zig");
 const expressions = @import("expressions.zig");
 
-pub fn parseBindingPattern(parser: *Parser) ?ast.NodeIndex {
+pub inline fn parseBindingPattern(parser: *Parser) ?ast.NodeIndex {
     if (parser.current_token.type.isIdentifierLike()) {
         return parseBindingIdentifier(parser);
     }
@@ -25,7 +25,7 @@ pub fn parseBindingPattern(parser: *Parser) ?ast.NodeIndex {
     };
 }
 
-fn parseBindingIdentifier(parser: *Parser) ?ast.NodeIndex {
+inline fn parseBindingIdentifier(parser: *Parser) ?ast.NodeIndex {
     if (!parser.current_token.type.isIdentifierLike()) {
         parser.err(
             parser.current_token.span.start,
@@ -55,7 +55,6 @@ fn parseBindingIdentifier(parser: *Parser) ?ast.NodeIndex {
     );
 }
 
-// array destructuring pattern: [a, b, ...rest]
 fn parseArrayPattern(parser: *Parser) ?ast.NodeIndex {
     const start = parser.current_token.span.start;
     if (!parser.expect(
@@ -66,9 +65,12 @@ fn parseArrayPattern(parser: *Parser) ?ast.NodeIndex {
 
     const checkpoint = parser.scratch_a.begin();
 
-    while (parser.current_token.type != .RightBracket and parser.current_token.type != .EOF) {
+    while (true) {
+        const token_type = parser.current_token.type;
+        if (token_type == .RightBracket or token_type == .EOF) break;
+
         // rest element: ...rest
-        if (parser.current_token.type == .Spread) {
+        if (token_type == .Spread) {
             const rest = parseRestElement(parser) orelse {
                 parser.scratch_a.reset(checkpoint);
                 return null;
@@ -90,7 +92,7 @@ fn parseArrayPattern(parser: *Parser) ?ast.NodeIndex {
         }
 
         // holes: [a, , b]
-        if (parser.current_token.type == .Comma) {
+        if (token_type == .Comma) {
             parser.scratch_a.append(ast.null_node);
             parser.advance();
         } else {
@@ -124,7 +126,7 @@ fn parseArrayPattern(parser: *Parser) ?ast.NodeIndex {
     );
 }
 
-fn parseArrayPatternElement(parser: *Parser) ?ast.NodeIndex {
+inline fn parseArrayPatternElement(parser: *Parser) ?ast.NodeIndex {
     const pattern = parseBindingPattern(parser) orelse return null;
 
     // default values: [a = 1]
@@ -148,7 +150,6 @@ fn parseRestElement(parser: *Parser) ?ast.NodeIndex {
     }, .{ .start = start, .end = parser.getSpan(argument).end });
 }
 
-// parse object destructuring pattern: {a, b: c, ...rest}
 fn parseObjectPattern(parser: *Parser) ?ast.NodeIndex {
     const start = parser.current_token.span.start;
     if (!parser.expect(
@@ -159,9 +160,12 @@ fn parseObjectPattern(parser: *Parser) ?ast.NodeIndex {
 
     const checkpoint = parser.scratch_a.begin();
 
-    while (parser.current_token.type != .RightBrace and parser.current_token.type != .EOF) {
+    while (true) {
+        const token_type = parser.current_token.type;
+        if (token_type == .RightBrace or token_type == .EOF) break;
+
         // rest element: ...rest
-        if (parser.current_token.type == .Spread) {
+        if (token_type == .Spread) {
             const rest = parseObjectRestElement(parser) orelse {
                 parser.scratch_a.reset(checkpoint);
                 return null;
@@ -211,7 +215,6 @@ fn parseObjectPattern(parser: *Parser) ?ast.NodeIndex {
     );
 }
 
-// parse object pattern property: {key: value} or {key} shorthand
 fn parseObjectPatternProperty(parser: *Parser) ?ast.NodeIndex {
     const start = parser.current_token.span.start;
     var computed = false;
@@ -359,8 +362,7 @@ fn parseObjectRestElement(parser: *Parser) ?ast.NodeIndex {
     );
 }
 
-// default value in destructuring: {x = 1}, [y = 2]
-fn parseAssignmentPatternDefault(parser: *Parser, left: ast.NodeIndex) ?ast.NodeIndex {
+inline fn parseAssignmentPatternDefault(parser: *Parser, left: ast.NodeIndex) ?ast.NodeIndex {
     const start = parser.getSpan(left).start;
     if (parser.current_token.type != .Assign) return left;
 

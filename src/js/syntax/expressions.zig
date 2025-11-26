@@ -6,7 +6,10 @@ const literals = @import("literals.zig");
 pub fn parseExpression(parser: *Parser, precedence: u5) ?ast.NodeIndex {
     var left = parsePrefix(parser) orelse return null;
 
-    while (parser.current_token.type != .EOF) {
+    while (true) {
+        const current_type = parser.current_token.type;
+        if (current_type == .EOF) break;
+
         const left_binding_power = parser.current_token.leftBindingPower();
         if (precedence > left_binding_power or left_binding_power == 0) break;
 
@@ -16,7 +19,7 @@ pub fn parseExpression(parser: *Parser, precedence: u5) ?ast.NodeIndex {
     return left;
 }
 
-fn parseInfix(parser: *Parser, precedence: u5, left: ast.NodeIndex) ?ast.NodeIndex {
+inline fn parseInfix(parser: *Parser, precedence: u5, left: ast.NodeIndex) ?ast.NodeIndex {
     const current = parser.current_token;
 
     if (current.type == .Increment or current.type == .Decrement) {
@@ -44,19 +47,21 @@ fn parseInfix(parser: *Parser, precedence: u5, left: ast.NodeIndex) ?ast.NodeInd
     return null;
 }
 
-fn parsePrefix(parser: *Parser) ?ast.NodeIndex {
-    if (parser.current_token.type == .Increment or parser.current_token.type == .Decrement) {
+inline fn parsePrefix(parser: *Parser) ?ast.NodeIndex {
+    const token_type = parser.current_token.type;
+
+    if (token_type == .Increment or token_type == .Decrement) {
         return parseUpdateExpression(parser, true, ast.null_node);
     }
 
-    if (parser.current_token.type.isUnaryOperator()) {
+    if (token_type.isUnaryOperator()) {
         return parseUnaryExpression(parser);
     }
 
     return parsePrimaryExpression(parser);
 }
 
-fn parsePrimaryExpression(parser: *Parser) ?ast.NodeIndex {
+inline fn parsePrimaryExpression(parser: *Parser) ?ast.NodeIndex {
     return switch (parser.current_token.type) {
         .Identifier => literals.parseIdentifier(parser),
         .PrivateIdentifier => literals.parsePrivateIdentifier(parser),
@@ -109,7 +114,6 @@ fn parseUnaryExpression(parser: *Parser) ?ast.NodeIndex {
     );
 }
 
-// handles both prefix (++x, --x) and postfix (x++, x--) update expressions
 fn parseUpdateExpression(parser: *Parser, prefix: bool, left: ast.NodeIndex) ?ast.NodeIndex {
     const operator_token = parser.current_token;
     const operator = ast.updateOperatorFromToken(operator_token.type);
@@ -152,12 +156,11 @@ fn parseUpdateExpression(parser: *Parser, prefix: bool, left: ast.NodeIndex) ?as
     );
 }
 
-fn parseBinaryExpression(parser: *Parser, precedence: u5, left: ast.NodeIndex) ?ast.NodeIndex {
+inline fn parseBinaryExpression(parser: *Parser, precedence: u5, left: ast.NodeIndex) ?ast.NodeIndex {
     const operator_token = parser.current_token;
     const operator = ast.binaryOperatorFromToken(operator_token.type);
     parser.advance();
 
-    // exponentiation is right-associative, others are left-associative
     const next_precedence = if (operator == .Exponent) precedence else precedence + 1;
     const right = parseExpression(parser, next_precedence) orelse return null;
 
@@ -167,7 +170,7 @@ fn parseBinaryExpression(parser: *Parser, precedence: u5, left: ast.NodeIndex) ?
     );
 }
 
-fn parseLogicalExpression(parser: *Parser, precedence: u5, left: ast.NodeIndex) ?ast.NodeIndex {
+inline fn parseLogicalExpression(parser: *Parser, precedence: u5, left: ast.NodeIndex) ?ast.NodeIndex {
     const operator_token = parser.current_token;
     parser.advance();
 
@@ -237,9 +240,12 @@ fn parseArrayExpression(parser: *Parser) ?ast.NodeIndex {
 
     const checkpoint = parser.scratch_a.begin();
 
-    while (parser.current_token.type != .RightBracket and parser.current_token.type != .EOF) {
+    while (true) {
+        const token_type = parser.current_token.type;
+        if (token_type == .RightBracket or token_type == .EOF) break;
+
         // elision (holes in array): [1, , 3]
-        if (parser.current_token.type == .Comma) {
+        if (token_type == .Comma) {
             parser.scratch_a.append(ast.null_node);
             parser.advance();
             continue;
@@ -274,7 +280,7 @@ fn parseArrayExpression(parser: *Parser) ?ast.NodeIndex {
     );
 }
 
-fn parseArrayElement(parser: *Parser) ?ast.NodeIndex {
+inline fn parseArrayElement(parser: *Parser) ?ast.NodeIndex {
     if (parser.current_token.type == .Spread) return parseSpreadElement(parser);
     return parseExpression(parser, 0);
 }
@@ -294,7 +300,10 @@ fn parseObjectExpression(parser: *Parser) ?ast.NodeIndex {
 
     const checkpoint = parser.scratch_a.begin();
 
-    while (parser.current_token.type != .RightBrace and parser.current_token.type != .EOF) {
+    while (true) {
+        const token_type = parser.current_token.type;
+        if (token_type == .RightBrace or token_type == .EOF) break;
+
         const property = parseObjectProperty(parser) orelse {
             parser.scratch_a.reset(checkpoint);
             return null;

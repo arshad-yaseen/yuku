@@ -11,7 +11,6 @@ pub fn main() !void {
 
     var first_result: ?js.ParseResult = null;
 
-    // benchmark parsing multiple times
     for (0..iterations) |i| {
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         defer arena.deinit();
@@ -24,7 +23,6 @@ pub fn main() !void {
 
         try times.append(allocator, end - start);
 
-        // print errors from first iteration only
         if (i == 0) {
             first_result = result;
             if (result.hasErrors()) {
@@ -37,7 +35,6 @@ pub fn main() !void {
         }
     }
 
-    // calculate statistics
     var total: i128 = 0;
     var min: i128 = times.items[0];
     var max: i128 = times.items[0];
@@ -57,8 +54,14 @@ pub fn main() !void {
     const size_kb = @as(f64, @floatFromInt(content.len)) / 1024.0;
     const mb_per_sec = (size_kb / 1024.0) / (avg_ms / 1000.0);
 
+    var line_count: usize = 1;
+    for (content) |c| {
+        if (c == '\n') line_count += 1;
+    }
+    const million_lines_per_sec = (@as(f64, @floatFromInt(line_count)) / 1_000_000.0) / (avg_ms / 1000.0);
+
     std.debug.print("Min: {d:.3} ms | Max: {d:.3} ms | Avg: {d:.3} ms\n", .{ min_ms, max_ms, avg_ms });
-    std.debug.print("Throughput: {d:.2} MB/sec\n", .{mb_per_sec});
+    std.debug.print("Throughput: {d:.2} MB/sec | {d:.2} million lines/sec\n", .{ mb_per_sec, million_lines_per_sec });
 }
 
 const iterations = 10;
