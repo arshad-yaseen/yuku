@@ -11,6 +11,7 @@ pub fn main() !void {
 
     var first_result: ?js.ParseResult = null;
 
+    // benchmark parsing multiple times
     for (0..iterations) |i| {
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         defer arena.deinit();
@@ -23,6 +24,7 @@ pub fn main() !void {
 
         try times.append(allocator, end - start);
 
+        // print errors from first iteration only
         if (i == 0) {
             first_result = result;
             if (result.hasErrors()) {
@@ -35,6 +37,7 @@ pub fn main() !void {
         }
     }
 
+    // calculate statistics
     var total: i128 = 0;
     var min: i128 = times.items[0];
     var max: i128 = times.items[0];

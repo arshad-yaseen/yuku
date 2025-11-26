@@ -101,7 +101,9 @@ pub fn parseTemplateLiteral(parser: *Parser) ?ast.NodeIndex {
     var expressions_length: usize = 0;
 
     const head = parser.current_token;
+
     const head_span = getTemplateElementSpan(head);
+
     quasis[quasis_length] = parser.addNode(.{
         .template_element = .{
             .raw_start = head_span.start,
@@ -109,6 +111,7 @@ pub fn parseTemplateLiteral(parser: *Parser) ?ast.NodeIndex {
             .tail = false,
         },
     }, head_span);
+
     quasis_length += 1;
     parser.advance();
 

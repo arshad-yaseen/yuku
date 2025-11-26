@@ -222,12 +222,11 @@ pub const Token = struct {
         return Token{ .lexeme = "", .span = .{ .start = pos, .end = pos }, .type = .EOF, .has_line_terminator_before = false };
     }
 
-    // for expressions parsing (pratt)
+    // used for pratt parsing in expressions
     pub fn leftBindingPower(self: *const Token) u5 {
-        // [no LineTerminator here] --
-        // [no LineTerminator here] ++
+        // handle: [no LineTerminator here] ++ --
         if ((self.type == .Increment or self.type == .Decrement) and self.has_line_terminator_before) {
-            return 0; // can't be infix, start new
+            return 0; // can't be infix, start new expression
         }
 
         if (self.type.isBinaryOperator() or self.type.isLogicalOperator() or

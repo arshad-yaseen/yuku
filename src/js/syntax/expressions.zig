@@ -5,28 +5,36 @@ const literals = @import("literals.zig");
 
 pub fn parseExpression(parser: *Parser, precedence: u5) ?ast.NodeIndex {
     var left = parsePrefix(parser) orelse return null;
+
     while (parser.current_token.type != .EOF) {
         const left_binding_power = parser.current_token.leftBindingPower();
         if (precedence > left_binding_power or left_binding_power == 0) break;
+
         left = parseInfix(parser, left_binding_power, left) orelse return null;
     }
+
     return left;
 }
 
 fn parseInfix(parser: *Parser, precedence: u5, left: ast.NodeIndex) ?ast.NodeIndex {
     const current = parser.current_token;
+
     if (current.type == .Increment or current.type == .Decrement) {
         return parseUpdateExpression(parser, false, left);
     }
+
     if (current.type.isBinaryOperator()) {
         return parseBinaryExpression(parser, precedence, left);
     }
+
     if (current.type.isLogicalOperator()) {
         return parseLogicalExpression(parser, precedence, left);
     }
+
     if (current.type.isAssignmentOperator()) {
         return parseAssignmentExpression(parser, precedence, left);
     }
+
     parser.err(current.span.start, current.span.end, parser.formatMessage("Unexpected token '{s}'", .{current.lexeme}), null);
     return null;
 }
@@ -35,9 +43,11 @@ fn parsePrefix(parser: *Parser) ?ast.NodeIndex {
     if (parser.current_token.type == .Increment or parser.current_token.type == .Decrement) {
         return parseUpdateExpression(parser, true, ast.null_node);
     }
+
     if (parser.current_token.type.isUnaryOperator()) {
         return parseUnaryExpression(parser);
     }
+
     return parsePrimaryExpression(parser);
 }
 
@@ -65,15 +75,21 @@ fn parsePrimaryExpression(parser: *Parser) ?ast.NodeIndex {
 fn parseUnaryExpression(parser: *Parser) ?ast.NodeIndex {
     const operator_token = parser.current_token;
     parser.advance();
+
     const argument = parseExpression(parser, 14) orelse return null;
-    return parser.addNode(.{
-        .unary_expression = .{
-            .argument = argument,
-            .operator = ast.unaryOperatorFromToken(operator_token.type),
+
+    return parser.addNode(
+        .{
+            .unary_expression = .{
+                .argument = argument,
+                .operator = ast.unaryOperatorFromToken(operator_token.type),
+            },
         },
-    }, .{ .start = operator_token.span.start, .end = parser.getSpan(argument).end });
+        .{ .start = operator_token.span.start, .end = parser.getSpan(argument).end },
+    );
 }
 
+// handles both prefix (++x, --x) and postfix (x++, x--) update expressions
 fn parseUpdateExpression(parser: *Parser, prefix: bool, left: ast.NodeIndex) ?ast.NodeIndex {
     const operator_token = parser.current_token;
     const operator = ast.updateOperatorFromToken(operator_token.type);
@@ -82,13 +98,16 @@ fn parseUpdateExpression(parser: *Parser, prefix: bool, left: ast.NodeIndex) ?as
     if (prefix) {
         const argument = parseExpression(parser, 14) orelse return null;
         const span = parser.getSpan(argument);
+
         if (!isValidAssignmentTarget(parser, argument)) {
             parser.err(span.start, span.end, "Invalid operand", null);
             return null;
         }
-        return parser.addNode(.{
-            .update_expression = .{ .argument = argument, .operator = operator, .prefix = true },
-        }, .{ .start = operator_token.span.start, .end = span.end });
+
+        return parser.addNode(
+            .{ .update_expression = .{ .argument = argument, .operator = operator, .prefix = true } },
+            .{ .start = operator_token.span.start, .end = span.end },
+        );
     }
 
     if (!isValidAssignmentTarget(parser, left)) {
@@ -96,33 +115,44 @@ fn parseUpdateExpression(parser: *Parser, prefix: bool, left: ast.NodeIndex) ?as
         parser.err(span.start, span.end, "Invalid operand", null);
         return null;
     }
-    return parser.addNode(.{
-        .update_expression = .{ .argument = left, .operator = operator, .prefix = false },
-    }, .{ .start = parser.getSpan(left).start, .end = operator_token.span.end });
+
+    return parser.addNode(
+        .{ .update_expression = .{ .argument = left, .operator = operator, .prefix = false } },
+        .{ .start = parser.getSpan(left).start, .end = operator_token.span.end },
+    );
 }
 
 fn parseBinaryExpression(parser: *Parser, precedence: u5, left: ast.NodeIndex) ?ast.NodeIndex {
     const operator_token = parser.current_token;
     const operator = ast.binaryOperatorFromToken(operator_token.type);
     parser.advance();
+
+    // exponentiation is right-associative, others are left-associative
     const next_precedence = if (operator == .Exponent) precedence else precedence + 1;
     const right = parseExpression(parser, next_precedence) orelse return null;
-    return parser.addNode(.{
-        .binary_expression = .{ .left = left, .right = right, .operator = operator },
-    }, .{ .start = parser.getSpan(left).start, .end = parser.getSpan(right).end });
+
+    return parser.addNode(
+        .{ .binary_expression = .{ .left = left, .right = right, .operator = operator } },
+        .{ .start = parser.getSpan(left).start, .end = parser.getSpan(right).end },
+    );
 }
 
 fn parseLogicalExpression(parser: *Parser, precedence: u5, left: ast.NodeIndex) ?ast.NodeIndex {
     const operator_token = parser.current_token;
     parser.advance();
+
     const right = parseExpression(parser, precedence + 1) orelse return null;
-    return parser.addNode(.{
-        .logical_expression = .{
-            .left = left,
-            .right = right,
-            .operator = ast.logicalOperatorFromToken(operator_token.type),
+
+    return parser.addNode(
+        .{
+            .logical_expression = .{
+                .left = left,
+                .right = right,
+                .operator = ast.logicalOperatorFromToken(operator_token.type),
+            },
         },
-    }, .{ .start = parser.getSpan(left).start, .end = parser.getSpan(right).end });
+        .{ .start = parser.getSpan(left).start, .end = parser.getSpan(right).end },
+    );
 }
 
 fn parseAssignmentExpression(parser: *Parser, precedence: u5, left: ast.NodeIndex) ?ast.NodeIndex {
@@ -130,11 +160,13 @@ fn parseAssignmentExpression(parser: *Parser, precedence: u5, left: ast.NodeInde
     const operator = ast.assignmentOperatorFromToken(operator_token.type);
     const left_span = parser.getSpan(left);
 
+    // validate that left side can be assigned to
     if (!isValidAssignmentTarget(parser, left)) {
         parser.err(left_span.start, left_span.end, "Invalid assignment target", null);
         return null;
     }
 
+    // logical assignments (&&=, ||=, ??=) require simple targets
     const is_logical = operator == .LogicalAndAssign or operator == .LogicalOrAssign or operator == .NullishAssign;
     if (is_logical and !isSimpleAssignmentTarget(parser, left)) {
         parser.err(left_span.start, left_span.end, "Invalid logical assignment target", null);
@@ -144,9 +176,11 @@ fn parseAssignmentExpression(parser: *Parser, precedence: u5, left: ast.NodeInde
     parser.advance();
     const right = parseExpression(parser, precedence) orelse return null;
     const target = parser.addNode(.{ .simple_assignment_target = left }, left_span);
-    return parser.addNode(.{
-        .assignment_expression = .{ .left = target, .right = right, .operator = operator },
-    }, .{ .start = left_span.start, .end = parser.getSpan(right).end });
+
+    return parser.addNode(
+        .{ .assignment_expression = .{ .left = target, .right = right, .operator = operator } },
+        .{ .start = left_span.start, .end = parser.getSpan(right).end },
+    );
 }
 
 pub fn isValidAssignmentTarget(parser: *Parser, index: ast.NodeIndex) bool {
@@ -165,14 +199,17 @@ fn parseArrayExpression(parser: *Parser) ?ast.NodeIndex {
     var length: usize = 0;
 
     while (parser.current_token.type != .RightBracket and parser.current_token.type != .EOF) {
+        // elision (holes in array): [1, , 3]
         if (parser.current_token.type == .Comma) {
             elements[length] = ast.null_node;
             length += 1;
             parser.advance();
             continue;
         }
+
         elements[length] = parseArrayElement(parser) orelse return null;
         length += 1;
+
         if (parser.current_token.type == .Comma) parser.advance() else break;
     }
 
@@ -180,12 +217,14 @@ fn parseArrayExpression(parser: *Parser) ?ast.NodeIndex {
         parser.err(start, parser.current_token.span.end, "Expected ']'", null);
         return null;
     }
+
     const end = parser.current_token.span.end;
     parser.advance();
 
-    return parser.addNode(.{
-        .array_expression = .{ .elements = parser.addExtra(elements[0..length]) },
-    }, .{ .start = start, .end = end });
+    return parser.addNode(
+        .{ .array_expression = .{ .elements = parser.addExtra(elements[0..length]) } },
+        .{ .start = start, .end = end },
+    );
 }
 
 fn parseArrayElement(parser: *Parser) ?ast.NodeIndex {
@@ -235,10 +274,12 @@ fn parseObjectProperty(parser: *Parser) ?ast.NodeIndex {
     var key: ast.NodeIndex = undefined;
     var shorthand_token: ?@import("../token.zig").Token = null;
 
+    // computed property names: [expr]
     if (parser.current_token.type == .LeftBracket) {
         computed = true;
         parser.advance();
         key = parseExpression(parser, 0) orelse return null;
+
         if (parser.current_token.type != .RightBracket) {
             parser.err(start, parser.current_token.span.end, "Expected ']'", null);
             return null;
@@ -246,12 +287,15 @@ fn parseObjectProperty(parser: *Parser) ?ast.NodeIndex {
         parser.advance();
     } else if (parser.current_token.type.isIdentifierLike()) {
         shorthand_token = parser.current_token;
-        key = parser.addNode(.{
-            .identifier_name = .{
-                .name_start = parser.current_token.span.start,
-                .name_len = @intCast(parser.current_token.lexeme.len),
+        key = parser.addNode(
+            .{
+                .identifier_name = .{
+                    .name_start = parser.current_token.span.start,
+                    .name_len = @intCast(parser.current_token.lexeme.len),
+                },
             },
-        }, parser.current_token.span);
+            parser.current_token.span,
+        );
         parser.advance();
     } else if (parser.current_token.type.isNumericLiteral()) {
         key = literals.parseNumericLiteral(parser) orelse return null;
@@ -262,18 +306,23 @@ fn parseObjectProperty(parser: *Parser) ?ast.NodeIndex {
         return null;
     }
 
+    // check for shorthand property: { x } instead of { x: x }
     const is_shorthand = !computed and shorthand_token != null and
         (parser.current_token.type == .Comma or parser.current_token.type == .RightBrace);
 
     var value: ast.NodeIndex = undefined;
     if (is_shorthand) {
         const token = shorthand_token.?;
-        value = parser.addNode(.{
-            .identifier = .{
-                .name_start = token.span.start,
-                .name_len = @intCast(token.lexeme.len),
+
+        value = parser.addNode(
+            .{
+                .identifier = .{
+                    .name_start = token.span.start,
+                    .name_len = @intCast(token.lexeme.len),
+                },
             },
-        }, token.span);
+            token.span,
+        );
     } else {
         if (parser.current_token.type != .Colon) {
             parser.err(parser.getSpan(key).start, parser.current_token.span.end, "Expected ':'", null);
@@ -283,13 +332,16 @@ fn parseObjectProperty(parser: *Parser) ?ast.NodeIndex {
         value = parseExpression(parser, 0) orelse return null;
     }
 
-    return parser.addNode(.{
-        .object_property = .{
-            .key = key,
-            .value = value,
-            .kind = .Init,
-            .shorthand = is_shorthand,
-            .computed = computed,
+    return parser.addNode(
+        .{
+            .object_property = .{
+                .key = key,
+                .value = value,
+                .kind = .Init,
+                .shorthand = is_shorthand,
+                .computed = computed,
+            },
         },
-    }, .{ .start = start, .end = parser.getSpan(value).end });
+        .{ .start = start, .end = parser.getSpan(value).end },
+    );
 }

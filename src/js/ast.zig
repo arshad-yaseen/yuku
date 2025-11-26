@@ -13,68 +13,68 @@ pub const IndexRange = struct {
 };
 
 pub const BinaryOperator = enum(u8) {
-    Equal,
-    NotEqual,
-    StrictEqual,
-    StrictNotEqual,
-    LessThan,
-    LessThanOrEqual,
-    GreaterThan,
-    GreaterThanOrEqual,
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
-    Modulo,
-    Exponent,
-    BitwiseOr,
-    BitwiseXor,
-    BitwiseAnd,
-    LeftShift,
-    RightShift,
-    UnsignedRightShift,
-    In,
-    Instanceof,
+    Equal, // ==
+    NotEqual, // !=
+    StrictEqual, // ===
+    StrictNotEqual, // !==
+    LessThan, // <
+    LessThanOrEqual, // <=
+    GreaterThan, // >
+    GreaterThanOrEqual, // >=
+    Add, // +
+    Subtract, // -
+    Multiply, // *
+    Divide, // /
+    Modulo, // %
+    Exponent, // **
+    BitwiseOr, // |
+    BitwiseXor, // ^
+    BitwiseAnd, // &
+    LeftShift, // <<
+    RightShift, // >>
+    UnsignedRightShift, // >>>
+    In, // in
+    Instanceof, // instanceof
 };
 
 pub const LogicalOperator = enum(u8) {
-    And,
-    Or,
-    NullishCoalescing,
+    And, // &&
+    Or, // ||
+    NullishCoalescing, // ??
 };
 
 pub const UnaryOperator = enum(u8) {
-    Negate,
-    Positive,
-    LogicalNot,
-    BitwiseNot,
-    Typeof,
-    Void,
-    Delete,
+    Negate, // -
+    Positive, // +
+    LogicalNot, // !
+    BitwiseNot, // ~
+    Typeof, // typeof
+    Void, // void
+    Delete, // delete
 };
 
 pub const UpdateOperator = enum(u8) {
-    Increment,
-    Decrement,
+    Increment, // ++
+    Decrement, // --
 };
 
 pub const AssignmentOperator = enum(u8) {
-    Assign,
-    AddAssign,
-    SubtractAssign,
-    MultiplyAssign,
-    DivideAssign,
-    ModuloAssign,
-    ExponentAssign,
-    LeftShiftAssign,
-    RightShiftAssign,
-    UnsignedRightShiftAssign,
-    BitwiseOrAssign,
-    BitwiseXorAssign,
-    BitwiseAndAssign,
-    LogicalOrAssign,
-    LogicalAndAssign,
-    NullishAssign,
+    Assign, // =
+    AddAssign, // +=
+    SubtractAssign, // -=
+    MultiplyAssign, // *=
+    DivideAssign, // /=
+    ModuloAssign, // %=
+    ExponentAssign, // **=
+    LeftShiftAssign, // <<=
+    RightShiftAssign, // >>=
+    UnsignedRightShiftAssign, // >>>=
+    BitwiseOrAssign, // |=
+    BitwiseXorAssign, // ^=
+    BitwiseAndAssign, // &=
+    LogicalOrAssign, // ||=
+    LogicalAndAssign, // &&=
+    NullishAssign, // ??=
 };
 
 pub const VariableKind = enum(u8) {
@@ -317,9 +317,12 @@ pub const NodeList = struct {
     pub inline fn addExtra(self: *NodeList, allocator: std.mem.Allocator, indices: []const NodeIndex) IndexRange {
         const start = self.extra_len;
         const len: u32 = @intCast(indices.len);
+
         if (start + len > self.extra.len) self.growExtra(allocator, len);
+
         @memcpy(self.extra[start..][0..len], indices);
         self.extra_len += len;
+
         return .{ .start = start, .len = len };
     }
 
@@ -338,6 +341,7 @@ pub const NodeList = struct {
     fn growExtra(self: *NodeList, allocator: std.mem.Allocator, minimum: u32) void {
         const new_capacity = @max(self.extra.len * 2, self.extra_len + minimum);
         const new_extra = allocator.alloc(NodeIndex, new_capacity) catch unreachable;
+
         @memcpy(new_extra[0..self.extra_len], self.extra[0..self.extra_len]);
         allocator.free(self.extra);
         self.extra = new_extra;

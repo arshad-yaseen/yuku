@@ -1,7 +1,5 @@
 const std = @import("std");
-
 const token = @import("token.zig");
-
 const util = @import("util");
 
 const LexicalError = error{
@@ -69,7 +67,6 @@ pub const Lexer = struct {
         }
 
         self.token_start = self.cursor;
-
         const current_char = self.source[self.cursor];
 
         return switch (current_char) {
@@ -88,6 +85,7 @@ pub const Lexer = struct {
         const start = self.cursor;
         const c = self.source[self.cursor];
         self.cursor += 1;
+
         const token_type: token.TokenType = switch (c) {
             '~' => .BitwiseNot,
             '(' => .LeftParen,
@@ -100,6 +98,7 @@ pub const Lexer = struct {
             ':' => .Colon,
             else => unreachable,
         };
+
         return self.createToken(token_type, self.source[start..self.cursor], start, self.cursor);
     }
 
@@ -345,46 +344,55 @@ pub const Lexer = struct {
 
         while (self.cursor < self.source_len) {
             const c = self.source[self.cursor];
+
             if (c == '\\') {
                 try self.consumeEscape();
                 continue;
             }
+
             if (c == quote) {
                 self.cursor += 1;
                 return self.createToken(.StringLiteral, self.source[start..self.cursor], start, self.cursor);
             }
+
             if (c == '\n' or c == '\r' or c == '\u{2028}' or c == '\u{2029}') {
                 return error.UnterminatedString;
             }
+
             self.cursor += 1;
         }
+
         return error.UnterminatedString;
     }
 
     fn scanTemplateLiteral(self: *Lexer) LexicalError!token.Token {
         const start = self.cursor;
-
         self.cursor += 1;
 
         while (self.cursor < self.source_len) {
             const c = self.source[self.cursor];
+
             if (c == '\\') {
                 try self.consumeEscape();
                 continue;
             }
+
             if (c == '`') {
                 self.cursor += 1;
                 const end = self.cursor;
                 return self.createToken(.NoSubstitutionTemplate, self.source[start..end], start, end);
             }
+
             if (c == '$' and self.source[self.cursor + 1] == '{') {
                 self.cursor += 2;
                 const end = self.cursor;
                 self.template_depth += 1;
                 return self.createToken(.TemplateHead, self.source[start..end], start, end);
             }
+
             self.cursor += 1;
         }
+
         return error.NonTerminatedTemplateLiteral;
     }
 
@@ -418,26 +426,25 @@ pub const Lexer = struct {
 
     fn consumeEscape(self: *Lexer) LexicalError!void {
         self.cursor += 1; // skip backslash
+
         brk: switch (self.source[self.cursor]) {
             '0' => {
                 const c1 = self.source[self.cursor + 1];
-                // null
+
                 if (!util.isOctalDigit(c1)) {
-                    self.cursor += 1;
+                    self.cursor += 1; // null escape
                     break :brk;
                 }
+
                 if (self.strict_mode) return error.OctalEscapeInStrict;
                 try self.consumeOctal();
             },
-            // hex
             'x' => {
                 try self.consumeHex();
             },
-            // unicode
             'u' => {
                 try self.consumeUnicodeEscape();
             },
-            // octal
             '1'...'7' => {
                 if (self.strict_mode) return error.OctalEscapeInStrict;
                 try self.consumeOctal();
@@ -450,8 +457,10 @@ pub const Lexer = struct {
 
     fn consumeOctal(self: *Lexer) LexicalError!void {
         var count: u8 = 0;
+
         while (self.cursor < self.source_len and count < 3) {
             const c = self.source[self.cursor];
+
             if (util.isOctalDigit(c)) {
                 self.cursor += 1;
                 count += 1;
@@ -459,35 +468,42 @@ pub const Lexer = struct {
                 break;
             }
         }
+
         if (count == 0) return error.InvalidOctalEscape;
     }
 
     fn consumeHex(self: *Lexer) LexicalError!void {
         const c1 = self.source[self.cursor + 1];
         const c2 = self.source[self.cursor + 2];
+
         if (!std.ascii.isHex(c1) or !std.ascii.isHex(c2)) {
             return error.InvalidHexEscape;
         }
+
         self.cursor += 3;
     }
 
     fn consumeUnicodeEscape(self: *Lexer) LexicalError!void {
         self.cursor += 1; // skip 'u'
+
         if (self.cursor < self.source_len and self.source[self.cursor] == '{') {
             // \u{XXXXX} format
             self.cursor += 1;
             const start = self.cursor;
             const end = std.mem.indexOfScalarPos(u8, self.source, self.cursor, '}') orelse
                 return error.InvalidUnicodeEscape;
+
             const hex_len = end - start;
             if (hex_len == 0 or hex_len > 6) {
                 return error.InvalidUnicodeEscape;
             }
+
             for (self.source[start..end]) |c| {
                 if (!std.ascii.isHex(c)) {
                     return error.InvalidUnicodeEscape;
                 }
             }
+
             self.cursor = @intCast(end + 1);
         } else {
             // \uXXXX format
@@ -495,19 +511,23 @@ pub const Lexer = struct {
             if (end > self.source_len) {
                 return error.InvalidUnicodeEscape;
             }
+
             for (self.source[self.cursor..end]) |c| {
                 if (!std.ascii.isHex(c)) {
                     return error.InvalidUnicodeEscape;
                 }
             }
+
             self.cursor = end;
         }
     }
 
     fn handleRightBrace(self: *Lexer) LexicalError!token.Token {
+        // inside template, scan for continuation
         if (self.template_depth > 0) {
             return self.scanTemplateMiddleOrTail();
         }
+
         const start = self.cursor;
         self.cursor += 1;
         return self.createToken(.RightBrace, self.source[start..self.cursor], start, self.cursor);
@@ -806,9 +826,10 @@ pub const Lexer = struct {
         const start = self.cursor;
         var token_type: token.TokenType = .NumericLiteral;
 
-        // prefixes 0x, 0o, 0b
+        // handle prefixes: 0x, 0o, 0b
         if (self.source[self.cursor] == '0' and self.cursor + 1 < self.source_len) {
             const prefix = std.ascii.toLower(self.source[self.cursor + 1]);
+
             switch (prefix) {
                 'x' => {
                     token_type = .HexLiteral;
@@ -832,27 +853,26 @@ pub const Lexer = struct {
                     if (self.cursor == bin_start) return error.InvalidBinaryLiteral;
                 },
                 else => {
-                    // regular or octal
                     try self.consumeDecimalDigits();
                 },
             }
         } else {
-            // regular
             try self.consumeDecimalDigits();
         }
 
-        // decimal point (only for regular numbers)
+        // handle decimal point (only for regular numbers)
         if (token_type == .NumericLiteral and
             self.cursor < self.source_len and self.source[self.cursor] == '.')
         {
             const next = if (self.cursor + 1 < self.source_len) self.source[self.cursor + 1] else 0;
+
             if (std.ascii.isDigit(next)) {
-                self.cursor += 1; // consume '.'
+                self.cursor += 1;
                 try self.consumeDecimalDigits();
             }
         }
 
-        // exponent (only for regular numbers)
+        // handle exponent (only for regular numbers)
         if (token_type == .NumericLiteral and self.cursor < self.source_len) {
             const exp_char = std.ascii.toLower(self.source[self.cursor]);
             if (exp_char == 'e') {
@@ -860,7 +880,7 @@ pub const Lexer = struct {
             }
         }
 
-        // bigint suffix
+        // handle bigint suffix 'n'
         if (self.cursor < self.source_len and self.source[self.cursor] == 'n') {
             // bigint cannot have decimal point or exponent
             if (token_type == .NumericLiteral) {
@@ -871,6 +891,7 @@ pub const Lexer = struct {
                     }
                 }
             }
+
             self.cursor += 1;
             token_type = .BigIntLiteral;
         }
@@ -975,13 +996,13 @@ pub const Lexer = struct {
     }
 
     fn consumeExponent(self: *Lexer) LexicalError!void {
-        self.cursor += 1; // skip 'e/E'
+        self.cursor += 1; // skip 'e' or 'E'
 
         if (self.cursor >= self.source_len) {
             return error.InvalidExponentPart;
         }
 
-        // handle optional sign
+        // handle optional sign: + or -
         const c = self.source[self.cursor];
         if (c == '+' or c == '-') {
             self.cursor += 1;
@@ -998,6 +1019,7 @@ pub const Lexer = struct {
     inline fn skipSkippable(self: *Lexer) LexicalError!void {
         while (self.cursor < self.source_len) {
             const c = self.source[self.cursor];
+
             if (std.ascii.isAscii(c)) {
                 @branchHint(.likely);
                 switch (c) {
@@ -1014,22 +1036,27 @@ pub const Lexer = struct {
                 }
             } else {
                 @branchHint(.unlikely);
-                // okay, it maybe a multi-byte space
+                // multi-byte space character
                 const cp = util.codePointAt(self.source, self.cursor);
                 if (util.isMultiByteSpace(cp.value)) {
                     self.cursor += cp.len;
                     continue;
                 }
             }
+
             break;
         }
     }
 
     pub inline fn createToken(self: *Lexer, token_type: token.TokenType, lexeme: []const u8, start: u32, end: u32) token.Token {
-        const tok = token.Token{ .type = token_type, .lexeme = lexeme, .span = .{ .start = start, .end = end }, .has_line_terminator_before = self.has_line_terminator_before };
+        const tok = token.Token{
+            .type = token_type,
+            .lexeme = lexeme,
+            .span = .{ .start = start, .end = end },
+            .has_line_terminator_before = self.has_line_terminator_before,
+        };
 
         self.has_line_terminator_before = false;
-
         return tok;
     }
 };
