@@ -35,6 +35,9 @@ pub const Parser = struct {
     nodes: ast.NodeList,
     current_token: token.Token = undefined,
 
+    scratch_a: ScratchBuffer,
+    scratch_b: ScratchBuffer,
+
     in_async: bool = false,
     in_generator: bool = false,
     in_function: bool = false,
@@ -48,6 +51,8 @@ pub const Parser = struct {
             .lexer = try lexer.Lexer.init(allocator, source),
             .allocator = allocator,
             .nodes = ast.NodeList.init(allocator, @intCast(source.len)),
+            .scratch_a = ScratchBuffer.init(allocator),
+            .scratch_b = ScratchBuffer.init(allocator),
         };
     }
 
@@ -55,17 +60,18 @@ pub const Parser = struct {
         self.advance();
 
         const start = self.current_token.span.start;
-        var statements: std.ArrayList(ast.NodeIndex) = .empty;
+        const checkpoint = self.scratch_a.begin();
 
         while (self.current_token.type != .EOF) {
             if (self.parseStatement()) |statement| {
-                statements.append(self.allocator, statement) catch unreachable;
+                self.scratch_a.append(statement);
             } else {
                 self.synchronize();
             }
         }
 
-        const body = self.nodes.addExtra(self.allocator, statements.items);
+        const statements = self.scratch_a.commit(checkpoint);
+        const body = self.nodes.addExtra(self.allocator, statements);
 
         const program = self.addNode(
             .{
@@ -173,7 +179,6 @@ pub const Parser = struct {
         return end;
     }
 
-    // validates that an identifier token can be used in a given context
     pub inline fn ensureValidIdentifier(
         self: *Parser,
         tok: token.Token,
@@ -181,7 +186,6 @@ pub const Parser = struct {
         comptime help: []const u8,
         help_args: anytype,
     ) bool {
-        // check for 'eval' and 'arguments' in strict mode
         if (self.strict_mode and tok.type == .Identifier) {
             if (std.mem.eql(u8, tok.lexeme, "eval") or std.mem.eql(u8, tok.lexeme, "arguments")) {
                 self.err(tok.span.start, tok.span.end, self.formatMessage("'{s}' cannot be used {s} in strict mode", .{ tok.lexeme, as_what }), help);
@@ -189,25 +193,21 @@ pub const Parser = struct {
             }
         }
 
-        // check for strict mode reserved words
         if (self.strict_mode and tok.type.isStrictModeReserved()) {
             self.err(tok.span.start, tok.span.end, self.formatMessage("'{s}' is reserved in strict mode and cannot be used {s}", .{ tok.lexeme, as_what }), help);
             return false;
         }
 
-        // check for 'await' in async contexts or modules
         if (tok.type == .Await and (self.in_async or self.source_type == .Module)) {
             self.err(tok.span.start, tok.span.end, self.formatMessage("'await' is reserved {s} and cannot be used {s}", .{ if (self.in_async) "in async functions" else "at the top level of modules", as_what }), help);
             return false;
         }
 
-        // check for 'yield' in generator contexts or modules
         if (tok.type == .Yield and (self.in_generator or self.source_type == .Module)) {
             self.err(tok.span.start, tok.span.end, self.formatMessage("'yield' is reserved {s} and cannot be used {s}", .{ if (self.in_generator) "in generator functions" else "at the top level of modules", as_what }), help);
             return false;
         }
 
-        // check for unconditionally reserved keywords
         if (tok.type.isStrictReserved()) {
             self.err(tok.span.start, tok.span.end, self.formatMessage("'{s}' is a reserved word and cannot be used {s}", .{ tok.lexeme, as_what }), self.formatMessage(help, help_args));
             return false;
@@ -228,7 +228,6 @@ pub const Parser = struct {
         return std.fmt.allocPrint(self.allocator, format, args) catch unreachable;
     }
 
-    // synchronize parser state after an error by seeking to next statement boundary
     fn synchronize(self: *Parser) void {
         self.advance();
 
@@ -238,7 +237,6 @@ pub const Parser = struct {
                 return;
             }
 
-            // stop at statement keywords
             switch (self.current_token.type) {
                 .Class, .Function, .Var, .For, .If, .While, .Return, .Let, .Const, .Using => return,
                 else => {},
@@ -246,5 +244,36 @@ pub const Parser = struct {
 
             self.advance();
         }
+    }
+};
+
+const ScratchBuffer = struct {
+    items: std.ArrayList(ast.NodeIndex),
+    allocator: std.mem.Allocator,
+
+    fn init(allocator: std.mem.Allocator) ScratchBuffer {
+        const list = std.ArrayList(ast.NodeIndex).initCapacity(allocator, 256) catch unreachable;
+        return .{ .items = list, .allocator = allocator };
+    }
+
+    pub inline fn begin(self: *ScratchBuffer) usize {
+        return self.items.items.len;
+    }
+
+    pub inline fn append(self: *ScratchBuffer, index: ast.NodeIndex) void {
+        self.items.append(self.allocator, index) catch unreachable;
+    }
+
+    pub inline fn commit(self: *ScratchBuffer, checkpoint: usize) []const ast.NodeIndex {
+        const slice = self.items.items[checkpoint..];
+        return slice;
+    }
+
+    pub inline fn rollback(self: *ScratchBuffer, checkpoint: usize) void {
+        self.items.shrinkRetainingCapacity(checkpoint);
+    }
+
+    fn deinit(self: *ScratchBuffer) void {
+        self.items.deinit(self.allocator);
     }
 };

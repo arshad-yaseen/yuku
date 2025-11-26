@@ -95,30 +95,26 @@ pub fn parseNoSubstitutionTemplate(parser: *Parser) ?ast.NodeIndex {
 pub fn parseTemplateLiteral(parser: *Parser) ?ast.NodeIndex {
     const start = parser.current_token.span.start;
 
-    var quasis: [64]ast.NodeIndex = undefined;
-    var template_expressions: [64]ast.NodeIndex = undefined;
-    var quasis_length: usize = 0;
-    var expressions_length: usize = 0;
+    const quasis_checkpoint = parser.scratch_a.begin();
+    const exprs_checkpoint = parser.scratch_b.begin();
 
     const head = parser.current_token;
-
     const head_span = getTemplateElementSpan(head);
 
-    quasis[quasis_length] = parser.addNode(.{
+    parser.scratch_a.append(parser.addNode(.{
         .template_element = .{
             .raw_start = head_span.start,
             .raw_len = @intCast(head_span.end - head_span.start),
             .tail = false,
         },
-    }, head_span);
+    }, head_span));
 
-    quasis_length += 1;
     parser.advance();
 
     var end: u32 = undefined;
     while (true) {
-        template_expressions[expressions_length] = expressions.parseExpression(parser, 0) orelse return null;
-        expressions_length += 1;
+        const expr = expressions.parseExpression(parser, 0) orelse return null;
+        parser.scratch_b.append(expr);
 
         const token = parser.current_token;
         const is_tail = token.type == .TemplateTail;
@@ -126,14 +122,14 @@ pub fn parseTemplateLiteral(parser: *Parser) ?ast.NodeIndex {
         switch (token.type) {
             .TemplateMiddle, .TemplateTail => {
                 const span = getTemplateElementSpan(token);
-                quasis[quasis_length] = parser.addNode(.{
+                parser.scratch_a.append(parser.addNode(.{
                     .template_element = .{
                         .raw_start = span.start,
                         .raw_len = @intCast(span.end - span.start),
                         .tail = is_tail,
                     },
-                }, span);
-                quasis_length += 1;
+                }, span));
+
                 if (is_tail) {
                     end = token.span.end;
                     parser.advance();
@@ -143,17 +139,27 @@ pub fn parseTemplateLiteral(parser: *Parser) ?ast.NodeIndex {
             },
             else => {
                 parser.err(token.span.start, token.span.end, "Expected template continuation", null);
+                parser.scratch_a.rollback(quasis_checkpoint);
+                parser.scratch_b.rollback(exprs_checkpoint);
                 return null;
             },
         }
     }
 
-    return parser.addNode(.{
+    const quasis = parser.scratch_a.commit(quasis_checkpoint);
+    const exprs = parser.scratch_b.commit(exprs_checkpoint);
+
+    const result = parser.addNode(.{
         .template_literal = .{
-            .quasis = parser.addExtra(quasis[0..quasis_length]),
-            .expressions = parser.addExtra(template_expressions[0..expressions_length]),
+            .quasis = parser.addExtra(quasis),
+            .expressions = parser.addExtra(exprs),
         },
     }, .{ .start = start, .end = end });
+
+    parser.scratch_a.rollback(quasis_checkpoint);
+    parser.scratch_b.rollback(exprs_checkpoint);
+
+    return result;
 }
 
 inline fn getTemplateElementSpan(token: @import("../token.zig").Token) ast.Span {

@@ -9,28 +9,39 @@ pub fn parseVariableDeclaration(parser: *Parser) ?ast.NodeIndex {
     const start = parser.current_token.span.start;
     const kind = parseVariableKind(parser) orelse return null;
 
-    var declarators: [64]ast.NodeIndex = undefined;
-    declarators[0] = parseVariableDeclarator(parser, kind) orelse return null;
-    var length: usize = 1;
-    var end = parser.getSpan(declarators[0]).end;
+    const checkpoint = parser.scratch_a.begin();
+
+    const first_declarator = parseVariableDeclarator(parser, kind) orelse {
+        parser.scratch_a.rollback(checkpoint);
+        return null;
+    };
+    parser.scratch_a.append(first_declarator);
+    var end = parser.getSpan(first_declarator).end;
 
     // parse additional declarators: let a, b, c;
     while (parser.current_token.type == .Comma) {
         parser.advance();
-        declarators[length] = parseVariableDeclarator(parser, kind) orelse return null;
-        end = parser.getSpan(declarators[length]).end;
-        length += 1;
+        const declarator = parseVariableDeclarator(parser, kind) orelse {
+            parser.scratch_a.rollback(checkpoint);
+            return null;
+        };
+        parser.scratch_a.append(declarator);
+        end = parser.getSpan(declarator).end;
     }
 
-    return parser.addNode(
+    const declarators = parser.scratch_a.commit(checkpoint);
+    const result = parser.addNode(
         .{
             .variable_declaration = .{
-                .declarators = parser.addExtra(declarators[0..length]),
+                .declarators = parser.addExtra(declarators),
                 .kind = kind,
             },
         },
         .{ .start = start, .end = parser.eatSemicolon(end) },
     );
+
+    parser.scratch_a.rollback(checkpoint);
+    return result;
 }
 
 inline fn parseVariableKind(parser: *Parser) ?ast.VariableKind {

@@ -195,36 +195,42 @@ fn parseArrayExpression(parser: *Parser) ?ast.NodeIndex {
     const start = parser.current_token.span.start;
     parser.advance();
 
-    var elements: [256]ast.NodeIndex = undefined;
-    var length: usize = 0;
+    const checkpoint = parser.scratch_a.begin();
 
     while (parser.current_token.type != .RightBracket and parser.current_token.type != .EOF) {
         // elision (holes in array): [1, , 3]
         if (parser.current_token.type == .Comma) {
-            elements[length] = ast.null_node;
-            length += 1;
+            parser.scratch_a.append(ast.null_node);
             parser.advance();
             continue;
         }
 
-        elements[length] = parseArrayElement(parser) orelse return null;
-        length += 1;
+        const element = parseArrayElement(parser) orelse {
+            parser.scratch_a.rollback(checkpoint);
+            return null;
+        };
+        parser.scratch_a.append(element);
 
         if (parser.current_token.type == .Comma) parser.advance() else break;
     }
 
     if (parser.current_token.type != .RightBracket) {
         parser.err(start, parser.current_token.span.end, "Expected ']'", null);
+        parser.scratch_a.rollback(checkpoint);
         return null;
     }
 
     const end = parser.current_token.span.end;
     parser.advance();
 
-    return parser.addNode(
-        .{ .array_expression = .{ .elements = parser.addExtra(elements[0..length]) } },
+    const elements = parser.scratch_a.commit(checkpoint);
+    const result = parser.addNode(
+        .{ .array_expression = .{ .elements = parser.addExtra(elements) } },
         .{ .start = start, .end = end },
     );
+
+    parser.scratch_a.rollback(checkpoint);
+    return result;
 }
 
 fn parseArrayElement(parser: *Parser) ?ast.NodeIndex {
@@ -245,25 +251,32 @@ fn parseObjectExpression(parser: *Parser) ?ast.NodeIndex {
     const start = parser.current_token.span.start;
     parser.advance();
 
-    var properties: [256]ast.NodeIndex = undefined;
-    var length: usize = 0;
+    const checkpoint = parser.scratch_a.begin();
 
     while (parser.current_token.type != .RightBrace and parser.current_token.type != .EOF) {
-        properties[length] = parseObjectProperty(parser) orelse return null;
-        length += 1;
+        const property = parseObjectProperty(parser) orelse {
+            parser.scratch_a.rollback(checkpoint);
+            return null;
+        };
+        parser.scratch_a.append(property);
         if (parser.current_token.type == .Comma) parser.advance() else break;
     }
 
     if (parser.current_token.type != .RightBrace) {
         parser.err(start, parser.current_token.span.end, "Expected '}'", null);
+        parser.scratch_a.rollback(checkpoint);
         return null;
     }
     const end = parser.current_token.span.end;
     parser.advance();
 
-    return parser.addNode(.{
-        .object_expression = .{ .properties = parser.addExtra(properties[0..length]) },
+    const properties = parser.scratch_a.commit(checkpoint);
+    const result = parser.addNode(.{
+        .object_expression = .{ .properties = parser.addExtra(properties) },
     }, .{ .start = start, .end = end });
+
+    parser.scratch_a.rollback(checkpoint);
+    return result;
 }
 
 fn parseObjectProperty(parser: *Parser) ?ast.NodeIndex {

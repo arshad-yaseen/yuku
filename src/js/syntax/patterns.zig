@@ -50,18 +50,21 @@ fn parseArrayPattern(parser: *Parser) ?ast.NodeIndex {
     const start = parser.current_token.span.start;
     if (!parser.expect(.LeftBracket, "Expected '['", null)) return null;
 
-    var elements: [256]ast.NodeIndex = undefined;
-    var length: usize = 0;
+    const checkpoint = parser.scratch_a.begin();
 
     while (parser.current_token.type != .RightBracket and parser.current_token.type != .EOF) {
         // rest element: ...rest
         if (parser.current_token.type == .Spread) {
-            elements[length] = parseRestElement(parser) orelse return null;
-            length += 1;
+            const rest = parseRestElement(parser) orelse {
+                parser.scratch_a.rollback(checkpoint);
+                return null;
+            };
+            parser.scratch_a.append(rest);
 
             // rest must be last element
             if (parser.current_token.type == .Comma) {
-                parser.err(parser.getSpan(elements[length - 1]).start, parser.current_token.span.end, "Rest must be last", null);
+                parser.err(parser.getSpan(rest).start, parser.current_token.span.end, "Rest must be last", null);
+                parser.scratch_a.rollback(checkpoint);
                 return null;
             }
             break;
@@ -69,12 +72,14 @@ fn parseArrayPattern(parser: *Parser) ?ast.NodeIndex {
 
         // holes: [a, , b]
         if (parser.current_token.type == .Comma) {
-            elements[length] = ast.null_node;
-            length += 1;
+            parser.scratch_a.append(ast.null_node);
             parser.advance();
         } else {
-            elements[length] = parseArrayPatternElement(parser) orelse return null;
-            length += 1;
+            const element = parseArrayPatternElement(parser) orelse {
+                parser.scratch_a.rollback(checkpoint);
+                return null;
+            };
+            parser.scratch_a.append(element);
 
             if (parser.current_token.type == .Comma) parser.advance() else break;
         }
@@ -82,16 +87,21 @@ fn parseArrayPattern(parser: *Parser) ?ast.NodeIndex {
 
     if (parser.current_token.type != .RightBracket) {
         parser.err(start, parser.current_token.span.end, "Expected ']'", null);
+        parser.scratch_a.rollback(checkpoint);
         return null;
     }
 
     const end = parser.current_token.span.end;
     parser.advance();
 
-    return parser.addNode(
-        .{ .array_pattern = .{ .elements = parser.addExtra(elements[0..length]) } },
+    const elements = parser.scratch_a.commit(checkpoint);
+    const result = parser.addNode(
+        .{ .array_pattern = .{ .elements = parser.addExtra(elements) } },
         .{ .start = start, .end = end },
     );
+
+    parser.scratch_a.rollback(checkpoint);
+    return result;
 }
 
 fn parseArrayPatternElement(parser: *Parser) ?ast.NodeIndex {
@@ -119,41 +129,52 @@ fn parseObjectPattern(parser: *Parser) ?ast.NodeIndex {
     const start = parser.current_token.span.start;
     if (!parser.expect(.LeftBrace, "Expected '{'", null)) return null;
 
-    var properties: [256]ast.NodeIndex = undefined;
-    var length: usize = 0;
+    const checkpoint = parser.scratch_a.begin();
 
     while (parser.current_token.type != .RightBrace and parser.current_token.type != .EOF) {
         // rest element: ...rest
         if (parser.current_token.type == .Spread) {
-            properties[length] = parseObjectRestElement(parser) orelse return null;
-            length += 1;
+            const rest = parseObjectRestElement(parser) orelse {
+                parser.scratch_a.rollback(checkpoint);
+                return null;
+            };
+            parser.scratch_a.append(rest);
 
             // rest must be last property
             if (parser.current_token.type == .Comma) {
-                parser.err(parser.getSpan(properties[length - 1]).start, parser.current_token.span.end, "Rest must be last", null);
+                parser.err(parser.getSpan(rest).start, parser.current_token.span.end, "Rest must be last", null);
+                parser.scratch_a.rollback(checkpoint);
                 return null;
             }
             break;
         }
 
-        properties[length] = parseObjectPatternProperty(parser) orelse return null;
-        length += 1;
+        const property = parseObjectPatternProperty(parser) orelse {
+            parser.scratch_a.rollback(checkpoint);
+            return null;
+        };
+        parser.scratch_a.append(property);
 
         if (parser.current_token.type == .Comma) parser.advance() else break;
     }
 
     if (parser.current_token.type != .RightBrace) {
         parser.err(start, parser.current_token.span.end, "Expected '}'", null);
+        parser.scratch_a.rollback(checkpoint);
         return null;
     }
 
     const end = parser.current_token.span.end;
     parser.advance();
 
-    return parser.addNode(
-        .{ .object_pattern = .{ .properties = parser.addExtra(properties[0..length]) } },
+    const properties = parser.scratch_a.commit(checkpoint);
+    const result = parser.addNode(
+        .{ .object_pattern = .{ .properties = parser.addExtra(properties) } },
         .{ .start = start, .end = end },
     );
+
+    parser.scratch_a.rollback(checkpoint);
+    return result;
 }
 
 // parse object pattern property: {key: value} or {key} shorthand
