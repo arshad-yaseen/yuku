@@ -250,7 +250,37 @@ pub const Directive = struct {
     value_len: u16,
 };
 
+const FunctionType = enum(u8) {
+    FunctionDeclaration,
+    FunctionExpression
+};
+
+pub const Function = struct {
+  type: FunctionType,
+  id: NodeIndex = null,
+  generator: bool,
+  @"async": bool,
+  // FormalParameters
+  params: NodeIndex,
+  body: NodeIndex = null,
+};
+
+pub const FormalParameters = struct {
+    // FormalParameter[]
+    items: IndexRange,
+    // RestElement
+    rest: NodeIndex = null
+};
+
+pub const FormalParameter = struct {
+    // BindingPattern
+    pattern: NodeIndex
+};
+
 pub const NodeData = union(enum) {
+    function: Function,
+    formal_parameters: FormalParameters,
+    formal_parameter: FormalParameter,
     binary_expression: BinaryExpression,
     logical_expression: LogicalExpression,
     unary_expression: UnaryExpression,
