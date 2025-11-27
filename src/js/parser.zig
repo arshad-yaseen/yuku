@@ -184,43 +184,6 @@ pub const Parser = struct {
         return end;
     }
 
-    pub inline fn ensureValidIdentifier(
-        self: *Parser,
-        tok: token.Token,
-        comptime as_what: []const u8,
-        comptime help: []const u8,
-        help_args: anytype,
-    ) bool {
-        if (self.strict_mode and tok.type == .Identifier) {
-            if (std.mem.eql(u8, tok.lexeme, "eval") or std.mem.eql(u8, tok.lexeme, "arguments")) {
-                self.err(tok.span.start, tok.span.end, self.formatMessage("'{s}' cannot be used {s} in strict mode", .{ tok.lexeme, as_what }), help);
-                return false;
-            }
-        }
-
-        if (self.strict_mode and tok.type.isStrictModeReserved()) {
-            self.err(tok.span.start, tok.span.end, self.formatMessage("'{s}' is reserved in strict mode and cannot be used {s}", .{ tok.lexeme, as_what }), help);
-            return false;
-        }
-
-        if (tok.type == .Await and (self.in_async or self.source_type == .Module)) {
-            self.err(tok.span.start, tok.span.end, self.formatMessage("'await' is reserved {s} and cannot be used {s}", .{ if (self.in_async) "in async functions" else "at the top level of modules", as_what }), help);
-            return false;
-        }
-
-        if (tok.type == .Yield and (self.in_generator or self.source_type == .Module)) {
-            self.err(tok.span.start, tok.span.end, self.formatMessage("'yield' is reserved {s} and cannot be used {s}", .{ if (self.in_generator) "in generator functions" else "at the top level of modules", as_what }), help);
-            return false;
-        }
-
-        if (tok.type.isStrictReserved()) {
-            self.err(tok.span.start, tok.span.end, self.formatMessage("'{s}' is a reserved word and cannot be used {s}", .{ tok.lexeme, as_what }), self.formatMessage(help, help_args));
-            return false;
-        }
-
-        return true;
-    }
-
     pub inline fn err(self: *Parser, start: u32, end: u32, message: []const u8, help: ?[]const u8) void {
         self.errors.append(self.allocator, .{
             .message = message,

@@ -1,7 +1,8 @@
 const std = @import("std");
+const Parser = @import("../parser.zig").Parser;
 const token = @import("../token.zig");
 const ast = @import("../ast.zig");
-const Parser = @import("../parser.zig").Parser;
+
 const literals = @import("literals.zig");
 const expressions = @import("expressions.zig");
 
@@ -38,7 +39,7 @@ inline fn parseBindingIdentifier(parser: *Parser) ?ast.NodeIndex {
 
     const current = parser.current_token;
 
-    if (!parser.ensureValidIdentifier(current, "as an identifier", "Choose a different name", .{})) {
+    if (isReserved(current, "as an identifier", "Choose a different name", .{})) {
         return null;
     }
 
@@ -288,7 +289,7 @@ fn parseObjectPatternProperty(parser: *Parser) ?ast.NodeIndex {
             return null;
         }
 
-        if (!parser.ensureValidIdentifier(identifier_token, "in shorthand", "Use full form", .{})) {
+        if (isReserved(identifier_token, "in shorthand", "Use full form", .{})) {
             return null;
         }
 
@@ -381,4 +382,41 @@ pub fn isDestructuringPattern(parser: *Parser, index: ast.NodeIndex) bool {
         .assignment_pattern => |pattern| isDestructuringPattern(parser, pattern.left),
         else => false,
     };
+}
+
+pub inline fn isReserved(
+    self: *Parser,
+    tok: token.Token,
+    comptime as_what: []const u8,
+    comptime help: []const u8,
+    help_args: anytype,
+) bool {
+    if (self.strict_mode and tok.type == .Identifier) {
+        if (std.mem.eql(u8, tok.lexeme, "eval") or std.mem.eql(u8, tok.lexeme, "arguments")) {
+            self.err(tok.span.start, tok.span.end, self.formatMessage("'{s}' cannot be used {s} in strict mode", .{ tok.lexeme, as_what }), help);
+            return true;
+        }
+    }
+
+    if (self.strict_mode and tok.type.isStrictModeReserved()) {
+        self.err(tok.span.start, tok.span.end, self.formatMessage("'{s}' is reserved in strict mode and cannot be used {s}", .{ tok.lexeme, as_what }), help);
+        return true;
+    }
+
+    if (tok.type == .Await and (self.in_async or self.source_type == .Module)) {
+        self.err(tok.span.start, tok.span.end, self.formatMessage("'await' is reserved {s} and cannot be used {s}", .{ if (self.in_async) "in async functions" else "at the top level of modules", as_what }), help);
+        return true;
+    }
+
+    if (tok.type == .Yield and (self.in_generator or self.source_type == .Module)) {
+        self.err(tok.span.start, tok.span.end, self.formatMessage("'yield' is reserved {s} and cannot be used {s}", .{ if (self.in_generator) "in generator functions" else "at the top level of modules", as_what }), help);
+        return true;
+    }
+
+    if (tok.type.isStrictReserved()) {
+        self.err(tok.span.start, tok.span.end, self.formatMessage("'{s}' is a reserved word and cannot be used {s}", .{ tok.lexeme, as_what }), self.formatMessage(help, help_args));
+        return true;
+    }
+
+    return false;
 }
