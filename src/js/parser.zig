@@ -16,7 +16,7 @@ pub const Error = struct {
 
 pub const ParseResult = struct {
     program: ast.NodeIndex,
-    nodes: *ast.NodeList,
+    parser: *Parser,
     source: []const u8,
     errors: []Error,
 
@@ -32,7 +32,8 @@ pub const Parser = struct {
     lexer: lexer.Lexer,
     allocator: std.mem.Allocator,
     errors: std.ArrayList(Error),
-    nodes: ast.NodeList,
+    nodes: std.MultiArrayList(ast.Node),
+    extra: std.ArrayList(ast.NodeIndex),
     current_token: token.Token = undefined,
 
     // multiple scratches to handle multiple extras at the same time
@@ -47,12 +48,22 @@ pub const Parser = struct {
     source_type: SourceType = .Module,
 
     pub fn init(allocator: std.mem.Allocator, source: []const u8) !Parser {
+        const estimated_nodes = @max(1024, (source.len * 3) / 4);
+        const estimated_extra = estimated_nodes / 2;
+
+        var nodes: std.MultiArrayList(ast.Node) = .empty;
+        try nodes.ensureTotalCapacity(allocator, estimated_nodes);
+
+        const extra = try std.ArrayList(ast.NodeIndex).initCapacity(allocator, estimated_extra);
+        const errors = try std.ArrayList(Error).initCapacity(allocator, 32);
+
         return .{
             .source = source,
             .lexer = try lexer.Lexer.init(allocator, source),
             .allocator = allocator,
-            .errors = std.ArrayList(Error).initCapacity(allocator, 32) catch .empty,
-            .nodes = ast.NodeList.init(allocator, @intCast(source.len)),
+            .errors = errors,
+            .nodes = nodes,
+            .extra = extra,
             .scratch_a = ScratchBuffer.init(allocator),
             .scratch_b = ScratchBuffer.init(allocator),
         };
@@ -72,7 +83,7 @@ pub const Parser = struct {
             }
         }
 
-        const body = self.nodes.addExtra(self.allocator, self.scratch_a.take(checkpoint));
+        const body = self.addExtra(self.scratch_a.take(checkpoint));
 
         const program = self.addNode(
             .{
@@ -87,9 +98,9 @@ pub const Parser = struct {
 
         return .{
             .program = program,
-            .nodes = &self.nodes,
+            .parser = self,
             .source = self.source,
-            .errors = self.errors.toOwnedSlice(self.allocator) catch unreachable,
+            .errors = try self.errors.toOwnedSlice(self.allocator),
         };
     }
 
@@ -120,7 +131,7 @@ pub const Parser = struct {
 
     pub fn parseExpressionStatement(self: *Parser) ?ast.NodeIndex {
         const expression = expressions.parseExpression(self, 0) orelse return null;
-        const span = self.nodes.getSpan(expression);
+        const span = self.getSpan(expression);
 
         return self.addNode(
             .{ .expression_statement = .{ .expression = expression } },
@@ -128,24 +139,33 @@ pub const Parser = struct {
         );
     }
 
+    pub fn lookAhead(self: *Parser) ?token.Token {
+        return self.current_token;
+    }
+
     pub inline fn addNode(self: *Parser, data: ast.NodeData, span: ast.Span) ast.NodeIndex {
-        return self.nodes.add(self.allocator, data, span);
+        const index: ast.NodeIndex = @intCast(self.nodes.len);
+        self.nodes.append(self.allocator, .{ .data = data, .span = span }) catch unreachable;
+        return index;
     }
 
     pub inline fn addExtra(self: *Parser, indices: []const ast.NodeIndex) ast.IndexRange {
-        return self.nodes.addExtra(self.allocator, indices);
+        const start: u32 = @intCast(self.extra.items.len);
+        const len: u32 = @intCast(indices.len);
+        self.extra.appendSlice(self.allocator, indices) catch unreachable;
+        return .{ .start = start, .len = len };
     }
 
-    pub inline fn getSpan(self: *Parser, index: ast.NodeIndex) ast.Span {
-        return self.nodes.getSpan(index);
+    pub inline fn getSpan(self: *const Parser, index: ast.NodeIndex) ast.Span {
+        return self.nodes.items(.span)[index];
     }
 
-    pub inline fn getData(self: *Parser, index: ast.NodeIndex) ast.NodeData {
-        return self.nodes.getData(index);
+    pub inline fn getData(self: *const Parser, index: ast.NodeIndex) ast.NodeData {
+        return self.nodes.items(.data)[index];
     }
 
-    pub fn lookAhead(self: *Parser) ?token.Token {
-        return self.current_token;
+    pub inline fn getExtra(self: *const Parser, range: ast.IndexRange) []const ast.NodeIndex {
+        return self.extra.items[range.start..][0..range.len];
     }
 
     pub inline fn advance(self: *Parser) void {

@@ -405,50 +405,6 @@ pub const Node = struct {
     span: Span,
 };
 
-pub const NodeList = struct {
-    nodes: std.MultiArrayList(Node),
-    extra: std.ArrayList(NodeIndex),
-
-    pub fn init(allocator: std.mem.Allocator, source_len: u32) NodeList {
-        const estimated_nodes = @max(1024, (source_len * 3) / 4);
-
-        const estimated_extra = estimated_nodes / 2;
-
-        var nodes: std.MultiArrayList(Node) = .empty;
-        nodes.ensureTotalCapacity(allocator, estimated_nodes) catch unreachable;
-
-        return .{
-            .nodes = nodes,
-            .extra = std.ArrayList(NodeIndex).initCapacity(allocator, estimated_extra) catch unreachable,
-        };
-    }
-
-    pub inline fn add(self: *NodeList, allocator: std.mem.Allocator, data: NodeData, span: Span) NodeIndex {
-        const index: NodeIndex = @intCast(self.nodes.len);
-        self.nodes.append(allocator, .{ .data = data, .span = span }) catch unreachable;
-        return index;
-    }
-
-    pub inline fn addExtra(self: *NodeList, allocator: std.mem.Allocator, indices: []const NodeIndex) IndexRange {
-        const start: u32 = @intCast(self.extra.items.len);
-        const len: u32 = @intCast(indices.len);
-        self.extra.appendSlice(allocator, indices) catch unreachable;
-        return .{ .start = start, .len = len };
-    }
-
-    pub inline fn getData(self: *const NodeList, index: NodeIndex) NodeData {
-        return self.nodes.items(.data)[index];
-    }
-
-    pub inline fn getSpan(self: *const NodeList, index: NodeIndex) Span {
-        return self.nodes.items(.span)[index];
-    }
-
-    pub inline fn getExtra(self: *const NodeList, range: IndexRange) []const NodeIndex {
-        return self.extra.items[range.start..][0..range.len];
-    }
-};
-
 pub fn binaryOperatorFromToken(tok: token.TokenType) BinaryOperator {
     return switch (tok) {
         .Equal => .Equal,
