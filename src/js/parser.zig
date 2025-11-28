@@ -31,7 +31,7 @@ pub const Parser = struct {
     source: []const u8,
     lexer: lexer.Lexer,
     allocator: std.mem.Allocator,
-    errors: std.ArrayList(Error) = .empty,
+    errors: std.ArrayList(Error),
     nodes: ast.NodeList,
     current_token: token.Token = undefined,
 
@@ -51,6 +51,7 @@ pub const Parser = struct {
             .source = source,
             .lexer = try lexer.Lexer.init(allocator, source),
             .allocator = allocator,
+            .errors = std.ArrayList(Error).initCapacity(allocator, 32) catch .empty,
             .nodes = ast.NodeList.init(allocator, @intCast(source.len)),
             .scratch_a = ScratchBuffer.init(allocator),
             .scratch_b = ScratchBuffer.init(allocator),
@@ -221,7 +222,7 @@ const ScratchBuffer = struct {
     allocator: std.mem.Allocator,
 
     fn init(allocator: std.mem.Allocator) ScratchBuffer {
-        const list = std.ArrayList(ast.NodeIndex).initCapacity(allocator, 256) catch unreachable;
+        const list = std.ArrayList(ast.NodeIndex).initCapacity(allocator, 512) catch unreachable;
         return .{ .items = list, .allocator = allocator };
     }
 

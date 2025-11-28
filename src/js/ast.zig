@@ -410,8 +410,9 @@ pub const NodeList = struct {
     extra: std.ArrayList(NodeIndex),
 
     pub fn init(allocator: std.mem.Allocator, source_len: u32) NodeList {
-        const estimated_nodes = @max(256, source_len / 2);
-        const estimated_extra = estimated_nodes / 3;
+        const estimated_nodes = @max(1024, (source_len * 3) / 4);
+
+        const estimated_extra = estimated_nodes / 2;
 
         var nodes: std.MultiArrayList(Node) = .empty;
         nodes.ensureTotalCapacity(allocator, estimated_nodes) catch unreachable;
