@@ -1,1 +1,1 @@
-let {a} = obj
+const something = "nice"

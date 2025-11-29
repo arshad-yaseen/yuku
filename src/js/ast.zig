@@ -1,7 +1,7 @@
 const std = @import("std");
 const token = @import("token.zig");
 
-/// index into the AST node array. Use `null_node` for optional nodes.
+/// index into the ast node array. `null_node` for optional nodes.
 pub const NodeIndex = u32;
 pub const null_node: NodeIndex = std.math.maxInt(NodeIndex);
 pub const Span = token.Span;
