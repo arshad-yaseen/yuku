@@ -111,6 +111,9 @@ pub const Parser = struct {
             .Await => blk: {
                 const await_token = self.current_token;
 
+                // TODO: remove lookahead method, and use a way without lookahead, like when we implement
+                // top level awaits
+                // leave this as is for now
                 if ((self.lookAhead() orelse break :blk null).type == .Using) {
                     break :blk variables.parseVariableDeclaration(self);
                 }
