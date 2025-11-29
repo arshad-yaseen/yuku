@@ -174,7 +174,8 @@ pub const StringLiteral = struct {
 
 /// https://tc39.es/ecma262/#sec-literals-numeric-literals
 pub const NumericLiteral = struct {
-    value: f64,
+    raw_start: u32,
+    raw_len: u16,
 };
 
 /// https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar-literals

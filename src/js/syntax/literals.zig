@@ -2,7 +2,6 @@ const std = @import("std");
 const ast = @import("../ast.zig");
 const lexer = @import("../lexer.zig");
 const Parser = @import("../parser.zig").Parser;
-const util = @import("util");
 const expressions = @import("expressions.zig");
 
 pub inline fn parseStringLiteral(parser: *Parser) ?ast.NodeIndex {
@@ -35,7 +34,8 @@ pub inline fn parseNumericLiteral(parser: *Parser) ?ast.NodeIndex {
     parser.advance();
     return parser.addNode(.{
         .numeric_literal = .{
-            .value = util.Number.parseJSNumeric(token.lexeme) catch unreachable,
+            .raw_start = token.span.start,
+            .raw_len = @intCast(token.lexeme.len),
         },
     }, token.span);
 }
