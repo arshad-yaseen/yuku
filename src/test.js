@@ -1,1 +1,1 @@
-const something = "nice"
+const {...something} = "nice"

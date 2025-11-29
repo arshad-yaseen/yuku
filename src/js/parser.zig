@@ -108,7 +108,6 @@ pub const Parser = struct {
         return switch (self.current_token.type) {
             .Var, .Const, .Let, .Using => variables.parseVariableDeclaration(self),
 
-            // handle 'await using' declarations
             .Await => blk: {
                 const await_token = self.current_token;
 
