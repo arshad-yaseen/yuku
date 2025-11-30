@@ -37,7 +37,7 @@ pub fn main() !void {
         if (i == 0) {
             if (tree.hasErrors()) {
                 std.debug.print("\nErrors:\n", .{});
-                for (tree.errors) |parse_err| {
+                for (tree.errors.items) |parse_err| {
                     printError(contents, parse_err);
                 }
                 std.debug.print("\n", .{});

@@ -23,16 +23,16 @@ pub const ParseTree = struct {
     /// Source code that was parsed
     source: []const u8,
     /// All nodes in the AST
-    nodes: []const ast.Node,
+    nodes: std.MultiArrayList(ast.Node),
     /// Extra data storage for variadic node children
-    extra: []const ast.NodeIndex,
+    extra: std.ArrayList(ast.NodeIndex),
     /// Parse errors encountered
-    errors: []const Error,
+    errors: std.ArrayList(Error),
     /// Arena allocator owning all the memory
     arena: std.heap.ArenaAllocator,
 
     pub inline fn hasErrors(self: ParseTree) bool {
-        return self.errors.len > 0;
+        return self.errors.items.len > 0;
     }
 
     pub fn deinit(self: *ParseTree) void {
@@ -45,7 +45,7 @@ pub const Parser = struct {
     lexer: lexer.Lexer,
     arena: std.heap.ArenaAllocator,
     errors: std.ArrayList(Error) = .empty,
-    nodes: std.ArrayList(ast.Node) = .empty,
+    nodes: std.MultiArrayList(ast.Node) = .empty,
     extra: std.ArrayList(ast.NodeIndex) = .empty,
     current_token: token.Token = undefined,
 
@@ -106,14 +106,12 @@ pub const Parser = struct {
             .{ .start = start, .end = self.current_token.span.start },
         );
 
-        const alloc = self.allocator();
-
         const tree = ParseTree{
             .program = program,
             .source = self.source,
-            .nodes = try self.nodes.toOwnedSlice(alloc),
-            .extra = try self.extra.toOwnedSlice(alloc),
-            .errors = try self.errors.toOwnedSlice(alloc),
+            .nodes = self.nodes,
+            .extra = self.extra,
+            .errors = self.errors,
             .arena = self.arena,
         };
 
@@ -166,7 +164,7 @@ pub const Parser = struct {
     }
 
     pub inline fn addNode(self: *Parser, data: ast.NodeData, span: ast.Span) ast.NodeIndex {
-        const index: ast.NodeIndex = @intCast(self.nodes.items.len);
+        const index: ast.NodeIndex = @intCast(self.nodes.len);
         self.nodes.append(self.allocator(), .{ .data = data, .span = span }) catch unreachable;
         return index;
     }
@@ -179,11 +177,11 @@ pub const Parser = struct {
     }
 
     pub inline fn getSpan(self: *const Parser, index: ast.NodeIndex) ast.Span {
-        return self.nodes.items[index].span;
+        return self.nodes.items(.span)[index];
     }
 
     pub inline fn getData(self: *const Parser, index: ast.NodeIndex) ast.NodeData {
-        return self.nodes.items[index].data;
+        return self.nodes.items(.data)[index];
     }
 
     pub inline fn getExtra(self: *const Parser, range: ast.IndexRange) []const ast.NodeIndex {
