@@ -1,8 +1,8 @@
 test/parser/misc/ts
 ===================
-Passed:       42/42 (100.00%)
+Passed:       43/43 (100.00%)
 Failed:       0
-AST mismatch: 0/42
+AST mismatch: 0/43
 
 ✓ test/parser/misc/ts/ambient-file-declarations.module.d.ts
 ✓ test/parser/misc/ts/ambient-reserved-param.ts
@@ -157,6 +157,15 @@ error: Rest parameter may not have a trailing comma
    |
    = help: Remove the trailing comma after the rest parameter.
 
+
+✓ test/parser/misc/ts/template-literal-type-escapes.ts
+error: Bad escape sequence in untagged template literal
+   |
+25 | // untagged template literal expression
+26 | type BadOctal = `\8${string}`;
+   |                  ^^
+27 | type BadHex = `\x${string}`;
+   |
 
 ✓ test/parser/misc/ts/typed-arrow-predicate-in-ternary-jsx.module.tsx
 ✓ test/parser/misc/ts/typed-arrow-predicate-in-ternary.ts
