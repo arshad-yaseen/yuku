@@ -231,6 +231,9 @@ fn parsePrimaryType(parser: *Parser) Error!?ast.NodeIndex {
         .minus,
         .plus,
         => return literal.parseLiteralType(parser),
+        // an escape in the head is template text, not an escaped spelling,
+        // so this must stay outside the `isEscaped` guard below
+        .template_head => return literal.parseTemplateLiteralType(parser),
         else => {},
     }
 
@@ -264,7 +267,6 @@ fn parsePrimaryType(parser: *Parser) Error!?ast.NodeIndex {
                 object.parseTypeLiteral(parser),
             .keyof, .unique, .readonly => return parseTypeOperator(parser),
             .infer => return parseInferType(parser),
-            .template_head => return literal.parseTemplateLiteralType(parser),
             .typeof => return parseTypeQuery(parser),
             .import => return parseImportType(parser),
             .question => return parseJSDocNullableOrUnknownType(parser),

@@ -1,0 +1,1047 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 861,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 159,
+        "end": 191,
+        "id": {
+          "type": "Identifier",
+          "start": 164,
+          "end": 172,
+          "name": "Backtick",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTemplateLiteralType",
+          "start": 175,
+          "end": 190,
+          "quasis": [
+            {
+              "type": "TemplateElement",
+              "start": 175,
+              "end": 180,
+              "value": {
+                "raw": "\\`",
+                "cooked": "`"
+              },
+              "tail": false
+            },
+            {
+              "type": "TemplateElement",
+              "start": 186,
+              "end": 190,
+              "value": {
+                "raw": "\\`",
+                "cooked": "`"
+              },
+              "tail": true
+            }
+          ],
+          "types": [
+            {
+              "type": "TSStringKeyword",
+              "start": 180,
+              "end": 186
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 192,
+        "end": 225,
+        "id": {
+          "type": "Identifier",
+          "start": 197,
+          "end": 204,
+          "name": "Unicode",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTemplateLiteralType",
+          "start": 207,
+          "end": 224,
+          "quasis": [
+            {
+              "type": "TemplateElement",
+              "start": 207,
+              "end": 216,
+              "value": {
+                "raw": "\\u0041",
+                "cooked": "A"
+              },
+              "tail": false
+            },
+            {
+              "type": "TemplateElement",
+              "start": 222,
+              "end": 224,
+              "value": {
+                "raw": "",
+                "cooked": ""
+              },
+              "tail": true
+            }
+          ],
+          "types": [
+            {
+              "type": "TSStringKeyword",
+              "start": 216,
+              "end": 222
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 226,
+        "end": 261,
+        "id": {
+          "type": "Identifier",
+          "start": 231,
+          "end": 240,
+          "name": "CodePoint",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTemplateLiteralType",
+          "start": 243,
+          "end": 260,
+          "quasis": [
+            {
+              "type": "TemplateElement",
+              "start": 243,
+              "end": 252,
+              "value": {
+                "raw": "\\u{41}",
+                "cooked": "A"
+              },
+              "tail": false
+            },
+            {
+              "type": "TemplateElement",
+              "start": 258,
+              "end": 260,
+              "value": {
+                "raw": "",
+                "cooked": ""
+              },
+              "tail": true
+            }
+          ],
+          "types": [
+            {
+              "type": "TSStringKeyword",
+              "start": 252,
+              "end": 258
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 262,
+        "end": 289,
+        "id": {
+          "type": "Identifier",
+          "start": 267,
+          "end": 270,
+          "name": "Hex",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTemplateLiteralType",
+          "start": 273,
+          "end": 288,
+          "quasis": [
+            {
+              "type": "TemplateElement",
+              "start": 273,
+              "end": 280,
+              "value": {
+                "raw": "\\x41",
+                "cooked": "A"
+              },
+              "tail": false
+            },
+            {
+              "type": "TemplateElement",
+              "start": 286,
+              "end": 288,
+              "value": {
+                "raw": "",
+                "cooked": ""
+              },
+              "tail": true
+            }
+          ],
+          "types": [
+            {
+              "type": "TSStringKeyword",
+              "start": 280,
+              "end": 286
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 290,
+        "end": 319,
+        "id": {
+          "type": "Identifier",
+          "start": 295,
+          "end": 302,
+          "name": "Newline",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTemplateLiteralType",
+          "start": 305,
+          "end": 318,
+          "quasis": [
+            {
+              "type": "TemplateElement",
+              "start": 305,
+              "end": 310,
+              "value": {
+                "raw": "\\n",
+                "cooked": "\n"
+              },
+              "tail": false
+            },
+            {
+              "type": "TemplateElement",
+              "start": 316,
+              "end": 318,
+              "value": {
+                "raw": "",
+                "cooked": ""
+              },
+              "tail": true
+            }
+          ],
+          "types": [
+            {
+              "type": "TSStringKeyword",
+              "start": 310,
+              "end": 316
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 320,
+        "end": 350,
+        "id": {
+          "type": "Identifier",
+          "start": 325,
+          "end": 331,
+          "name": "Dollar",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTemplateLiteralType",
+          "start": 334,
+          "end": 349,
+          "quasis": [
+            {
+              "type": "TemplateElement",
+              "start": 334,
+              "end": 340,
+              "value": {
+                "raw": "\\${",
+                "cooked": "${"
+              },
+              "tail": false
+            },
+            {
+              "type": "TemplateElement",
+              "start": 346,
+              "end": 349,
+              "value": {
+                "raw": "}",
+                "cooked": "}"
+              },
+              "tail": true
+            }
+          ],
+          "types": [
+            {
+              "type": "TSStringKeyword",
+              "start": 340,
+              "end": 346
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 351,
+        "end": 390,
+        "id": {
+          "type": "Identifier",
+          "start": 356,
+          "end": 362,
+          "name": "Middle",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTemplateLiteralType",
+          "start": 365,
+          "end": 389,
+          "quasis": [
+            {
+              "type": "TemplateElement",
+              "start": 365,
+              "end": 368,
+              "value": {
+                "raw": "",
+                "cooked": ""
+              },
+              "tail": false
+            },
+            {
+              "type": "TemplateElement",
+              "start": 374,
+              "end": 379,
+              "value": {
+                "raw": "\\`",
+                "cooked": "`"
+              },
+              "tail": false
+            },
+            {
+              "type": "TemplateElement",
+              "start": 385,
+              "end": 389,
+              "value": {
+                "raw": "\\`",
+                "cooked": "`"
+              },
+              "tail": true
+            }
+          ],
+          "types": [
+            {
+              "type": "TSStringKeyword",
+              "start": 368,
+              "end": 374
+            },
+            {
+              "type": "TSNumberKeyword",
+              "start": 379,
+              "end": 385
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 391,
+        "end": 433,
+        "id": {
+          "type": "Identifier",
+          "start": 396,
+          "end": 401,
+          "name": "Mixed",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTemplateLiteralType",
+          "start": 404,
+          "end": 432,
+          "quasis": [
+            {
+              "type": "TemplateElement",
+              "start": 404,
+              "end": 408,
+              "value": {
+                "raw": "a",
+                "cooked": "a"
+              },
+              "tail": false
+            },
+            {
+              "type": "TemplateElement",
+              "start": 414,
+              "end": 423,
+              "value": {
+                "raw": "\\u0041",
+                "cooked": "A"
+              },
+              "tail": false
+            },
+            {
+              "type": "TemplateElement",
+              "start": 429,
+              "end": 432,
+              "value": {
+                "raw": "b",
+                "cooked": "b"
+              },
+              "tail": true
+            }
+          ],
+          "types": [
+            {
+              "type": "TSStringKeyword",
+              "start": 408,
+              "end": 414
+            },
+            {
+              "type": "TSNumberKeyword",
+              "start": 423,
+              "end": 429
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 434,
+        "end": 459,
+        "id": {
+          "type": "Identifier",
+          "start": 439,
+          "end": 444,
+          "name": "Plain",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSLiteralType",
+          "start": 447,
+          "end": 458,
+          "literal": {
+            "type": "TemplateLiteral",
+            "start": 447,
+            "end": 458,
+            "quasis": [
+              {
+                "type": "TemplateElement",
+                "start": 447,
+                "end": 458,
+                "value": {
+                  "raw": "\\`plain\\`",
+                  "cooked": "`plain`"
+                },
+                "tail": true
+              }
+            ],
+            "expressions": []
+          }
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 461,
+        "end": 517,
+        "id": {
+          "type": "Identifier",
+          "start": 466,
+          "end": 472,
+          "name": "Nested",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": {
+          "type": "TSTypeParameterDeclaration",
+          "start": 472,
+          "end": 475,
+          "params": [
+            {
+              "type": "TSTypeParameter",
+              "start": 473,
+              "end": 474,
+              "name": {
+                "type": "Identifier",
+                "start": 473,
+                "end": 474,
+                "name": "T",
+                "decorators": [],
+                "typeAnnotation": null,
+                "optional": false
+              },
+              "constraint": null,
+              "default": null,
+              "in": false,
+              "out": false,
+              "const": false
+            }
+          ]
+        },
+        "typeAnnotation": {
+          "type": "TSConditionalType",
+          "start": 478,
+          "end": 516,
+          "checkType": {
+            "type": "TSTypeReference",
+            "start": 478,
+            "end": 479,
+            "typeName": {
+              "type": "Identifier",
+              "start": 478,
+              "end": 479,
+              "name": "T",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            },
+            "typeArguments": null
+          },
+          "extendsType": {
+            "type": "TSTemplateLiteralType",
+            "start": 488,
+            "end": 504,
+            "quasis": [
+              {
+                "type": "TemplateElement",
+                "start": 488,
+                "end": 493,
+                "value": {
+                  "raw": "\\`",
+                  "cooked": "`"
+                },
+                "tail": false
+              },
+              {
+                "type": "TemplateElement",
+                "start": 500,
+                "end": 504,
+                "value": {
+                  "raw": "\\`",
+                  "cooked": "`"
+                },
+                "tail": true
+              }
+            ],
+            "types": [
+              {
+                "type": "TSInferType",
+                "start": 493,
+                "end": 500,
+                "typeParameter": {
+                  "type": "TSTypeParameter",
+                  "start": 499,
+                  "end": 500,
+                  "name": {
+                    "type": "Identifier",
+                    "start": 499,
+                    "end": 500,
+                    "name": "U",
+                    "decorators": [],
+                    "typeAnnotation": null,
+                    "optional": false
+                  },
+                  "constraint": null,
+                  "default": null,
+                  "in": false,
+                  "out": false,
+                  "const": false
+                }
+              }
+            ]
+          },
+          "trueType": {
+            "type": "TSTypeReference",
+            "start": 507,
+            "end": 508,
+            "typeName": {
+              "type": "Identifier",
+              "start": 507,
+              "end": 508,
+              "name": "U",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            },
+            "typeArguments": null
+          },
+          "falseType": {
+            "type": "TSNeverKeyword",
+            "start": 511,
+            "end": 516
+          }
+        },
+        "declare": false
+      },
+      {
+        "type": "TSInterfaceDeclaration",
+        "start": 519,
+        "end": 570,
+        "id": {
+          "type": "Identifier",
+          "start": 529,
+          "end": 534,
+          "name": "Keyed",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "extends": [],
+        "body": {
+          "type": "TSInterfaceBody",
+          "start": 535,
+          "end": 570,
+          "body": [
+            {
+              "type": "TSIndexSignature",
+              "start": 539,
+              "end": 568,
+              "parameters": [
+                {
+                  "type": "Identifier",
+                  "start": 540,
+                  "end": 558,
+                  "name": "key",
+                  "decorators": [],
+                  "typeAnnotation": {
+                    "type": "TSTypeAnnotation",
+                    "start": 543,
+                    "end": 558,
+                    "typeAnnotation": {
+                      "type": "TSTemplateLiteralType",
+                      "start": 545,
+                      "end": 558,
+                      "quasis": [
+                        {
+                          "type": "TemplateElement",
+                          "start": 545,
+                          "end": 550,
+                          "value": {
+                            "raw": "\\`",
+                            "cooked": "`"
+                          },
+                          "tail": false
+                        },
+                        {
+                          "type": "TemplateElement",
+                          "start": 556,
+                          "end": 558,
+                          "value": {
+                            "raw": "",
+                            "cooked": ""
+                          },
+                          "tail": true
+                        }
+                      ],
+                      "types": [
+                        {
+                          "type": "TSStringKeyword",
+                          "start": 550,
+                          "end": 556
+                        }
+                      ]
+                    }
+                  },
+                  "optional": false
+                }
+              ],
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 559,
+                "end": 567,
+                "typeAnnotation": {
+                  "type": "TSNumberKeyword",
+                  "start": 561,
+                  "end": 567
+                }
+              },
+              "readonly": false,
+              "static": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSDeclareFunction",
+        "start": 572,
+        "end": 611,
+        "id": {
+          "type": "Identifier",
+          "start": 589,
+          "end": 591,
+          "name": "fn",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "generator": false,
+        "async": false,
+        "params": [],
+        "body": null,
+        "expression": false,
+        "typeParameters": null,
+        "returnType": {
+          "type": "TSTypeAnnotation",
+          "start": 593,
+          "end": 610,
+          "typeAnnotation": {
+            "type": "TSTemplateLiteralType",
+            "start": 595,
+            "end": 610,
+            "quasis": [
+              {
+                "type": "TemplateElement",
+                "start": 595,
+                "end": 600,
+                "value": {
+                  "raw": "\\`",
+                  "cooked": "`"
+                },
+                "tail": false
+              },
+              {
+                "type": "TemplateElement",
+                "start": 606,
+                "end": 610,
+                "value": {
+                  "raw": "\\`",
+                  "cooked": "`"
+                },
+                "tail": true
+              }
+            ],
+            "types": [
+              {
+                "type": "TSBigIntKeyword",
+                "start": 600,
+                "end": 606
+              }
+            ]
+          }
+        },
+        "declare": true
+      },
+      {
+        "type": "VariableDeclaration",
+        "start": 613,
+        "end": 650,
+        "kind": "let",
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 617,
+            "end": 649,
+            "id": {
+              "type": "Identifier",
+              "start": 617,
+              "end": 639,
+              "name": "value",
+              "decorators": [],
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 622,
+                "end": 639,
+                "typeAnnotation": {
+                  "type": "TSTemplateLiteralType",
+                  "start": 624,
+                  "end": 639,
+                  "quasis": [
+                    {
+                      "type": "TemplateElement",
+                      "start": 624,
+                      "end": 629,
+                      "value": {
+                        "raw": "\\`",
+                        "cooked": "`"
+                      },
+                      "tail": false
+                    },
+                    {
+                      "type": "TemplateElement",
+                      "start": 635,
+                      "end": 639,
+                      "value": {
+                        "raw": "\\`",
+                        "cooked": "`"
+                      },
+                      "tail": true
+                    }
+                  ],
+                  "types": [
+                    {
+                      "type": "TSStringKeyword",
+                      "start": 629,
+                      "end": 635
+                    }
+                  ]
+                }
+              },
+              "optional": false
+            },
+            "init": {
+              "type": "TemplateLiteral",
+              "start": 642,
+              "end": 649,
+              "quasis": [
+                {
+                  "type": "TemplateElement",
+                  "start": 642,
+                  "end": 649,
+                  "value": {
+                    "raw": "\\`x\\`",
+                    "cooked": "`x`"
+                  },
+                  "tail": true
+                }
+              ],
+              "expressions": []
+            },
+            "definite": false
+          }
+        ],
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 764,
+        "end": 794,
+        "id": {
+          "type": "Identifier",
+          "start": 769,
+          "end": 777,
+          "name": "BadOctal",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTemplateLiteralType",
+          "start": 780,
+          "end": 793,
+          "quasis": [
+            {
+              "type": "TemplateElement",
+              "start": 780,
+              "end": 785,
+              "value": {
+                "raw": "\\8",
+                "cooked": null
+              },
+              "tail": false
+            },
+            {
+              "type": "TemplateElement",
+              "start": 791,
+              "end": 793,
+              "value": {
+                "raw": "",
+                "cooked": ""
+              },
+              "tail": true
+            }
+          ],
+          "types": [
+            {
+              "type": "TSStringKeyword",
+              "start": 785,
+              "end": 791
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 795,
+        "end": 823,
+        "id": {
+          "type": "Identifier",
+          "start": 800,
+          "end": 806,
+          "name": "BadHex",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTemplateLiteralType",
+          "start": 809,
+          "end": 822,
+          "quasis": [
+            {
+              "type": "TemplateElement",
+              "start": 809,
+              "end": 814,
+              "value": {
+                "raw": "\\x",
+                "cooked": null
+              },
+              "tail": false
+            },
+            {
+              "type": "TemplateElement",
+              "start": 820,
+              "end": 822,
+              "value": {
+                "raw": "",
+                "cooked": ""
+              },
+              "tail": true
+            }
+          ],
+          "types": [
+            {
+              "type": "TSStringKeyword",
+              "start": 814,
+              "end": 820
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 824,
+        "end": 860,
+        "id": {
+          "type": "Identifier",
+          "start": 829,
+          "end": 841,
+          "name": "BadCodePoint",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTemplateLiteralType",
+          "start": 844,
+          "end": 859,
+          "quasis": [
+            {
+              "type": "TemplateElement",
+              "start": 844,
+              "end": 851,
+              "value": {
+                "raw": "\\u{}",
+                "cooked": null
+              },
+              "tail": false
+            },
+            {
+              "type": "TemplateElement",
+              "start": 857,
+              "end": 859,
+              "value": {
+                "raw": "",
+                "cooked": ""
+              },
+              "tail": true
+            }
+          ],
+          "types": [
+            {
+              "type": "TSStringKeyword",
+              "start": 851,
+              "end": 857
+            }
+          ]
+        },
+        "declare": false
+      }
+    ]
+  },
+  "comments": [
+    {
+      "type": "Line",
+      "value": " escapes inside a template literal type head belong to the template text, so",
+      "start": 0,
+      "end": 78
+    },
+    {
+      "type": "Line",
+      "value": " the head must parse as a type; only genuinely bad escapes stay diagnostics.",
+      "start": 79,
+      "end": 157
+    },
+    {
+      "type": "Line",
+      "value": " negative space: invalid escapes are still reported, exactly as in an",
+      "start": 652,
+      "end": 723
+    },
+    {
+      "type": "Line",
+      "value": " untagged template literal expression",
+      "start": 724,
+      "end": 763
+    }
+  ],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "Bad escape sequence in untagged template literal",
+      "start": 781,
+      "end": 783,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Bad escape sequence in untagged template literal",
+      "start": 810,
+      "end": 812,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Bad escape sequence in untagged template literal",
+      "start": 845,
+      "end": 849,
+      "help": null,
+      "labels": []
+    }
+  ]
+}
