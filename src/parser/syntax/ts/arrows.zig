@@ -20,7 +20,7 @@ fn classifyParenArrowHead(parser: *Parser) ArrowHead {
     var peek = parser.beginPeek();
     defer peek.end();
 
-    const second = peek.next() orelse return .no;
+    const second = peek.next();
 
     switch (second.tag) {
         .spread => return .yes,
@@ -28,7 +28,7 @@ fn classifyParenArrowHead(parser: *Parser) ArrowHead {
         .left_bracket, .left_brace => return .maybe,
         // bare `()` needs `=>` or `:` after
         .right_paren => {
-            const third = peek.next() orelse return .no;
+            const third = peek.next();
             return switch (third.tag) {
                 .arrow, .colon => .yes,
                 else => .no,
@@ -36,16 +36,16 @@ fn classifyParenArrowHead(parser: *Parser) ArrowHead {
         },
         // `this` param only when `:T` follows
         .this => {
-            const third = peek.next() orelse return .no;
+            const third = peek.next();
             return if (third.tag == .colon) .yes else .no;
         },
         else => {
             if (!second.tag.isIdentifierLike()) return .no;
-            const third = peek.next() orelse return .no;
+            const third = peek.next();
             return switch (third.tag) {
                 .colon => .yes,
                 .question => blk: {
-                    const fourth = peek.next() orelse break :blk .no;
+                    const fourth = peek.next();
                     break :blk switch (fourth.tag) {
                         .colon, .comma, .assign, .right_paren => .yes,
                         else => .no,
@@ -124,7 +124,7 @@ pub fn tryParseGenericArrow(
 ) Error!?ast.NodeIndex {
     std.debug.assert(parser.current_token.tag == .less_than);
 
-    const next = parser.peekAhead() orelse return null;
+    const next = parser.peekAhead();
     if (!next.tag.isIdentifierLike() and next.tag != .@"const") return null;
 
     return tryParseArrow(parser, is_async, arrow_start);

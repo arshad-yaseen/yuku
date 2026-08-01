@@ -249,7 +249,7 @@ pub fn parseFormalParameters(
             rest = try patterns.parseBindingRestElement(parser) orelse .null;
 
             if (parser.current_token.tag == .comma and rest != .null) {
-                const after_comma = parser.peekAhead() orelse return null;
+                const after_comma = parser.peekAhead();
                 if (after_comma.tag == .right_paren) {
                     // ts allows `(...rest,)` in ambient contexts only
                     if (!parser.ts_context.ambient) {
@@ -448,7 +448,7 @@ fn parseThisParameter(parser: *Parser) Error!?ast.NodeIndex {
 fn isParameterPropertyModifierStart(parser: *Parser) Error!bool {
     const tag = parser.current_token.tag;
     if (!isParameterPropertyModifierTag(tag)) return false;
-    const next = parser.peekAhead() orelse return false;
+    const next = parser.peekAhead();
     if (next.hasLineTerminatorBefore()) return false;
     return canFollowParameterPropertyModifier(next.tag);
 }

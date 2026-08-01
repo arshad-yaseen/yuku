@@ -220,10 +220,10 @@ pub fn canStartLetBinding(tag: TokenTag) bool {
 /// `let [`, so sloppy-mode `let = 1`, `let.foo`, or `let in obj` are
 /// expression statements. strict-mode misuse is the checker's reserved-word
 /// error.
-pub fn isLetIdentifier(parser: *Parser) Error!?bool {
+pub fn isLetIdentifier(parser: *Parser) Error!bool {
     std.debug.assert(parser.current_token.tag == .let);
 
-    const next = parser.peekAhead() orelse return null;
+    const next = parser.peekAhead();
 
     return !canStartLetBinding(next.tag);
 }
@@ -233,10 +233,10 @@ pub fn isLetIdentifier(parser: *Parser) Error!?bool {
 ///
 /// implements the cover-grammar disambiguation from:
 /// - CoverAwaitExpressionAndAwaitUsingDeclarationHead
-pub fn isUsingIdentifier(parser: *Parser) Error!?bool {
+pub fn isUsingIdentifier(parser: *Parser) Error!bool {
     std.debug.assert(parser.current_token.tag == .using);
 
-    const next = parser.peekAhead() orelse return null;
+    const next = parser.peekAhead();
 
     // [+Using] using [no LineTerminator here] BindingList
     return next.hasLineTerminatorBefore() or !canStartBindingIdentifier(next.tag);
@@ -244,7 +244,7 @@ pub fn isUsingIdentifier(parser: *Parser) Error!?bool {
 
 /// `await [no LineTerminator here] using [no LineTerminator here] Binding`
 /// in an [+Await] context heads an AwaitUsingDeclaration.
-pub fn isAwaitUsingDeclarationAhead(parser: *Parser) Error!?bool {
+pub fn isAwaitUsingDeclarationAhead(parser: *Parser) Error!bool {
     std.debug.assert(parser.current_token.tag == .await);
 
     if (!parser.context.await) return false;
@@ -252,11 +252,11 @@ pub fn isAwaitUsingDeclarationAhead(parser: *Parser) Error!?bool {
     var peek = parser.beginPeek();
     defer peek.end();
 
-    const using_token = peek.next() orelse return null;
+    const using_token = peek.next();
     if (using_token.tag != .using) return false;
     if (using_token.hasLineTerminatorBefore()) return false;
 
-    const binding = peek.next() orelse return null;
+    const binding = peek.next();
     if (binding.hasLineTerminatorBefore()) return false;
 
     return canStartBindingIdentifier(binding.tag);

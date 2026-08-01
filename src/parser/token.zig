@@ -223,6 +223,10 @@ pub const TokenTag = enum(u32) {
     jsx_text = 158,
 
     eof = 159, // end of file
+    /// input the lexer could not turn into a token. produced only by
+    /// lookahead, and matches no production, so a disambiguation that sees
+    /// it falls through to the real parse path.
+    invalid = 160,
 
     pub fn precedence(self: TokenTag) u5 {
         return @intCast((@intFromEnum(self) >> Mask.PrecShift) & Mask.PrecOverlap);
@@ -448,6 +452,7 @@ pub const TokenTag = enum(u32) {
             .unknown => "unknown",
 
             .eof,
+            .invalid,
             .numeric_literal,
             .hex_literal,
             .octal_literal,
@@ -493,6 +498,10 @@ pub const Token = struct {
 
     pub inline fn eof(pos: u32) Token {
         return .{ .span = .{ .start = pos, .end = pos }, .tag = .eof };
+    }
+
+    pub inline fn invalid(pos: u32) Token {
+        return .{ .span = .{ .start = pos, .end = pos }, .tag = .invalid };
     }
 
     pub inline fn len(self: Token) u32 {

@@ -81,20 +81,20 @@ pub fn isStartOfMappedType(parser: *Parser) bool {
     var peek = parser.beginPeek();
     defer peek.end();
 
-    var t = peek.next() orelse return false;
+    var t = peek.next();
     if (t.tag == .plus or t.tag == .minus) {
-        const ro = peek.next() orelse return false;
+        const ro = peek.next();
         if (ro.tag != .readonly) return false;
-        t = peek.next() orelse return false;
+        t = peek.next();
     } else if (t.tag == .readonly) {
-        t = peek.next() orelse return false;
+        t = peek.next();
     }
     if (t.tag != .left_bracket) return false;
 
-    const name = peek.next() orelse return false;
+    const name = peek.next();
     if (!name.tag.isIdentifierLike()) return false;
 
-    const in_tok = peek.next() orelse return false;
+    const in_tok = peek.next();
     return in_tok.tag == .in;
 }
 
@@ -205,7 +205,7 @@ fn parseTypeMember(parser: *Parser) Error!?ast.NodeIndex {
     }
 
     if (tag == .new) {
-        const next = parser.peekAhead() orelse return null;
+        const next = parser.peekAhead();
         if (next.tag == .left_paren or next.tag == .less_than) {
             return parseCallOrConstructSignature(parser, true);
         }
@@ -213,7 +213,7 @@ fn parseTypeMember(parser: *Parser) Error!?ast.NodeIndex {
 
     // readonly modifier only when same line token starts a real member
     if (tag == .readonly) {
-        const next = parser.peekAhead() orelse return null;
+        const next = parser.peekAhead();
         if (!next.hasLineTerminatorBefore() and canFollowReadonlyModifier(next.tag)) {
             const readonly_start = parser.current_token.span.start;
             try parser.advance() orelse return null;
@@ -240,10 +240,10 @@ pub fn isIndexSignatureStart(parser: *Parser) bool {
     var peek = parser.beginPeek();
     defer peek.end();
 
-    const t1 = peek.next() orelse return false;
+    const t1 = peek.next();
     if (!t1.tag.isIdentifierLike()) return false;
 
-    const t2 = peek.next() orelse return false;
+    const t2 = peek.next();
     return t2.tag == .colon or t2.tag == .comma;
 }
 
@@ -381,7 +381,7 @@ fn parsePropertyOrMethodSignature(
     var kind: ast.TSMethodSignatureKind = .method;
     const head_tag = parser.current_token.tag;
     if (head_tag == .get or head_tag == .set) {
-        const next = parser.peekAhead() orelse return null;
+        const next = parser.peekAhead();
         if (canFollowAccessorKeyword(next.tag)) {
             kind = if (head_tag == .get) .get else .set;
             try parser.advance() orelse return null;

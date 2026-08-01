@@ -146,7 +146,7 @@ pub fn parseClassDecorated(
 // `abstract` is a contextual keyword, treat it as a class modifier only when a
 // `class` keyword follows on the same line.
 inline fn isAbstractClassNext(parser: *Parser) bool {
-    const next = parser.peekAhead() orelse return false;
+    const next = parser.peekAhead();
     return next.tag == .class and !next.hasLineTerminatorBefore();
 }
 
@@ -154,7 +154,7 @@ inline fn canStartClassName(parser: *Parser) Error!bool {
     const tag = parser.current_token.tag;
     if (!tag.isIdentifierLike() or tag == .extends) return false;
     if (parser.tree.isTs() and tag == .implements) {
-        const next = parser.peekAhead() orelse return true;
+        const next = parser.peekAhead();
         return !next.tag.isIdentifierLike();
     }
     return true;
@@ -424,7 +424,7 @@ fn consumeModifier(parser: *Parser, mods: *Modifiers) Error!ModifierStep {
     const token = parser.current_token;
     if (!isModifier(token.tag, parser.tree.isTs())) return .none;
 
-    const next = parser.peekAhead() orelse return .none;
+    const next = parser.peekAhead();
 
     // a getter or setter can never be a generator, so `get *`/`set *`
     // keeps get/set as a field key before a generator method
@@ -456,7 +456,7 @@ fn consumeModifier(parser: *Parser, mods: *Modifiers) Error!ModifierStep {
 // static block is a parse error, reported here so the block still parses.
 fn tryStaticBlock(parser: *Parser, decorators: ast.IndexRange) Error!?ast.NodeIndex {
     if (parser.current_token.tag != .static) return null;
-    const next = parser.peekAhead() orelse return null;
+    const next = parser.peekAhead();
     if (next.tag != .left_brace) return null;
 
     const static_token = parser.current_token;

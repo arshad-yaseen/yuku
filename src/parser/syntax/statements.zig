@@ -150,7 +150,7 @@ fn parseDirective(parser: *Parser, expression: ast.NodeIndex) Error!?ast.NodeInd
 /// check if it should be parsed as an identifier (eg, `let;`) before treating it as a declaration.
 fn parseLet(parser: *Parser) Error!?ast.NodeIndex {
     std.debug.assert(parser.current_token.tag == .let);
-    const is_identifier = try variables.isLetIdentifier(parser) orelse return null;
+    const is_identifier = try variables.isLetIdentifier(parser);
 
     if (!is_identifier) {
         // parse as variable declaration: let x = 5;
@@ -165,7 +165,7 @@ fn parseLet(parser: *Parser) Error!?ast.NodeIndex {
 fn parseUsingOrExpression(parser: *Parser) Error!?ast.NodeIndex {
     std.debug.assert(parser.current_token.tag == .using);
     // determine if 'using' is an identifier or a keyword
-    const is_using_identifier = try variables.isUsingIdentifier(parser) orelse return null;
+    const is_using_identifier = try variables.isUsingIdentifier(parser);
 
     if (!is_using_identifier) {
         return variables.parseVariableDeclaration(parser, .{}, null);
@@ -178,7 +178,7 @@ fn parseUsingOrExpression(parser: *Parser) Error!?ast.NodeIndex {
 fn parseAwaitUsingOrExpression(parser: *Parser) Error!?ast.NodeIndex {
     std.debug.assert(parser.current_token.tag == .await);
 
-    const is_declaration = try variables.isAwaitUsingDeclarationAhead(parser) orelse return null;
+    const is_declaration = try variables.isAwaitUsingDeclarationAhead(parser);
     if (is_declaration) {
         const start = parser.current_token.span.start;
         try parser.advance() orelse return null; // consume 'await'
@@ -191,7 +191,7 @@ fn parseAwaitUsingOrExpression(parser: *Parser) Error!?ast.NodeIndex {
 /// import declaration, or fall through to import expression statement (`import(` / `import.`).
 fn parseImportDeclarationOrExpression(parser: *Parser) Error!?ast.NodeIndex {
     std.debug.assert(parser.current_token.tag == .import);
-    const next = parser.peekAhead() orelse return null;
+    const next = parser.peekAhead();
 
     return switch (next.tag) {
         // `import(` and `import.` are expression forms
@@ -210,7 +210,7 @@ fn parseTsDeclarationOrExpression(parser: *Parser) Error!?ast.NodeIndex {
 fn parseConstOrConstEnum(parser: *Parser) Error!?ast.NodeIndex {
     std.debug.assert(parser.current_token.tag == .@"const");
     if (parser.tree.isTs()) {
-        const next = parser.peekAhead() orelse return null;
+        const next = parser.peekAhead();
         if (ts_decl.isConstEnumHead(next)) return ts_decl.parseTsDeclaration(parser);
     }
     return variables.parseVariableDeclaration(parser, .{}, null);
@@ -219,7 +219,7 @@ fn parseConstOrConstEnum(parser: *Parser) Error!?ast.NodeIndex {
 /// `async function` declaration, or fall through to expression statement.
 fn parseAsyncFunctionOrExpression(parser: *Parser) Error!?ast.NodeIndex {
     std.debug.assert(parser.current_token.tag == .async);
-    const next = parser.peekAhead() orelse return null;
+    const next = parser.peekAhead();
 
     if (next.tag == .function and !next.hasLineTerminatorBefore()) {
         const start = parser.current_token.span.start;

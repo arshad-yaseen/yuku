@@ -176,7 +176,7 @@ fn parseTypeParameter(parser: *Parser) Error!?ast.NodeIndex {
             else => break,
         };
 
-        const next = parser.peekAhead() orelse break;
+        const next = parser.peekAhead();
         if (!next.tag.isIdentifierLike()) break;
 
         if (seen_ptr.*) {

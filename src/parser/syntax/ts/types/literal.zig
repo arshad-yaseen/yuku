@@ -37,7 +37,7 @@ pub fn parseLiteralType(parser: *Parser) Error!?ast.NodeIndex {
 // unary plus or minus then numeric literal in a `UnaryExpression`
 fn parseSignedNumericLiteralType(parser: *Parser) Error!?ast.NodeIndex {
     const sign_token = parser.current_token;
-    const next = parser.peekAhead() orelse return null;
+    const next = parser.peekAhead();
     if (!next.tag.isNumericLiteral()) return null;
 
     try parser.advance() orelse return null;

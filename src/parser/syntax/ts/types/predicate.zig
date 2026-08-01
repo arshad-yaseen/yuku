@@ -122,7 +122,7 @@ fn finishTypePredicate(
 pub fn isAssertsPredicateStart(parser: *Parser) Error!bool {
     if (parser.current_token.tag != .asserts or parser.current_token.isEscaped()) return false;
 
-    const next = parser.peekAhead() orelse return false;
+    const next = parser.peekAhead();
     if (next.hasLineTerminatorBefore()) return false;
 
     return next.tag == .this or next.tag.isIdentifierLike();
@@ -135,7 +135,7 @@ fn isIdentifierPredicateStart(parser: *Parser) Error!bool {
         return false;
     }
 
-    const next = parser.peekAhead() orelse return false;
+    const next = parser.peekAhead();
     return next.tag == .is and !next.isEscaped() and !next.hasLineTerminatorBefore();
 }
 
