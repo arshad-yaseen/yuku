@@ -27,7 +27,8 @@
     "@yuku-codegen/binding-darwin-arm64": "0.8.2",
     "@yuku-codegen/binding-win32-x64": "0.8.2",
     "@yuku-codegen/binding-win32-arm64": "0.8.2",
-    "@yuku-codegen/binding-freebsd-x64": "0.8.2"
+    "@yuku-codegen/binding-freebsd-x64": "0.8.2",
+    "@yuku-codegen/binding-android-arm64": "0.8.2"
   },
   "keywords": [
     "ast",

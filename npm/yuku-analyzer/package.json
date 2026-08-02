@@ -30,7 +30,8 @@
     "@yuku-analyzer/binding-darwin-arm64": "0.8.2",
     "@yuku-analyzer/binding-win32-x64": "0.8.2",
     "@yuku-analyzer/binding-win32-arm64": "0.8.2",
-    "@yuku-analyzer/binding-freebsd-x64": "0.8.2"
+    "@yuku-analyzer/binding-freebsd-x64": "0.8.2",
+    "@yuku-analyzer/binding-android-arm64": "0.8.2"
   },
   "keywords": [
     "analyzer",
