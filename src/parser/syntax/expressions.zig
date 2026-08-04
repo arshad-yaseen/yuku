@@ -371,7 +371,7 @@ fn parseAsyncFunctionOrArrow(parser: *Parser, precedence: u8) Error!?ast.NodeInd
 
     // async ident => body
     if (next.tag.isIdentifierLike() and precedence <= Precedence.Assignment) {
-        const after_id = parser.peekAhead() orelse return null;
+        const after_id = parser.peekAhead();
         if (after_id.tag == .arrow and !after_id.hasLineTerminatorBefore()) {
             if (is_escaped) try parser.reportEscapedKeyword(async_span);
             const id = try literals.parseIdentifier(parser) orelse return null;

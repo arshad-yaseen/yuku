@@ -32,14 +32,14 @@ pub fn isStartOfTsDeclaration(parser: *Parser) bool {
     var has_abstract = false;
 
     if (cur.tag == .declare) {
-        cur = peek.next() orelse return false;
+        cur = peek.next();
         if (cur.hasLineTerminatorBefore()) return false;
         has_declare = true;
     }
 
     // abstract only before class here
     if (cur.tag == .abstract) {
-        const next = peek.next() orelse return false;
+        const next = peek.next();
         if (next.hasLineTerminatorBefore()) return false;
         if (next.tag != .class) return false;
         cur = next;
@@ -48,7 +48,7 @@ pub fn isStartOfTsDeclaration(parser: *Parser) bool {
 
     // const enum, declare const enum, declare const binding
     if (cur.tag == .@"const") {
-        const next = peek.next() orelse return false;
+        const next = peek.next();
         if (isConstEnumHead(next)) {
             cur = next;
         } else if (has_declare) {
@@ -62,24 +62,24 @@ pub fn isStartOfTsDeclaration(parser: *Parser) bool {
         .@"enum" => return true,
         .type, .interface, .namespace => {
             // reserved word after head is not a name, fall through to expr
-            const name = peek.next() orelse return false;
+            const name = peek.next();
             return isDeclarationName(name);
         },
         .module => {
             // id for namespace or string for ambient module
-            const name = peek.next() orelse return false;
+            const name = peek.next();
             if (name.hasLineTerminatorBefore()) return false;
             return isDeclarationName(name) or name.tag == .string_literal;
         },
         .global => {
             // global block only if `{` on same line
-            const next = peek.next() orelse return false;
+            const next = peek.next();
             return next.tag == .left_brace and !next.hasLineTerminatorBefore();
         },
         // declare var let function class, abstract class
         .@"var", .let, .function, .class => {
             if (!has_declare and !has_abstract) return false;
-            const name = peek.next() orelse return false;
+            const name = peek.next();
             if (name.hasLineTerminatorBefore()) return false;
             return switch (cur.tag) {
                 .@"var", .let => variables.canStartBinding(name.tag),
@@ -89,17 +89,17 @@ pub fn isStartOfTsDeclaration(parser: *Parser) bool {
         // declare async function only
         .async => {
             if (!has_declare) return false;
-            const fn_token = peek.next() orelse return false;
+            const fn_token = peek.next();
             if (fn_token.tag != .function or fn_token.hasLineTerminatorBefore()) return false;
-            const name = peek.next() orelse return false;
+            const name = peek.next();
             return isDeclarationName(name);
         },
         // declare import needs `=` form, not from clause
         .import => {
             if (!has_declare) return false;
-            const name = peek.next() orelse return false;
+            const name = peek.next();
             if (!isDeclarationName(name)) return false;
-            const eq = peek.next() orelse return false;
+            const eq = peek.next();
             return eq.tag == .assign and !eq.hasLineTerminatorBefore();
         },
         else => return false,
@@ -130,7 +130,7 @@ pub fn parseTsDeclaration(parser: *Parser) Error!?ast.NodeIndex {
         try parser.advance() orelse return null;
     }
     if (parser.current_token.tag == .@"const") {
-        const next = parser.peekAhead() orelse return null;
+        const next = parser.peekAhead();
         if (isConstEnumHead(next)) {
             mods.is_const = true;
             try parser.advance() orelse return null;
@@ -208,7 +208,7 @@ pub fn parseImportEqualsBody(
 // rhs of import equals, `require("m")` or dotted name
 fn parseModuleReference(parser: *Parser) Error!?ast.NodeIndex {
     if (parser.current_token.tag == .require) {
-        const next = parser.peekAhead() orelse return null;
+        const next = parser.peekAhead();
         if (next.tag == .left_paren) return parseExternalModuleReference(parser);
     }
     const head = try literals.parseIdentifier(parser) orelse return null;

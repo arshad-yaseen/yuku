@@ -209,7 +209,7 @@ fn parseJSDocPostfix(
 
 // postfix `?` only when no type follows, else outer conditional eats it
 fn isPostfixNullable(parser: *Parser) Error!bool {
-    const next = parser.peekAhead() orelse return false;
+    const next = parser.peekAhead();
     return !isStartOfType(next.tag);
 }
 
@@ -284,7 +284,7 @@ fn parsePrimaryType(parser: *Parser) Error!?ast.NodeIndex {
 
 // more qualified name when `.` same line after keyword type
 fn isQualifiedTypeContinuation(parser: *Parser) Error!bool {
-    const next = parser.peekAhead() orelse return false;
+    const next = parser.peekAhead();
     return next.tag == .dot and !next.hasLineTerminatorBefore();
 }
 
@@ -317,7 +317,7 @@ inline fn parseTypeKeyword(parser: *Parser) Error!?ast.NodeIndex {
 // only `type Name = intrinsic` uses `TSIntrinsicKeyword`, else normal ref
 pub fn parseTypeAliasBody(parser: *Parser) Error!?ast.NodeIndex {
     if (parser.current_token.tag == .intrinsic and !parser.current_token.isEscaped()) {
-        const next = parser.peekAhead() orelse return null;
+        const next = parser.peekAhead();
         if (!continuesType(next.tag)) {
             const span = parser.current_token.span;
             try parser.advance() orelse return null;
@@ -541,7 +541,7 @@ fn isStartOfFunctionOrConstructorType(parser: *Parser) Error!bool {
     if (tag == .new) return true;
 
     if (tag == .abstract) {
-        const next = parser.peekAhead() orelse return false;
+        const next = parser.peekAhead();
         return next.tag == .new;
     }
 
@@ -552,16 +552,16 @@ fn isStartOfFunctionOrConstructorType(parser: *Parser) Error!bool {
     var peek = parser.beginPeek();
     defer peek.end();
 
-    const t1 = peek.next() orelse return false;
+    const t1 = peek.next();
 
     switch (t1.tag) {
         .right_paren => {
-            const t2 = peek.next() orelse return false;
+            const t2 = peek.next();
             return t2.tag == .arrow;
         },
         .spread => return true,
         .this => {
-            const t2 = peek.next() orelse return false;
+            const t2 = peek.next();
             return t2.tag == .colon;
         },
         // object or tuple pattern head might be value param or type tuple
@@ -574,12 +574,12 @@ fn isStartOfFunctionOrConstructorType(parser: *Parser) Error!bool {
 
     if (!t1.tag.isIdentifierLike()) return false;
 
-    const t2 = peek.next() orelse return false;
+    const t2 = peek.next();
 
     return switch (t2.tag) {
         .colon, .question, .comma, .assign => true,
         .right_paren => blk: {
-            const t3 = peek.next() orelse break :blk false;
+            const t3 = peek.next();
             break :blk t3.tag == .arrow;
         },
         else => false,
@@ -751,12 +751,12 @@ fn isNamedTupleElement(parser: *Parser) bool {
     var peek = parser.beginPeek();
     defer peek.end();
 
-    const t1 = peek.next() orelse return false;
+    const t1 = peek.next();
 
     if (t1.tag == .colon) return true;
     if (t1.tag != .question) return false;
 
-    const t2 = peek.next() orelse return false;
+    const t2 = peek.next();
     return t2.tag == .colon;
 }
 

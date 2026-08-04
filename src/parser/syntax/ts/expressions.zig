@@ -116,7 +116,7 @@ pub fn parseTypeArgumentedCallOrInstantiation(
 pub fn tryParseTypeArgumentsInExpression(parser: *Parser) Error!ast.NodeIndex {
     if (!generics.isAngleOpen(parser.current_token.tag)) return .null;
 
-    const after = parser.peekAhead() orelse return .null;
+    const after = parser.peekAhead();
     if (!core.isStartOfType(after.tag) and after.tag != .greater_than) return .null;
 
     const cp = parser.checkpoint();

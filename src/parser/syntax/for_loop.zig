@@ -56,7 +56,7 @@ fn parseForHead(parser: *Parser, start: u32, is_for_await: bool) Error!?ast.Node
             return parseForWithDeclaration(parser, start, is_for_await, kind, decl_start);
         },
         .let => {
-            const next = parser.peekAhead() orelse return null;
+            const next = parser.peekAhead();
 
             // `let` heads a declaration only when a binding can follow.
             if (!variables.canStartLetBinding(next.tag)) {
@@ -68,7 +68,7 @@ fn parseForHead(parser: *Parser, start: u32, is_for_await: bool) Error!?ast.Node
             return parseForWithDeclaration(parser, start, is_for_await, .let, decl_start);
         },
         .using => {
-            const next = parser.peekAhead() orelse return null;
+            const next = parser.peekAhead();
 
             // [+Using] using [no LineTerminator here] ForBinding
             if (next.hasLineTerminatorBefore() or
@@ -84,7 +84,7 @@ fn parseForHead(parser: *Parser, start: u32, is_for_await: bool) Error!?ast.Node
                     var peek = parser.beginPeek();
                     defer peek.end();
                     _ = peek.next();
-                    break :blk peek.next() orelse return null;
+                    break :blk peek.next();
                 };
 
                 const of_is_binding = after_of.tag == .assign or
@@ -99,8 +99,7 @@ fn parseForHead(parser: *Parser, start: u32, is_for_await: bool) Error!?ast.Node
             return parseForWithDeclaration(parser, start, is_for_await, .using, decl_start);
         },
         .await => {
-            const is_declaration = try variables.isAwaitUsingDeclarationAhead(parser) orelse
-                return null;
+            const is_declaration = try variables.isAwaitUsingDeclarationAhead(parser);
 
             if (!is_declaration) {
                 return parseForWithExpression(parser, start, is_for_await);

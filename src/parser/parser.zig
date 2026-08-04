@@ -401,9 +401,8 @@ pub const Parser = struct {
     }
 
     /// peeks the token immediately after `current_token` without advancing.
-    /// returns `null` if the lexer cannot produce another token (for example
-    /// after a lexical error). for multi-token lookahead, use `beginPeek`.
-    pub inline fn peekAhead(self: *Parser) ?Token {
+    /// for multi-token lookahead, use `beginPeek`.
+    pub inline fn peekAhead(self: *Parser) Token {
         var peek = self.beginPeek();
         defer peek.end();
         return peek.next();
@@ -475,8 +474,9 @@ pub const Parser = struct {
         comments_len: usize,
         tokens_len: usize,
 
-        pub inline fn next(self: *Peek) ?Token {
-            return self.parser.lexer.nextToken() catch null;
+        pub inline fn next(self: *Peek) Token {
+            return self.parser.lexer.nextToken() catch
+                Token.invalid(self.parser.lexer.cursor);
         }
 
         pub inline fn end(self: Peek) void {
