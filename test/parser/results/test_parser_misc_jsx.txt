@@ -1,7 +1,8 @@
 test/parser/misc/jsx
 ====================
-Passed:       1/1 (100.00%)
+Passed:       2/2 (100.00%)
 Failed:       0
-AST mismatch: 0/1
+AST mismatch: 0/2
 
 ✓ test/parser/misc/jsx/self-closing-element-attribute-value.jsx
+✓ test/parser/misc/jsx/tag-close-followed-by-equals.jsx
