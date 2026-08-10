@@ -409,7 +409,7 @@ pub fn bufferSize(tree: *const ast.Tree) usize {
         if (d.help) |h| size += help_prefix + h.len;
         for (d.labels) |lbl| size += label_fixed + lbl.message.len;
     }
-    return size;
+    return alignPool(size);
 }
 
 pub fn serializeInto(tree: *const ast.Tree, buf: []u8) usize {
@@ -557,6 +557,10 @@ pub fn serializeInto(tree: *const ast.Tree, buf: []u8) usize {
             pos += lbl.message.len;
         }
     }
+
+    const tail_pad = alignPool(pos) - pos;
+    @memset(buf[pos..][0..tail_pad], 0);
+    pos += tail_pad;
 
     // serializer must have written exactly the size reported by `bufferSize`
     std.debug.assert(pos == bufferSize(tree));

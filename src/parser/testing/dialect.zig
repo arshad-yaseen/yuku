@@ -64,6 +64,38 @@ test "disabled dialect transfer round-trip preserves bytes" {
     try std.testing.expectEqual(bytes.len, restored_bytes.len);
 }
 
+test "wire transfer pads diagnostic tail to u32 boundary" {
+    // prove complete transfers stay word-addressable when diagnostics end off-boundary
+    const source = "let value = 1;";
+    var tree = try parser.parse(std.testing.allocator, source, .{ .lang = .js });
+    defer tree.deinit();
+    try std.testing.expect(!tree.hasErrors());
+    try tree.addDiagnostic(.{
+        .severity = .warning,
+        .message = "x",
+        .span = .{ .start = 0, .end = 1 },
+    });
+
+    const bytes = try std.testing.allocator.alloc(u8, transfer.bufferSize(&tree));
+    defer std.testing.allocator.free(bytes);
+    @memset(bytes, 0xaa);
+    try std.testing.expectEqual(bytes.len, transfer.serializeInto(&tree, bytes));
+    try std.testing.expectEqual(@as(usize, 0), bytes.len % @sizeOf(u32));
+
+    const diagnostic_size = 1 + 4 + 4 + 4 + 1 + 1 + 4;
+    const padding_len = (@sizeOf(u32) - diagnostic_size % @sizeOf(u32)) % @sizeOf(u32);
+    try std.testing.expectEqual(@as(usize, 1), padding_len);
+    for (bytes[bytes.len - padding_len ..]) |byte| {
+        try std.testing.expectEqual(@as(u8, 0), byte);
+    }
+
+    var restored = try transfer.deserializeFromBuf(std.testing.allocator, bytes, source);
+    defer restored.deinit();
+    try std.testing.expectEqual(tree.root, restored.root);
+    try std.testing.expectEqual(tree.nodes.len, restored.nodes.len);
+    try std.testing.expect(restored.data(restored.root) == .program);
+}
+
 test "disabled corpus behavior is deterministic" {
     const Case = struct { source: []const u8, lang: parser.ast.Lang };
     const cases = [_]Case{
