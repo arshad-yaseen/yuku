@@ -44,7 +44,7 @@ pub const LexerMode = enum {
     normal,
     /// jsx tag context: allows hyphens in identifiers, emits jsx_identifier tokens,
     /// disables escape sequences in both identifiers and string literals,
-    /// allows newlines in string literals, and treats '>>' as two separate '>' tokens
+    /// allows newlines in string literals, and always scans '>' as a single token
     jsx_tag,
 };
 
@@ -308,7 +308,12 @@ pub const Lexer = struct {
                 '=' => self.puncToken(2, .less_than_equal, start),
                 else => self.puncToken(1, .less_than, start),
             },
-            '>' => if (c1 == '>' and c2 == '=')
+            // inside a jsx tag `>` only ever closes the tag, so it never merges with what
+            // follows. `<div>=</div>` and the trailing `>>` of `<div attr=<e></e>></div>`
+            // both depend on this.
+            '>' => if (self.mode == .jsx_tag)
+                self.puncToken(1, .greater_than, start)
+            else if (c1 == '>' and c2 == '=')
                 self.puncToken(3, .right_shift_assign, start)
             else if (c1 == '>' and c2 == '>')
                 if (c3 == '=')
@@ -316,15 +321,7 @@ pub const Lexer = struct {
                 else
                     self.puncToken(3, .unsigned_right_shift, start)
             else switch (c1) {
-                '>' => {
-                    // in jsx, the trailing `>>` of `<div attr=<elem></elem>></div>` must lex
-                    // as two separate `>` tokens so the parser can balance the inner element
-                    if (self.mode == .jsx_tag) {
-                        return self.puncToken(1, .greater_than, start);
-                    } else {
-                        return self.puncToken(2, .right_shift, start);
-                    }
-                },
+                '>' => self.puncToken(2, .right_shift, start),
                 '=' => self.puncToken(2, .greater_than_equal, start),
                 else => self.puncToken(1, .greater_than, start),
             },

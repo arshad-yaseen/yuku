@@ -34,7 +34,12 @@ pub fn parseJsxExpression(parser: *Parser) Error!?ast.NodeIndex {
 
 fn parseJsxElement(parser: *Parser, comptime context: JsxElementContext) Error!?ast.NodeIndex {
     const start = parser.current_token.span.start;
+
+    // peek in jsx_tag mode so a fragment's '>' is not glued to the character after it,
+    // as in `<>=</>`
+    enterJsxTag(parser);
     const next = parser.peekAhead();
+    exitJsxTag(parser);
 
     // fragment: <>...</>
     if (next.tag == .greater_than) {
@@ -79,6 +84,7 @@ fn parseJsxFragment(parser: *Parser) Error!?ast.NodeIndex {
     const start = parser.current_token.span.start;
 
     // parse <>
+    enterJsxTag(parser);
     try parser.advance() orelse return null; // consume '<'
     if (parser.current_token.tag != .greater_than) {
         try parser.reportExpected(
@@ -100,6 +106,8 @@ fn parseJsxFragment(parser: *Parser) Error!?ast.NodeIndex {
     // parse </>
     const closing_start = parser.current_token.span.start;
 
+    enterJsxTag(parser);
+
     try parser.advance() orelse return null; // consume '<'
 
     if (!try parser.expect(
@@ -109,6 +117,9 @@ fn parseJsxFragment(parser: *Parser) Error!?ast.NodeIndex {
     )) return null;
 
     const closing_end = parser.current_token.span.end;
+
+    // leave jsx_tag before consuming '>' so the token after the fragment is plain javascript
+    exitJsxTag(parser);
 
     if (!try parser.expect(
         .greater_than,
