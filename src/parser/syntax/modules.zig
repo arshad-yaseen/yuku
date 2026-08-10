@@ -2,6 +2,7 @@ const std = @import("std");
 const ast = @import("../ast.zig");
 const Parser = @import("../parser.zig").Parser;
 const Error = @import("../parser.zig").Error;
+const dialect = @import("dialect");
 const Token = @import("../token.zig").Token;
 const TokenTag = @import("../token.zig").TokenTag;
 const Precedence = @import("../token.zig").Precedence;
@@ -15,6 +16,14 @@ const class = @import("class.zig");
 const extensions = @import("extensions.zig");
 const variables = @import("variables.zig");
 const ts = @import("ts/statements.zig");
+
+const DialectHost = struct {
+    pub const NodeIndex = ast.NodeIndex;
+    pub const ErrorType = Error;
+    pub fn parseIdentifier(parser: *Parser) Error!?ast.NodeIndex {
+        return literals.parseIdentifier(parser);
+    }
+};
 
 pub fn parseImportDeclaration(parser: *Parser) Error!?ast.NodeIndex {
     std.debug.assert(parser.current_token.tag == .import);
@@ -945,6 +954,12 @@ fn parseModuleExportName(parser: *Parser) Error!?ast.NodeIndex {
 // module string
 fn parseModuleSpecifier(parser: *Parser) Error!?ast.NodeIndex {
     if (parser.current_token.tag != .string_literal) {
+        if (comptime dialect.enabled and @hasDecl(dialect, "module_specifier")) {
+            switch (try dialect.module_specifier(DialectHost, parser)) {
+                .handled => |node| return node,
+                .unhandled => {},
+            }
+        }
         try parser.reportExpected(parser.current_token.span, "Expected module specifier", .{
             .help = "Module specifiers must be string literals, e.g., './module.js' or 'package'",
         });

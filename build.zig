@@ -20,6 +20,18 @@ pub fn build(b: *std.Build) void {
     const codegen_options = b.addOptions();
     codegen_options.addOption(bool, "source_maps", enable_source_maps);
 
+    const dialect_abi_module = b.addModule("dialect-abi", .{
+        .root_source_file = b.path("src/parser/dialect/abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const none_dialect_module = b.createModule(.{
+        .root_source_file = b.path("src/parser/dialect/none.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    none_dialect_module.addImport("dialect_abi", dialect_abi_module);
+
     const parser_module = b.addModule("parser", .{
         .root_source_file = b.path("src/parser/root.zig"),
         .target = target,
@@ -28,6 +40,24 @@ pub fn build(b: *std.Build) void {
 
     parser_module.addImport("util", util_module);
     parser_module.addImport("codegen_options", codegen_options.createModule());
+    parser_module.addImport("dialect_abi", dialect_abi_module);
+    parser_module.addImport("dialect", none_dialect_module);
+
+    const dialect_parser_module = b.addModule("parser-dialect", .{
+        .root_source_file = b.path("src/parser/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    dialect_parser_module.addImport("util", util_module);
+    dialect_parser_module.addImport("codegen_options", codegen_options.createModule());
+    dialect_parser_module.addImport("dialect_abi", dialect_abi_module);
+
+    const dialect_transfer_module = b.addModule("transfer-dialect", .{
+        .root_source_file = b.path("src/parser/ffi/transfer/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    _ = dialect_transfer_module;
 
     const gen_unicode_id_table = b.addExecutable(.{
         .name = "gen-unicode-id",
@@ -84,6 +114,8 @@ pub fn build(b: *std.Build) void {
     });
     fuzz_parser.addImport("util", fuzz_util);
     fuzz_parser.addImport("codegen_options", codegen_options.createModule());
+    fuzz_parser.addImport("dialect_abi", dialect_abi_module);
+    fuzz_parser.addImport("dialect", none_dialect_module);
     const fuzz_driver = b.createModule(.{
         .root_source_file = b.path("src/parser/testing/fuzz/main.zig"),
         .target = b.graph.host,
@@ -211,6 +243,22 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     ast_transfer_module.addImport("parser", parser_module);
+
+    const dialect_capacity_module = b.createModule(.{
+        .root_source_file = b.path("src/parser/testing/dialect.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    dialect_capacity_module.addImport("parser", parser_module);
+    dialect_capacity_module.addImport("transfer", ast_transfer_module);
+    const dialect_capacity_tests = b.addRunArtifact(b.addTest(.{
+        .root_module = dialect_capacity_module,
+    }));
+    const dialect_capacity_step = b.step(
+        "test-dialect-capacity",
+        "Derive the base node and transfer capacity",
+    );
+    dialect_capacity_step.dependOn(&dialect_capacity_tests.step);
 
     inline for ([_]struct {
         step: []const u8,

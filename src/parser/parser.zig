@@ -4,6 +4,13 @@ const TokenTag = @import("token.zig").TokenTag;
 const lexer = @import("lexer.zig");
 const ast = @import("ast.zig");
 const util = @import("util");
+const dialect = @import("dialect");
+
+comptime {
+    if (dialect.enabled and @hasDecl(dialect, "parse")) {
+        @compileError("external dialect contract forbids a second parser declaration");
+    }
+}
 
 const statements = @import("syntax/statements.zig");
 const comments = @import("comments.zig");
@@ -138,6 +145,25 @@ pub const Parser = struct {
 
     pub inline fn allocator(self: *Parser) std.mem.Allocator {
         return self.tree.allocator();
+    }
+
+    pub fn addDialectNode(
+        self: *Parser,
+        record: dialect.Record,
+        span: ast.Span,
+    ) Error!ast.NodeIndex {
+        const record_index = self.tree.addDialectRecord(record) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+        return self.tree.addNode(.{ .dialect_node = .{ .record_index = record_index } }, span);
+    }
+
+    pub fn parseDialectBlockWithTemporaryReturn(
+        self: *Parser,
+        allow_return: bool,
+    ) Error!?ast.NodeIndex {
+        return statements.parseBlockStatementWithTemporaryReturn(self, allow_return);
     }
 
     pub fn parse(self: *Parser) Error!ast.Tree {

@@ -7,6 +7,7 @@ const std = @import("std");
 const strings = @import("strings.zig");
 const TokenSpan = @import("token.zig").Span;
 const TokenTag = @import("token.zig").TokenTag;
+const dialect = @import("dialect");
 
 pub const String = strings.String;
 pub const StringPool = strings.ASTStringPool;
@@ -191,6 +192,7 @@ pub const Tree = struct {
     source_type: SourceType = .module,
     /// Language variant (js, ts, jsx, tsx, dts).
     lang: Lang = .js,
+    dialect_store: dialect.Store = .{},
 
     /// Creates a tree for parsing or transforming source code.
     pub fn init(child_allocator: std.mem.Allocator, source: []const u8) Tree {
@@ -216,6 +218,21 @@ pub const Tree = struct {
 
     pub inline fn allocator(self: *Tree) std.mem.Allocator {
         return self.arena.allocator();
+    }
+
+    pub fn addDialectRecord(self: *Tree, record: dialect.Record) !u32 {
+        if (comptime !dialect.enabled) unreachable;
+        return self.dialect_store.addRecord(self.allocator(), record);
+    }
+
+    pub fn addDialectOverlay(self: *Tree, host_node: u32, record_index: u32) !void {
+        if (comptime !dialect.enabled) unreachable;
+        return self.dialect_store.addOverlay(self.allocator(), host_node, record_index);
+    }
+
+    pub fn dialectOverlay(self: *const Tree, host_node: u32) ?u32 {
+        if (comptime !dialect.enabled) return null;
+        return self.dialect_store.findOverlay(host_node);
     }
 
     pub inline fn isTs(self: *const Tree) bool {
@@ -4029,6 +4046,10 @@ pub const JSXSpreadChild = struct {
     expression: NodeIndex,
 };
 
+pub const DialectNode = struct {
+    record_index: u32,
+};
+
 pub const NodeData = union(enum) {
     sequence_expression: SequenceExpression,
     parenthesized_expression: ParenthesizedExpression,
@@ -4205,6 +4226,7 @@ pub const NodeData = union(enum) {
     jsx_empty_expression: JSXEmptyExpression,
     jsx_text: JSXText,
     jsx_spread_child: JSXSpreadChild,
+    dialect_node: DialectNode,
 
     /// True when this node produces a value at runtime.
     ///

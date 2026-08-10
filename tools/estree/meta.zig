@@ -86,6 +86,11 @@ pub fn estreeType(comptime name: []const u8) []const u8 {
     return snakeConvert(name, true);
 }
 
+pub fn includeNode(comptime name: []const u8) bool {
+    if (comptime std.mem.eql(u8, name, "dialect_node")) return parser.dialect_enabled;
+    return true;
+}
+
 pub fn estreeField(comptime tag: []const u8, comptime field: []const u8) []const u8 {
     if (comptime std.mem.eql(u8, tag, "variable_declaration") and
         std.mem.eql(u8, field, "declarators")) return "declarations";
@@ -93,6 +98,53 @@ pub fn estreeField(comptime tag: []const u8, comptime field: []const u8) []const
     if (comptime std.mem.eql(u8, tag, "ts_enum_declaration") and
         std.mem.eql(u8, field, "is_const")) return "const";
     return snakeConvert(field, false);
+}
+
+pub fn dialectRoleName(comptime T: type) []const u8 {
+    if (T == bool) return "bool";
+    if (@typeInfo(T) == .@"struct" and @hasDecl(T, "dialect_role")) {
+        return switch (T.dialect_role) {
+            .scalar_u32 => "scalar",
+            .node_ref => "node",
+            .optional_node_ref => "optionalNode",
+            .node_list => "nodeList",
+            .string_slice => "string",
+            .overlay_host => "host",
+        };
+    }
+    @compileError("unsupported dialect field ABI type: " ++ @typeName(T));
+}
+
+pub fn dialectRecordType(comptime name: []const u8, comptime T: type) []const u8 {
+    if (@typeInfo(T) == .@"struct" and @hasDecl(T, "estree_type")) return T.estree_type;
+    return estreeType(name);
+}
+
+pub fn dialectRecordIsOverlay(comptime T: type) bool {
+    var hosts: usize = 0;
+    for (std.meta.fields(T)) |field| {
+        if (std.mem.eql(u8, dialectRoleName(field.type), "host")) hosts += 1;
+    }
+    if (hosts > 1) @compileError("ambiguous dialect overlay schema in " ++ @typeName(T));
+    return hosts == 1;
+}
+
+pub fn validateDialectSchema() void {
+    if (!parser.dialect_enabled) return;
+    for (@typeInfo(parser.dialect_schema.Record).@"union".fields, 0..) |record, record_index| {
+        for (std.meta.fields(record.type), 0..) |field, i| {
+            for (std.meta.fields(record.type)[0..i]) |prior| {
+                if (std.mem.eql(u8, estreeField(record.name, field.name), estreeField(record.name, prior.name)))
+                    @compileError("ambiguous duplicate reflected dialect field in " ++ record.name);
+            }
+        }
+        const is_overlay = dialectRecordIsOverlay(record.type);
+        for (@typeInfo(parser.dialect_schema.Record).@"union".fields[0..record_index]) |prior| {
+            const same_kind = is_overlay == dialectRecordIsOverlay(prior.type);
+            if (same_kind and std.mem.eql(u8, dialectRecordType(record.name, record.type), dialectRecordType(prior.name, prior.type)))
+                @compileError("ambiguous reflected dialect ESTree type " ++ dialectRecordType(record.name, record.type));
+        }
+    }
 }
 
 // arrays that allow holes, sparse elements become null in ESTree

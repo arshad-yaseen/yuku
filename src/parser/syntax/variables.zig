@@ -1,12 +1,20 @@
 const ast = @import("../ast.zig");
 const Parser = @import("../parser.zig").Parser;
 const Error = @import("../parser.zig").Error;
+const dialect = @import("dialect");
 const Precedence = @import("../token.zig").Precedence;
 const TokenTag = @import("../token.zig").TokenTag;
 const expressions = @import("expressions.zig");
 const patterns = @import("patterns.zig");
 const ts = @import("ts/types.zig");
 const std = @import("std");
+
+const DialectHost = struct {
+    pub const Token = TokenTag;
+    pub fn isIdentifierLike(token: TokenTag) bool {
+        return token.isIdentifierLike();
+    }
+};
 
 pub const ParseVariableDeclarationOpts = struct {
     await_using: bool = false,
@@ -200,7 +208,18 @@ pub fn parseVariableDeclarator(
 /// returns `true` when `tag` can begin a `BindingIdentifier` or destructuring
 /// pattern, i.e. the head of a variable declarator.
 pub fn canStartBinding(tag: TokenTag) bool {
+    if (dialectCanStartBinding(tag)) |value| return value;
     return tag.isIdentifierLike() or tag == .left_bracket or tag == .left_brace;
+}
+
+fn dialectCanStartBinding(tag: TokenTag) ?bool {
+    if (comptime dialect.enabled and @hasDecl(dialect, "can_start_binding")) {
+        switch (dialect.can_start_binding(DialectHost, tag)) {
+            .handled => |value| return value,
+            .unhandled => {},
+        }
+    }
+    return null;
 }
 
 /// non-reserved identifier-like tokens can begin a `BindingIdentifier`.
@@ -212,6 +231,7 @@ pub fn canStartBindingIdentifier(tag: TokenTag) bool {
 /// can never bind, so `let in obj` keeps `let` as an identifier instead of
 /// committing to a declaration that cannot parse.
 pub fn canStartLetBinding(tag: TokenTag) bool {
+    if (dialectCanStartBinding(tag)) |value| return value;
     return tag == .left_bracket or tag == .left_brace or canStartBindingIdentifier(tag);
 }
 

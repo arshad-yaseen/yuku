@@ -1,8 +1,60 @@
 const std = @import("std");
 const ast = @import("../ast.zig");
 const Precedence = @import("../token.zig").Precedence;
+const TokenTag = @import("../token.zig").TokenTag;
 const Parser = @import("../parser.zig").Parser;
 const Error = @import("../parser.zig").Error;
+const dialect = @import("dialect");
+
+const DialectHost = struct {
+    pub const ErrorType = Error;
+    pub const NodeIndex = ast.NodeIndex;
+    pub const Token = TokenTag;
+    pub const Context = struct { start: u32, left: ast.NodeIndex, right: ast.NodeIndex, is_for_await: bool };
+
+    pub fn currentToken(parser: *const Parser) TokenTag {
+        return parser.current_token.tag;
+    }
+
+    pub fn advance(parser: *Parser) Error!bool {
+        return (try parser.advance()) != null;
+    }
+
+    pub fn parseExpression(parser: *Parser) Error!?ast.NodeIndex {
+        return expressions.parseExpression(parser, Precedence.Assignment, .{});
+    }
+
+    pub fn expect(parser: *Parser, comptime tag: TokenTag, message: []const u8) Error!bool {
+        return parser.expect(tag, message, null);
+    }
+
+    pub fn parseStatement(parser: *Parser) Error!?ast.NodeIndex {
+        return statements.parseStatement(parser, .{ .can_be_single_statement_context = true });
+    }
+
+    pub fn addForOf(parser: *Parser, context: Context, body: ast.NodeIndex) Error!ast.NodeIndex {
+        return parser.tree.addNode(.{ .for_of_statement = .{
+            .left = context.left,
+            .right = context.right,
+            .body = body,
+            .await = context.is_for_await,
+        } }, .{ .start = context.start, .end = parser.tree.span(body).end });
+    }
+
+    pub fn addRecord(parser: *Parser, record: anytype) Error!u32 {
+        return parser.tree.addDialectRecord(record) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
+
+    pub fn addOverlay(parser: *Parser, host: ast.NodeIndex, record_index: u32) Error!void {
+        parser.tree.addDialectOverlay(@intFromEnum(host), record_index) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
+};
 
 const expressions = @import("expressions.zig");
 const variables = @import("variables.zig");
@@ -346,6 +398,18 @@ fn parseForOfStatementRest(
 
     const right = try expressions.parseExpression(parser, Precedence.Assignment, .{}) orelse
         return null;
+
+    if (comptime dialect.enabled and @hasDecl(dialect, "for_of_tail")) {
+        switch (try dialect.for_of_tail(DialectHost, parser, .{
+            .start = start,
+            .left = left,
+            .right = right,
+            .is_for_await = is_for_await,
+        })) {
+            .handled => |node| return node,
+            .unhandled => {},
+        }
+    }
 
     if (!try parser.expect(.right_paren, "Expected ')' after for-of expression", null)) {
         return null;

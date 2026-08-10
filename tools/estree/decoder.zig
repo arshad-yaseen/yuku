@@ -23,6 +23,7 @@ pub fn generate(w: *Writer, mode: Mode) !void {
         \\
     );
     try writeLookupTables(w);
+    try writeDialectSchema(w);
     if (mode == .analyzer) try writeSemanticConstants(w);
     if (mode == .analyzer) try writeChildTables(w);
     try writeBuildPosMap(w);
@@ -33,6 +34,31 @@ pub fn generate(w: *Writer, mode: Mode) !void {
         .parser => try w.writeAll("export { decode };\n"),
         .analyzer => try w.writeAll("export { decode, SymbolFlags };\n"),
     }
+}
+
+fn writeDialectSchema(w: *Writer) !void {
+    if (comptime !parser.dialect_enabled) return;
+    comptime meta.validateDialectSchema();
+    try w.writeAll("const DIALECT_TS = Symbol.for(\"yuku.estree.transfer.ts\");\n");
+    try w.writeAll("const DIALECT_RECORDS = Object.freeze([\n");
+    inline for (@typeInfo(parser.dialect_schema.Record).@"union".fields, 0..) |record, index| {
+        try w.print("  Object.freeze({{ tag: {d}, type: \"{s}\", overlay: {}, fields: Object.freeze([", .{
+            comptime rt.dialectNodeTag() + 1 + index,
+            comptime meta.dialectRecordType(record.name, record.type),
+            comptime meta.dialectRecordIsOverlay(record.type),
+        });
+        inline for (std.meta.fields(record.type), 0..) |field, field_index| {
+            if (field_index > 0) try w.writeAll(", ");
+            try w.print("Object.freeze({{ name: \"{s}\", role: \"{s}\", slot: {d}, bit: {d} }})", .{
+                comptime meta.estreeField(record.name, field.name),
+                comptime meta.dialectRoleName(field.type),
+                comptime rt.u32SlotForField(record.type, field_index) + rt.NODE_HEADER_U32S,
+                comptime rt.flagBitForField(record.type, field_index),
+            });
+        }
+        try w.writeAll("]) }),\n");
+    }
+    try w.writeAll("]);\n");
 }
 
 const symbol_flag_names = [_]struct { zig: []const u8, js: []const u8 }{
@@ -180,6 +206,7 @@ fn writeBuildPosMap(w: *Writer) !void {
 fn writeDecodeOpen(w: *Writer) !void {
     try w.print(
         \\function decode(buffer, source) {{
+        \\{[dialect_guard]s}
         \\  const _u8 = new Uint8Array(buffer);
         \\  const _u32 = new Int32Array(buffer, 0, buffer.byteLength >> 2);
         \\  const _src = source;
@@ -232,7 +259,7 @@ fn writeDecodeOpen(w: *Writer) !void {
         \\    return r;
         \\  }}
         \\  const pm = _firstNa < _srcLen ? buildPosMap(_src, _srcLen, _firstNa) : null;
-        \\  const _p = v => v <= _firstNa ? v : pm[v - _firstNa];
+        \\  const _p = {[position_expr]s};
         \\  const str = (s, e) => {{
         \\    if (s === e) return "";
         \\    if (s >= _srcLen) return _poolDecode(s, e);
@@ -287,6 +314,14 @@ fn writeDecodeOpen(w: *Writer) !void {
         ),
         .items = comptime u32IndexOf(ast.FormalParameters, "items"),
         .rest = comptime u32IndexOf(ast.FormalParameters, "rest"),
+        .dialect_guard = if (comptime parser.dialect_enabled)
+            comptime std.fmt.comptimePrint("  if (buffer.byteLength < {d} || (buffer.byteLength & 3)) throw new RangeError(\"yuku: malformed transfer buffer\");", .{rt.HEADER_SIZE})
+        else
+            "",
+        .position_expr = if (comptime parser.dialect_enabled)
+            "v => !pm || v <= _firstNa ? v : pm[v - _firstNa]"
+        else
+            "v => v <= _firstNa ? v : pm[v - _firstNa]",
     });
 }
 
@@ -333,8 +368,8 @@ fn writeNodeFunction(w: *Writer, mode: Mode) !void {
         \\    const tag = h0 & 255;
         \\    const flags = {[fe]s};
         \\    const _ss = _u32[b + {[ss]d}], _se = _u32[b + {[se]d}];
-        \\    const start = _ss <= _firstNa ? _ss : pm[_ss - _firstNa];
-        \\    const end = _se <= _firstNa ? _se : pm[_se - _firstNa];
+        \\    const start = {[start_expr]s};
+        \\    const end = {[end_expr]s};
         \\    switch (tag) {{
         \\
     , .{
@@ -346,16 +381,46 @@ fn writeNodeFunction(w: *Writer, mode: Mode) !void {
         .fe = flags_expr,
         .ss = rt.NODE_SPAN_START_U32,
         .se = rt.NODE_SPAN_END_U32,
+        .start_expr = if (comptime parser.dialect_enabled)
+            "_p(_ss)"
+        else
+            "_ss <= _firstNa ? _ss : pm[_ss - _firstNa]",
+        .end_expr = if (comptime parser.dialect_enabled)
+            "_p(_se)"
+        else
+            "_se <= _firstNa ? _se : pm[_se - _firstNa]",
     });
     try writeNodeCases(w);
     switch (mode) {
-        .parser => try w.writeAll(
+        .parser => if (comptime parser.dialect_enabled) try w.writeAll(
+            \\    }
+            \\  }
+            \\  const _baseNode = _attached ? nodeWithComments : _decode;
+            \\  function node(i) { return applyDialectOverlay(i, _baseNode(i)); }
+            \\
+        ) else try w.writeAll(
             \\    }
             \\  }
             \\  const node = _attached ? nodeWithComments : _decode;
             \\
         ),
-        .analyzer => try w.writeAll(
+        .analyzer => if (comptime parser.dialect_enabled) try w.writeAll(
+            \\    }
+            \\  }
+            \\  const _baseInner = _attached ? nodeWithComments : _decode;
+            \\  const _inner = i => applyDialectOverlay(i, _baseInner(i));
+            \\  const _nodes = Array.from({ length: nodeCount });
+            \\  const _nodeIndexes = new WeakMap();
+            \\  function node(i) {
+            \\    const m = _nodes[i];
+            \\    if (m !== undefined) return m;
+            \\    const r = _inner(i);
+            \\    _nodes[i] = r;
+            \\    if (r !== null && typeof r === "object" && !_nodeIndexes.has(r)) _nodeIndexes.set(r, i);
+            \\    return r;
+            \\  }
+            \\
+        ) else try w.writeAll(
             \\    }
             \\  }
             \\  const _inner = _attached ? nodeWithComments : _decode;
@@ -517,6 +582,7 @@ pub fn generateWalkTables(w: *Writer) !void {
         \\
     );
     inline for (@typeInfo(ast.NodeData).@"union".fields) |field| {
+        if (comptime !meta.includeNode(field.name)) continue;
         if (comptime specialChildKeysOf(field.name)) |entry| {
             inline for (entry.types) |t| {
                 try w.print("ck(\"{s}\", [", .{t});
@@ -550,6 +616,7 @@ pub fn generateWalkTables(w: *Writer) !void {
         \\
     );
     inline for (@typeInfo(ast.NodeData).@"union".fields) |field| {
+        if (comptime !meta.includeNode(field.name)) continue;
         if (comptime specialChildKeysOf(field.name)) |entry| {
             inline for (entry.types) |t| {
                 try w.print("  \"{s}\",\n", .{t});
@@ -575,6 +642,7 @@ fn writeChildTables(w: *Writer) !void {
     //        2 range with length in field0, 3 range with length in field0b
     try w.writeAll("const CHILD_SLOTS = [\n");
     inline for (@typeInfo(ast.NodeData).@"union".fields) |field| {
+        if (comptime !meta.includeNode(field.name)) continue;
         try w.writeAll("  [");
         if (@typeInfo(field.type) == .@"struct") {
             comptime var first = true;
@@ -602,6 +670,7 @@ fn writeChildTables(w: *Writer) !void {
 
     try w.writeAll("const IS_NODE = [\n");
     inline for (@typeInfo(ast.NodeData).@"union".fields) |field| {
+        if (comptime !meta.includeNode(field.name)) continue;
         const materialized = comptime if (specialChildKeysOf(field.name)) |entry|
             entry.types.len != 0
         else
@@ -680,6 +749,7 @@ fn writeNodeCases(w: *Writer) !void {
     @setEvalBranchQuota(100_000);
     var body_buf: [16 * 1024]u8 = undefined;
     inline for (@typeInfo(ast.NodeData).@"union".fields, 0..) |field, tag| {
+        if (comptime !meta.includeNode(field.name)) continue;
         var body_w: Writer = .fixed(&body_buf);
         if (comptime isSpecial(field.name)) {
             try writeSpecialCase(&body_w, field.name);
@@ -698,6 +768,10 @@ fn writeGenericCase(
     comptime name: []const u8,
     comptime T: type,
 ) !void {
+    if (comptime std.mem.eql(u8, name, "dialect_node")) {
+        try w.writeAll("return dialectRecord(f1, start, end, false);");
+        return;
+    }
     const etype = comptime meta.estreeType(name);
     const has_ts = comptime hasAnyTsField(name, T) or tsExtrasOf(name).len > 0;
     if (!has_ts) {
@@ -747,7 +821,9 @@ fn writeFieldExpr(
     comptime F: type,
 ) !void {
     const s = comptime rt.u32SlotForField(T, i) + 1;
-    if (F == ast.NodeIndex) {
+    if (F == u32) {
+        try w.print("f{d}", .{s});
+    } else if (F == ast.NodeIndex) {
         try w.print("f{d} !== NULL ? node(f{d}) : null", .{ s, s });
     } else if (F == ast.IndexRange) {
         const fn_name = comptime if (meta.isHoleyArray(tag_name, field_name)) "nodeArrHoles" else "nodeArr";
@@ -825,12 +901,18 @@ fn writeSpecialCase(w: *Writer, comptime name: []const u8) !void {
             \\      return r;
         , .{
             comptime enumMask(ast.FunctionType),
-            sid, sid,
-            bg,  ba,
-            sp,  sp,
-            sb,  sb,
-            stp, stp,
-            srt, srt,
+            sid,
+            sid,
+            bg,
+            ba,
+            sp,
+            sp,
+            sb,
+            sb,
+            stp,
+            stp,
+            srt,
+            srt,
             bd,
         });
     } else if (comptime eql(u8, name, "arrow_function_expression")) {
@@ -858,7 +940,22 @@ fn writeSpecialCase(w: *Writer, comptime name: []const u8) !void {
         const sb = comptime slotOf(ast.Program, "body");
         const hs = comptime slotOf(ast.Program, "hashbang");
         // hashbang span includes the leading #!, so its start is value.start minus 2
-        try emit(w,
+        if (comptime parser.dialect_enabled) try emit(w,
+            \\const r = {{
+            \\      type: "Program", start, end,
+            \\      sourceType: (flags & 1) ? "module" : "script",
+            \\      hashbang: (flags & {d}) ? {{
+            \\        type: "Hashbang",
+            \\        start: _p(f{d} - 2), end: _p(f{d}),
+            \\        value: str(f{d}, f{d}),
+            \\      }} : null,
+            \\      body: nodeArr(f{d}, f0),
+            \\    }};
+            \\      if (_isTs) Object.defineProperty(r, DIALECT_TS, {{
+            \\        value: true, enumerable: false, writable: false, configurable: false,
+            \\      }});
+            \\      return r;
+        , .{ comptime flagMask(ast.Program, "hashbang"), hs, hs + 1, hs, hs + 1, sb }) else try emit(w,
             \\return {{
             \\      type: "Program", start, end,
             \\      sourceType: (flags & 1) ? "module" : "script",
@@ -989,13 +1086,19 @@ fn writeSpecialCase(w: *Writer, comptime name: []const u8) !void {
             \\      return r;
         , .{
             comptime enumMask(ast.ClassType),
-            sd,                                       si,
-            si,                                       ss,
-            ss,                                       sb,
-            stp,                                      stp,
-            ssta,                                     ssta,
+            sd,
+            si,
+            si,
+            ss,
+            ss,
+            sb,
+            stp,
+            stp,
+            ssta,
+            ssta,
             simp,
-            comptime flagMask(ast.Class, "abstract"), comptime flagMask(ast.Class, "declare"),
+            comptime flagMask(ast.Class, "abstract"),
+            comptime flagMask(ast.Class, "declare"),
         });
     } else if (comptime eql(u8, name, "method_definition")) {
         const M = ast.MethodDefinition;
@@ -1131,10 +1234,10 @@ fn writeSpecialCase(w: *Writer, comptime name: []const u8) !void {
             \\      }}
             \\      return r;
         , .{
-            se,  sr,
-            sr,  sdec,
-            comptime flagMask(ast.ArrayPattern, "optional"),
-            sta, sta,
+            se,                                              sr,
+            sr,                                              sdec,
+            comptime flagMask(ast.ArrayPattern, "optional"), sta,
+            sta,
         });
     } else if (comptime eql(u8, name, "object_pattern")) {
         const sp = comptime slotOf(ast.ObjectPattern, "properties");
@@ -1153,10 +1256,10 @@ fn writeSpecialCase(w: *Writer, comptime name: []const u8) !void {
             \\      }}
             \\      return r;
         , .{
-            sp,  sr,
-            sr,  sdec,
-            comptime flagMask(ast.ObjectPattern, "optional"),
-            sta, sta,
+            sp,                                               sr,
+            sr,                                               sdec,
+            comptime flagMask(ast.ObjectPattern, "optional"), sta,
+            sta,
         });
     } else if (comptime eql(u8, name, "jsx_text")) {
         const sv = comptime slotOf(ast.JSXText, "value");
@@ -1307,8 +1410,168 @@ fn writeSpecialCase(w: *Writer, comptime name: []const u8) !void {
 fn writeDecodeBody(w: *Writer, mode: Mode) !void {
     comptime std.debug.assert(rt.COMMENT_FLAGS_OFFSET == 0);
     comptime std.debug.assert(rt.COMMENT_SIZE % 4 == 0);
-    try w.print(
+    if (comptime parser.dialect_enabled) try w.print(
+        \\  const _dialectSectionOff = _cOff + commentCount * {[csize]d};
+        \\  const _hasDialectRecords = !!(_flags & {[flag]d});
+        \\  const _dialectRecordCount = _hasDialectRecords ? _u32[_dialectSectionOff >> 2] : 0;
+        \\  const _dialectOverlayCount = _hasDialectRecords ? _u32[(_dialectSectionOff >> 2) + 1] : 0;
+        \\  const _dialectRecordsOff = _dialectSectionOff + (_hasDialectRecords ? {[sub]d} : 0);
+        \\  const _dialectOverlaysOff = _dialectRecordsOff + _dialectRecordCount * {[node_size]d};
+        \\  const dOff = _dialectOverlaysOff + _dialectOverlayCount * {[overlay_size]d};
+        \\  const _dialectActive = new Set();
+        \\  function dialectRecord(ri, start, end, overlay) {{
+        \\    if (ri < 0 || ri >= _dialectRecordCount) throw new RangeError("yuku: dialect record index out of bounds");
+        \\    if (_dialectActive.has(ri)) throw new RangeError("yuku: cyclic dialect record");
+        \\    _dialectActive.add(ri);
+        \\    try {{
+        \\      const b = (_dialectRecordsOff >> 2) + ri * ({[node_size]d} >> 2);
+        \\      const packedTag = _u32[b] & 255;
+        \\      const schema = DIALECT_RECORDS[packedTag - DIALECT_RECORDS[0].tag];
+        \\      if (!schema || schema.tag !== packedTag || schema.overlay !== overlay)
+        \\        throw new RangeError("yuku: invalid dialect record tag");
+        \\      const r = overlay ? {{}} : {{ type: schema.type, start, end }};
+        \\      const packedFlags = _u32[b] >>> 16;
+        \\      for (const field of schema.fields) {{
+        \\        if (field.role === "host") continue;
+        \\        const v = _u32[b + field.slot];
+        \\        if (field.role === "bool") r[field.name] = !!(packedFlags & (1 << field.bit));
+        \\        else if (field.role === "scalar") r[field.name] = v >>> 0;
+        \\        else if (field.role === "node") r[field.name] = node(v);
+        \\        else if (field.role === "optionalNode") r[field.name] = v === NULL ? null : node(v);
+        \\        else if (field.role === "nodeList") r[field.name] = nodeArr(v, _u32[b + field.slot + 1]);
+        \\        else if (field.role === "string") r[field.name] = str(v, _u32[b + field.slot + 1]);
+        \\      }}
+        \\      return r;
+        \\    }} finally {{ _dialectActive.delete(ri); }}
+        \\  }}
+        \\  function applyDialectOverlay(i, r) {{
+        \\    if (!_hasDialectRecords || r == null || typeof r !== "object") return r;
+        \\    let lo = 0, hi = _dialectOverlayCount;
+        \\    const base = _dialectOverlaysOff >> 2;
+        \\    while (lo < hi) {{ const m = (lo + hi) >>> 1; if (_u32[base + m * 2] < i) lo = m + 1; else hi = m; }}
+        \\    if (lo < _dialectOverlayCount && _u32[base + lo * 2] === i)
+        \\      Object.assign(r, dialectRecord(_u32[base + lo * 2 + 1], r.start, r.end, true));
+        \\    return r;
+        \\  }}
+        \\
+    , .{ .csize = rt.COMMENT_SIZE, .flag = rt.FLAG_DIALECT_RECORDS, .sub = rt.DIALECT_SUBHEADER_SIZE, .node_size = rt.NODE_SIZE, .overlay_size = rt.DIALECT_OVERLAY_SIZE });
+    if (comptime parser.dialect_enabled) try w.print(
+        \\  function _validNodeIndex(v) {{ return Number.isInteger(v) && v >= 0 && v < nodeCount; }}
+        \\  function _validateDialectSection() {{
+        \\    for (const count of [nodeCount, extraCount, spLen, commentCount, attachedCommentCount, diagCount])
+        \\      if (!Number.isInteger(count) || count < 0) throw new RangeError("yuku: invalid section count");
+        \\    if (!_validNodeIndex(progIdx)) throw new RangeError("yuku: invalid program index");
+        \\    const checked = (start, count, size) => {{
+        \\      const end = start + count * size;
+        \\      if (!Number.isSafeInteger(end) || end < start || end > buffer.byteLength)
+        \\        throw new RangeError("yuku: invalid section extent");
+        \\      return end;
+        \\    }};
+        \\    let end = checked({[header]d}, nodeCount, {[node_size]d});
+        \\    end = checked(end, extraCount, 4);
+        \\    end = checked(end, (spLen + 3) & ~3, 1);
+        \\    if (_attached) end = checked(end, nodeCount + 1, 4);
+        \\    end = checked(end, attachedCommentCount, {[attached_size]d});
+        \\    end = checked(end, commentCount, {[comment_size]d});
+        \\    if (end !== _dialectSectionOff) throw new RangeError("yuku: inconsistent dialect offset");
+        \\    if (!_hasDialectRecords) {{
+        \\      for (let i = 0; i < nodeCount; i++)
+        \\        if (_u8[_nodesOff + i * {[node_size]d}] === {[dialect_tag]d}) throw new RangeError("yuku: missing dialect section");
+        \\      return;
+        \\    }}
+        \\    if (!Number.isInteger(_dialectRecordCount) || _dialectRecordCount <= 0 ||
+        \\        !Number.isInteger(_dialectOverlayCount) || _dialectOverlayCount < 0)
+        \\      throw new RangeError("yuku: non-canonical dialect counts");
+        \\    end = checked(_dialectSectionOff, 1, {[sub]d});
+        \\    end = checked(end, _dialectRecordCount, {[node_size]d});
+        \\    end = checked(end, _dialectOverlayCount, {[overlay_size]d});
+        \\    if (end !== dOff) throw new RangeError("yuku: inconsistent dialect extent");
+        \\    const schemas = new Array(_dialectRecordCount);
+        \\    const poolLimit = _srcLen + spLen;
+        \\    for (let ri = 0; ri < _dialectRecordCount; ri++) {{
+        \\      const b = (_dialectRecordsOff >> 2) + ri * ({[node_size]d} >> 2);
+        \\      const tag = _u32[b] & 255;
+        \\      const schema = DIALECT_RECORDS[tag - DIALECT_RECORDS[0].tag];
+        \\      if (!schema || schema.tag !== tag) throw new RangeError("yuku: invalid unused dialect tag");
+        \\      schemas[ri] = schema;
+        \\      for (const field of schema.fields) {{
+        \\        const v = _u32[b + field.slot], uv = v >>> 0;
+        \\        if ((field.role === "node" || field.role === "host") && !_validNodeIndex(v))
+        \\          throw new RangeError("yuku: dialect node role out of bounds");
+        \\        if (field.role === "optionalNode" && v !== NULL && !_validNodeIndex(v))
+        \\          throw new RangeError("yuku: optional dialect node out of bounds");
+        \\        if (field.role === "nodeList") {{
+        \\          const len = _u32[b + field.slot + 1] >>> 0;
+        \\          if (uv + len > extraCount || uv + len < uv) throw new RangeError("yuku: dialect list out of bounds");
+        \\          for (let j = 0; j < len; j++) if (!_validNodeIndex(_u32[_extraBase + uv + j]))
+        \\            throw new RangeError("yuku: dialect list node out of bounds");
+        \\        }}
+        \\        if (field.role === "string") {{
+        \\          const e = _u32[b + field.slot + 1] >>> 0;
+        \\          if (uv > e || (uv < _srcLen ? e > _srcLen : e > poolLimit))
+        \\            throw new RangeError("yuku: dialect string out of bounds");
+        \\        }}
+        \\      }}
+        \\    }}
+        \\    for (let i = 0; i < nodeCount; i++) {{
+        \\      const b = ({[header]d} >> 2) + i * ({[node_size]d} >> 2);
+        \\      if ((_u32[b] & 255) !== {[dialect_tag]d}) continue;
+        \\      const ri = _u32[b + {[data_start]d}];
+        \\      if (ri < 0 || ri >= _dialectRecordCount || schemas[ri].overlay)
+        \\        throw new RangeError("yuku: invalid direct dialect record use");
+        \\    }}
+        \\    let previousHost = -1;
+        \\    const overlayBase = _dialectOverlaysOff >> 2;
+        \\    for (let i = 0; i < _dialectOverlayCount; i++) {{
+        \\      const host = _u32[overlayBase + i * 2], ri = _u32[overlayBase + i * 2 + 1];
+        \\      if (!_validNodeIndex(host) || host <= previousHost || ri < 0 || ri >= _dialectRecordCount || !schemas[ri].overlay)
+        \\        throw new RangeError("yuku: invalid dialect overlay");
+        \\      const hostField = schemas[ri].fields.find(field => field.role === "host");
+        \\      const rb = (_dialectRecordsOff >> 2) + ri * ({[node_size]d} >> 2);
+        \\      if (!hostField || _u32[rb + hostField.slot] !== host) throw new RangeError("yuku: overlay host mismatch");
+        \\      previousHost = host;
+        \\    }}
+        \\    const states = new Uint8Array(_dialectRecordCount);
+        \\    let visitRecord;
+        \\    const visitNodeIndex = value => {{
+        \\      if (!_validNodeIndex(value)) throw new RangeError("yuku: dialect cycle node out of bounds");
+        \\      const nb = ({[header]d} >> 2) + value * ({[node_size]d} >> 2);
+        \\      if ((_u32[nb] & 255) === {[dialect_tag]d}) visitRecord(_u32[nb + {[data_start]d}]);
+        \\    }};
+        \\    visitRecord = ri => {{
+        \\      if (ri < 0 || ri >= _dialectRecordCount) throw new RangeError("yuku: dangling dialect cycle edge");
+        \\      if (states[ri] === 1) throw new RangeError("yuku: cyclic dialect record");
+        \\      if (states[ri] === 2) return;
+        \\      states[ri] = 1;
+        \\      const schema = schemas[ri], b = (_dialectRecordsOff >> 2) + ri * ({[node_size]d} >> 2);
+        \\      for (const field of schema.fields) {{
+        \\        const v = _u32[b + field.slot];
+        \\        if (field.role === "node") visitNodeIndex(v);
+        \\        else if (field.role === "optionalNode" && v !== NULL) visitNodeIndex(v);
+        \\        else if (field.role === "nodeList") {{
+        \\          const start = v >>> 0, len = _u32[b + field.slot + 1] >>> 0;
+        \\          for (let j = 0; j < len; j++) visitNodeIndex(_u32[_extraBase + start + j]);
+        \\        }}
+        \\      }}
+        \\      states[ri] = 2;
+        \\    }};
+        \\    for (let ri = 0; ri < _dialectRecordCount; ri++) visitRecord(ri);
+        \\  }}
+        \\
+    , .{
+        .header = rt.HEADER_SIZE,
+        .node_size = rt.NODE_SIZE,
+        .attached_size = rt.ATTACHED_COMMENT_SIZE,
+        .comment_size = rt.COMMENT_SIZE,
+        .dialect_tag = rt.dialectNodeTag(),
+        .sub = rt.DIALECT_SUBHEADER_SIZE,
+        .overlay_size = rt.DIALECT_OVERLAY_SIZE,
+        .data_start = rt.NODE_HEADER_U32S,
+    });
+    if (comptime !parser.dialect_enabled) try w.print(
         \\  const dOff = _cOff + commentCount * {[csize]d};
+    , .{ .csize = rt.COMMENT_SIZE });
+    try w.print(
         \\  function _decodeComments() {{
         \\    const out = new Array(commentCount);
         \\    for (let j = 0; j < commentCount; j++) {{
@@ -1360,7 +1623,6 @@ fn writeDecodeBody(w: *Writer, mode: Mode) !void {
         \\  }}
         \\
     , .{
-        .csize = rt.COMMENT_SIZE,
         .c_stride = rt.COMMENT_SIZE / 4,
         .c_vs = rt.COMMENT_VALUE_START_OFFSET / 4,
         .c_ve = rt.COMMENT_VALUE_END_OFFSET / 4,
@@ -1373,6 +1635,7 @@ fn writeDecodeBody(w: *Writer, mode: Mode) !void {
         try writeSemanticBody(w);
     }
 
+    if (comptime parser.dialect_enabled) try w.writeAll("  _validateDialectSection();\n");
     try w.writeAll(
         \\  let _program, _diagnostics, _comments;
         \\  return {

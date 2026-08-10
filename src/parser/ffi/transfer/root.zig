@@ -107,7 +107,8 @@
 //       n bytes   message text (UTF-8)
 
 const std = @import("std");
-const ast = @import("parser").ast;
+const parser = @import("parser");
+const ast = parser.ast;
 
 /// The analyzer's semantic sections, layered on this format. Exposed
 /// here so the decoder generators reach both layouts through one module.
@@ -144,7 +145,7 @@ const Header = extern struct {
 /// any further IndexRange uses two consecutive u32 slots, start then
 /// length (no current node needs a third). the comptime validator
 /// enforces the 7 slot and 16 flag bit budget regardless.
-const PackedNode = extern struct {
+pub const PackedNode = extern struct {
     tag: u8,
     _pad0: u8 = 0,
     flags: u16,
@@ -219,6 +220,11 @@ pub const FLAG_COMMENTS: u32 = 1 << 2;
 /// consumed only by the analyzer decoder. Other decoders never read
 /// past diagnostics, so the bit is invisible to them.
 pub const FLAG_SEMANTIC: u32 = 1 << 3;
+/// Optional reflected dialect records and overlays, immediately before diagnostics.
+/// Empty stores omit both this flag and the section, preserving the v7 control bytes.
+pub const FLAG_DIALECT_RECORDS: u32 = 1 << 4;
+pub const DIALECT_SUBHEADER_SIZE: usize = 8;
+pub const DIALECT_OVERLAY_SIZE: usize = 8;
 
 // `PackedNode` byte offsets and u32 indices.
 pub const NODE_FLAGS_OFFSET: u8 = @offsetOf(PackedNode, "flags");
@@ -256,6 +262,8 @@ comptime {
 /// number of flag bits consumed by field `field_idx` in struct T.
 pub fn flagBitCount(comptime T: type, comptime field_idx: usize) u8 {
     const f = std.meta.fields(T)[field_idx];
+    if (comptime isDialectRoleType(f.type)) return 0;
+    if (f.type == u32) return 0;
     if (f.type == bool) return 1;
     if (f.type == ?ast.ImportPhase) return 1 + enumBitWidth(ast.ImportPhase);
     if (f.type == ?ast.Hashbang) return 1;
@@ -267,6 +275,7 @@ pub fn flagBitCount(comptime T: type, comptime field_idx: usize) u8 {
 /// starting flag bit position for field `target` in struct T.
 pub fn flagBitForField(comptime T: type, comptime target: usize) u8 {
     comptime {
+        @setEvalBranchQuota(20_000);
         var bit: u8 = 0;
         for (0..target) |i| bit += flagBitCount(T, i);
         return bit;
@@ -278,6 +287,8 @@ pub fn flagBitForField(comptime T: type, comptime target: usize) u8 {
 /// length fields (`field0`, `field0b`), so they take one slot each.
 pub fn fieldU32Count(comptime T: type, comptime field_idx: usize) u8 {
     const f = std.meta.fields(T)[field_idx];
+    if (comptime isDialectRoleType(f.type)) return if (@sizeOf(f.type) == 8) 2 else 1;
+    if (f.type == u32) return 1;
     if (f.type == ast.NodeIndex) return 1;
     if (f.type == ast.IndexRange) return if (rangeIndexOf(T, field_idx) < 2) 1 else 2;
     if (f.type == ast.String) return 2;
@@ -289,6 +300,7 @@ pub fn fieldU32Count(comptime T: type, comptime field_idx: usize) u8 {
 /// first u32 slot index for field `target` in struct T.
 pub fn u32SlotForField(comptime T: type, comptime target: usize) u8 {
     comptime {
+        @setEvalBranchQuota(20_000);
         var slot: u8 = 0;
         for (0..target) |i| slot += fieldU32Count(T, i);
         return slot;
@@ -315,6 +327,13 @@ pub fn enumBitWidth(comptime E: type) u8 {
 
 pub fn isEnumType(comptime T: type) bool {
     return @typeInfo(T) == .@"enum";
+}
+
+pub fn isDialectRoleType(comptime T: type) bool {
+    return switch (@typeInfo(T)) {
+        .@"struct" => @hasDecl(T, "dialect_role"),
+        else => false,
+    };
 }
 
 /// total u32 slots used by struct T.
@@ -377,6 +396,14 @@ pub fn bufferSize(tree: *const ast.Tree) usize {
         tree.attached_comments.len * ATTACHED_COMMENT_SIZE +
         tree.comments.len * COMMENT_SIZE;
 
+    if (comptime parser.dialect_enabled) {
+        if (tree.dialect_store.records.items.len != 0 or tree.dialect_store.overlays.items.len != 0) {
+            size += DIALECT_SUBHEADER_SIZE +
+                tree.dialect_store.records.items.len * NODE_SIZE +
+                tree.dialect_store.overlays.items.len * DIALECT_OVERLAY_SIZE;
+        }
+    }
+
     for (tree.diagnostics.items) |d| {
         size += diag_fixed + d.message.len;
         if (d.help) |h| size += help_prefix + h.len;
@@ -402,6 +429,10 @@ pub fn serializeInto(tree: *const ast.Tree, buf: []u8) usize {
     if (tree.isTs()) hdr_flags |= FLAG_TS;
     if (has_attached) hdr_flags |= FLAG_ATTACHED_COMMENTS;
     if (has_comments) hdr_flags |= FLAG_COMMENTS;
+    if (comptime parser.dialect_enabled) {
+        if (tree.dialect_store.records.items.len != 0 or tree.dialect_store.overlays.items.len != 0)
+            hdr_flags |= FLAG_DIALECT_RECORDS;
+    }
 
     const hdr = Header{
         .node_count = @intCast(tree.nodes.len),
@@ -471,6 +502,25 @@ pub fn serializeInto(tree: *const ast.Tree, buf: []u8) usize {
     }
     pos += tree.comments.len * COMMENT_SIZE;
 
+    // Optional generic dialect store. Records use the exact PackedNode ABI and
+    // overlays are sorted host/index u32 pairs.
+    if (hdr_flags & FLAG_DIALECT_RECORDS != 0) {
+        if (comptime !parser.dialect_enabled) unreachable;
+        w32(buf, pos, @intCast(tree.dialect_store.records.items.len));
+        w32(buf, pos + 4, @intCast(tree.dialect_store.overlays.items.len));
+        pos += DIALECT_SUBHEADER_SIZE;
+        const records_out: [*]PackedNode = @ptrCast(@alignCast(buf.ptr + pos));
+        for (tree.dialect_store.records.items, 0..) |*record, i| {
+            records_out[i] = packDialectRecord(record) catch unreachable;
+        }
+        pos += tree.dialect_store.records.items.len * NODE_SIZE;
+        for (tree.dialect_store.overlays.items) |overlay| {
+            w32(buf, pos, overlay.host_node);
+            w32(buf, pos + 4, overlay.record_index);
+            pos += DIALECT_OVERLAY_SIZE;
+        }
+    }
+
     // diagnostics (variable length)
     for (tree.diagnostics.items) |d| {
         buf[pos] = @intFromEnum(d.severity);
@@ -538,10 +588,20 @@ fn packPayload(n: *PackedNode, payload: anytype) void {
         const bit = comptime flagBitForField(T, i);
         const slot = comptime u32SlotForField(T, i);
 
-        if (f.type == bool) {
+        if (comptime isDialectRoleType(f.type)) {
+            switch (comptime f.type.dialect_role) {
+                .node_list, .string_slice => {
+                    setSlot(n, slot, val.start);
+                    setSlot(n, slot + 1, if (f.type.dialect_role == .node_list) val.len else val.end);
+                },
+                else => setSlot(n, slot, val.raw),
+            }
+        } else if (f.type == bool) {
             if (val) setFlagBit(n, bit);
         } else if (f.type == ast.NodeIndex) {
             setSlot(n, slot, @intFromEnum(val));
+        } else if (f.type == u32) {
+            setSlot(n, slot, val);
         } else if (f.type == ast.IndexRange) {
             switch (comptime rangeIndexOf(T, i)) {
                 0 => n.field0 = @intCast(val.len),
@@ -570,6 +630,52 @@ fn packPayload(n: *PackedNode, payload: anytype) void {
                 "' in " ++ @typeName(T));
         }
     }
+}
+
+pub const DialectRecordError = error{ InvalidDialectTag, DialectDisabled };
+
+pub fn packDialectRecord(record: *const parser.dialect_schema.Record) DialectRecordError!PackedNode {
+    if (comptime !parser.dialect_enabled) return error.DialectDisabled;
+    var packed_record = std.mem.zeroes(PackedNode);
+    switch (record.*) {
+        inline else => |*payload, schema_tag| {
+            const base_tag = comptime dialectNodeTag() + 1;
+            const tag = base_tag + @intFromEnum(schema_tag);
+            if (tag > std.math.maxInt(u8)) return error.InvalidDialectTag;
+            packed_record.tag = @intCast(tag);
+            packPayload(&packed_record, payload);
+        },
+    }
+    return packed_record;
+}
+
+pub fn unpackDialectRecord(packed_record: PackedNode) DialectRecordError!parser.dialect_schema.Record {
+    if (comptime !parser.dialect_enabled) return error.DialectDisabled;
+    const base_tag = comptime dialectNodeTag() + 1;
+    inline for (@typeInfo(parser.dialect_schema.Record).@"union".fields, 0..) |field, index| {
+        if (packed_record.tag == base_tag + index) {
+            var payload: field.type = std.mem.zeroes(field.type);
+            unpackPayload(field.type, packed_record, &payload);
+            return @unionInit(parser.dialect_schema.Record, field.name, payload);
+        }
+    }
+    return error.InvalidDialectTag;
+}
+
+pub fn dialectNodeTag() u8 {
+    const fields = @typeInfo(ast.NodeData).@"union".fields;
+    if (comptime fields.len == 0) @compileError("NodeData must be nonempty");
+    const final_index = comptime fields.len - 1;
+    const final_field = comptime fields[final_index];
+    if (comptime !std.mem.eql(u8, final_field.name, "dialect_node"))
+        @compileError("NodeData must contain dialect_node as its appended final variant");
+    const Tag = std.meta.Tag(ast.NodeData);
+    const reflected_tag = comptime @intFromEnum(@field(Tag, final_field.name));
+    if (comptime reflected_tag != final_index)
+        @compileError("dialect_node tag must equal its reflected final field index");
+    if (comptime reflected_tag > std.math.maxInt(u8))
+        @compileError("dialect_node tag exceeds the transfer tag capacity");
+    return @intCast(reflected_tag);
 }
 
 inline fn setFlagBit(n: *PackedNode, comptime bit: u8) void {
@@ -628,8 +734,10 @@ pub fn deserializeFromBuf(
     // header sanity: the program index must point inside the node array.
     // source may be empty (then every `String` resolves via the pool) or
     // match `hdr.source_len` for direct slicing.
-    std.debug.assert(source.len == 0 or source.len == hdr.source_len);
-    std.debug.assert(hdr.program_index < hdr.node_count);
+    if (source.len != 0 and source.len != hdr.source_len) return error.InvalidBuffer;
+    if (hdr.program_index >= hdr.node_count) return error.InvalidBuffer;
+    if (hdr.flags & FLAG_DIALECT_RECORDS != 0 and comptime !parser.dialect_enabled)
+        return error.InvalidBuffer;
 
     var tree = ast.Tree.init(allocator, source);
     errdefer tree.deinit();
@@ -646,7 +754,7 @@ pub fn deserializeFromBuf(
     for (0..hdr.node_count) |i| {
         const pn = nodes_in[i];
         tree.nodes.set(i, .{
-            .data = unpackNode(pn),
+            .data = unpackNode(pn) orelse return error.InvalidBuffer,
             .span = .{ .start = pn.span_start, .end = pn.span_end },
         });
     }
@@ -715,6 +823,39 @@ pub fn deserializeFromBuf(
     }
     pos += comments_bytes;
 
+    if (hdr.flags & FLAG_DIALECT_RECORDS != 0) {
+        if (buf.len - pos < DIALECT_SUBHEADER_SIZE) return error.InvalidBuffer;
+        const record_count = std.mem.readInt(u32, buf[pos..][0..4], .little);
+        const overlay_count = std.mem.readInt(u32, buf[pos + 4 ..][0..4], .little);
+        if (record_count == 0) return error.InvalidBuffer;
+        pos += DIALECT_SUBHEADER_SIZE;
+        const record_bytes = std.math.mul(usize, record_count, NODE_SIZE) catch return error.InvalidBuffer;
+        const overlay_bytes = std.math.mul(usize, overlay_count, DIALECT_OVERLAY_SIZE) catch return error.InvalidBuffer;
+        if (record_bytes > buf.len - pos) return error.InvalidBuffer;
+        const records_in: [*]const PackedNode = @ptrCast(@alignCast(buf.ptr + pos));
+        for (0..record_count) |i| {
+            const record = unpackDialectRecord(records_in[i]) catch return error.InvalidBuffer;
+            _ = tree.addDialectRecord(record) catch |err| switch (err) {
+                error.OutOfMemory => return error.OutOfMemory,
+                else => return error.InvalidBuffer,
+            };
+        }
+        pos += record_bytes;
+        if (overlay_bytes > buf.len - pos) return error.InvalidBuffer;
+        for (0..overlay_count) |_| {
+            const host = std.mem.readInt(u32, buf[pos..][0..4], .little);
+            const record = std.mem.readInt(u32, buf[pos + 4 ..][0..4], .little);
+            if (host >= hdr.node_count or record >= record_count) return error.InvalidBuffer;
+            tree.addDialectOverlay(host, record) catch |err| switch (err) {
+                error.OutOfMemory => return error.OutOfMemory,
+                else => return error.InvalidBuffer,
+            };
+            pos += DIALECT_OVERLAY_SIZE;
+        }
+    }
+
+    try validateDialectStore(&tree, hdr.source_len);
+
     // skip diagnostics. codegen doesn't read them.
 
     tree.root = @enumFromInt(hdr.program_index);
@@ -722,7 +863,126 @@ pub fn deserializeFromBuf(
     return tree;
 }
 
-fn unpackNode(p: PackedNode) ast.NodeData {
+fn validateDialectStore(tree: *ast.Tree, source_len: u32) DeserializeError!void {
+    if (comptime !parser.dialect_enabled) return;
+    const records = tree.dialect_store.records.items;
+    for (records) |*record| {
+        if (!validateDialectFields(tree, source_len, record)) return error.InvalidBuffer;
+    }
+    for (tree.nodes.items(.data)) |data| {
+        if (data != .dialect_node) continue;
+        const ri = data.dialect_node.record_index;
+        if (ri >= records.len or recordIsOverlay(&records[ri])) return error.InvalidBuffer;
+    }
+    for (tree.dialect_store.overlays.items) |overlay| {
+        if (overlay.host_node >= tree.nodes.len or overlay.record_index >= records.len)
+            return error.InvalidBuffer;
+        const record = &records[overlay.record_index];
+        if (!recordIsOverlay(record)) return error.InvalidBuffer;
+        if (recordOverlayHost(record) != overlay.host_node) return error.InvalidBuffer;
+    }
+    const states = try tree.allocator().alloc(u8, records.len);
+    @memset(states, 0);
+    for (0..records.len) |index| {
+        if (!visitDialectRecord(tree, @intCast(index), states)) return error.InvalidBuffer;
+    }
+}
+
+fn recordIsOverlay(record: *const parser.dialect_schema.Record) bool {
+    switch (record.*) {
+        inline else => |payload| {
+            inline for (std.meta.fields(@TypeOf(payload))) |field| {
+                if (comptime isDialectRoleType(field.type) and field.type.dialect_role == .overlay_host) return true;
+            }
+        },
+    }
+    return false;
+}
+
+fn recordOverlayHost(record: *const parser.dialect_schema.Record) ?u32 {
+    switch (record.*) {
+        inline else => |payload| {
+            inline for (std.meta.fields(@TypeOf(payload))) |field| {
+                if (comptime isDialectRoleType(field.type) and field.type.dialect_role == .overlay_host)
+                    return @field(payload, field.name).raw;
+            }
+        },
+    }
+    return null;
+}
+
+fn validateDialectFields(tree: *const ast.Tree, source_len: u32, record: *const parser.dialect_schema.Record) bool {
+    switch (record.*) {
+        inline else => |payload| {
+            inline for (std.meta.fields(@TypeOf(payload))) |field| {
+                if (comptime !isDialectRoleType(field.type)) continue;
+                const value = @field(payload, field.name);
+                switch (comptime field.type.dialect_role) {
+                    .scalar_u32 => {},
+                    .node_ref, .overlay_host => if (value.raw >= tree.nodes.len) return false,
+                    .optional_node_ref => if (value.raw != std.math.maxInt(u32) and value.raw >= tree.nodes.len) return false,
+                    .node_list => {
+                        const end = std.math.add(u32, value.start, value.len) catch return false;
+                        if (end > tree.extras.items.len) return false;
+                        for (tree.extras.items[value.start..end]) |node_index| {
+                            if (@intFromEnum(node_index) >= tree.nodes.len) return false;
+                        }
+                    },
+                    .string_slice => {
+                        if (value.start > value.end) return false;
+                        if (value.start < source_len) {
+                            if (value.end > source_len) return false;
+                        } else {
+                            const pool_end = std.math.add(u32, source_len, @intCast(tree.strings.extra.items.len)) catch return false;
+                            if (value.end > pool_end) return false;
+                        }
+                    },
+                }
+            }
+        },
+    }
+    return true;
+}
+
+fn visitDialectRecord(tree: *const ast.Tree, record_index: u32, states: []u8) bool {
+    if (record_index >= states.len) return false;
+    if (states[record_index] == 1) return false;
+    if (states[record_index] == 2) return true;
+    states[record_index] = 1;
+    const record = &tree.dialect_store.records.items[record_index];
+    switch (record.*) {
+        inline else => |payload| {
+            inline for (std.meta.fields(@TypeOf(payload))) |field| {
+                if (comptime !isDialectRoleType(field.type)) continue;
+                const value = @field(payload, field.name);
+                switch (comptime field.type.dialect_role) {
+                    .node_ref => if (!visitDialectNode(tree, value.raw, states)) return false,
+                    .optional_node_ref => if (value.raw != std.math.maxInt(u32) and !visitDialectNode(tree, value.raw, states)) return false,
+                    .node_list => {
+                        const end = value.start + value.len;
+                        for (tree.extras.items[value.start..end]) |node_index| {
+                            if (!visitDialectNode(tree, @intFromEnum(node_index), states)) return false;
+                        }
+                    },
+                    else => {},
+                }
+            }
+        },
+    }
+    states[record_index] = 2;
+    return true;
+}
+
+fn visitDialectNode(tree: *const ast.Tree, node_index: u32, states: []u8) bool {
+    if (node_index >= tree.nodes.len) return false;
+    const data = tree.nodes.items(.data)[node_index];
+    return if (data == .dialect_node)
+        visitDialectRecord(tree, data.dialect_node.record_index, states)
+    else
+        true;
+}
+
+fn unpackNode(p: PackedNode) ?ast.NodeData {
     @setEvalBranchQuota(100_000);
     inline for (@typeInfo(ast.NodeData).@"union".fields, 0..) |field, tag| {
         if (p.tag == tag) {
@@ -732,7 +992,7 @@ fn unpackNode(p: PackedNode) ast.NodeData {
             return @unionInit(ast.NodeData, field.name, payload);
         }
     }
-    unreachable;
+    return null;
 }
 
 fn unpackPayload(comptime T: type, n: PackedNode, payload: *T) void {
@@ -743,10 +1003,18 @@ fn unpackPayload(comptime T: type, n: PackedNode, payload: *T) void {
         const bit = comptime flagBitForField(T, i);
         const slot = comptime u32SlotForField(T, i);
 
-        if (f.type == bool) {
+        if (comptime isDialectRoleType(f.type)) {
+            switch (comptime f.type.dialect_role) {
+                .node_list => @field(payload.*, f.name) = .{ .start = readSlot(n, slot), .len = readSlot(n, slot + 1) },
+                .string_slice => @field(payload.*, f.name) = .{ .start = readSlot(n, slot), .end = readSlot(n, slot + 1) },
+                else => @field(payload.*, f.name) = .{ .raw = readSlot(n, slot) },
+            }
+        } else if (f.type == bool) {
             @field(payload.*, f.name) = readFlagBit(n, bit);
         } else if (f.type == ast.NodeIndex) {
             @field(payload.*, f.name) = @enumFromInt(readSlot(n, slot));
+        } else if (f.type == u32) {
+            @field(payload.*, f.name) = readSlot(n, slot);
         } else if (f.type == ast.IndexRange) {
             const len: u32 = switch (comptime rangeIndexOf(T, i)) {
                 0 => n.field0,

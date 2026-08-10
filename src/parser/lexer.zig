@@ -1,4 +1,5 @@
 const std = @import("std");
+const dialect = @import("dialect");
 const Token = @import("token.zig").Token;
 const TokenTag = @import("token.zig").TokenTag;
 const Span = @import("token.zig").Span;
@@ -6,6 +7,8 @@ const TokenFlag = @import("token.zig").TokenFlag;
 const flagMask = @import("token.zig").flagMask;
 const ast = @import("ast.zig");
 const util = @import("util");
+
+const DialectHost = struct {};
 
 pub const LexicalError = error{
     UnterminatedString,
@@ -453,6 +456,15 @@ pub const Lexer = struct {
 
         while (self.cursor < self.source.len) {
             const c = self.source[self.cursor];
+
+            if (c == '@') {
+                if (comptime dialect.enabled and @hasDecl(dialect, "jsx_text_boundary")) {
+                    switch (dialect.jsx_text_boundary(DialectHost, self.source, self.cursor)) {
+                        .handled => |is_boundary| if (is_boundary) break,
+                        .unhandled => {},
+                    }
+                }
+            }
 
             switch (c) {
                 '<', '{', '>', '}' => break,
@@ -1011,36 +1023,35 @@ pub const Lexer = struct {
     }
 
     const keyword_list = [_]struct { []const u8, TokenTag }{
-        .{ "if", .@"if" },          .{ "of", .of },             .{ "in", .in },
-        .{ "do", .do },             .{ "as", .as },             .{ "is", .is },
-        .{ "any", .any },           .{ "for", .@"for" },        .{ "get", .get },
-        .{ "let", .let },           .{ "new", .new },           .{ "out", .out },
-        .{ "set", .set },           .{ "try", .@"try" },        .{ "var", .@"var" },
-        .{ "case", .case },         .{ "this", .this },         .{ "else", .@"else" },
-        .{ "enum", .@"enum" },      .{ "void", .void },         .{ "with", .with },
-        .{ "null", .null_literal }, .{ "type", .type },         .{ "true", .true },
-        .{ "from", .from },         .{ "await", .await },       .{ "async", .async },
-        .{ "break", .@"break" },    .{ "const", .@"const" },    .{ "class", .class },
-        .{ "catch", .@"catch" },    .{ "defer", .@"defer" },    .{ "false", .false },
-        .{ "infer", .infer },       .{ "keyof", .keyof },       .{ "never", .never },
-        .{ "super", .super },       .{ "throw", .throw },       .{ "using", .using },
-        .{ "while", .@"while" },    .{ "yield", .yield },       .{ "assert", .assert },
-        .{ "bigint", .bigint },     .{ "delete", .delete },     .{ "export", .@"export" },
-        .{ "global", .global },     .{ "import", .import },     .{ "module", .module },
-        .{ "number", .number },     .{ "object", .object },     .{ "public", .public },
-        .{ "return", .@"return" },  .{ "string", .string },     .{ "symbol", .symbol },
-        .{ "switch", .@"switch" },  .{ "static", .static },     .{ "source", .source },
-        .{ "typeof", .typeof },     .{ "unique", .unique },     .{ "asserts", .asserts },
-        .{ "boolean", .boolean },   .{ "default", .default },   .{ "declare", .declare },
-        .{ "extends", .extends },   .{ "finally", .finally },   .{ "private", .private },
-        .{ "package", .package },   .{ "require", .require },   .{ "unknown", .unknown },
-        .{ "accessor", .accessor }, .{ "abstract", .abstract }, .{ "continue", .@"continue" },
-        .{ "debugger", .debugger }, .{ "function", .function }, .{ "override", .override },
-        .{ "readonly", .readonly }, .{ "interface", .interface },
-        .{ "intrinsic", .intrinsic },   .{ "namespace", .namespace },
-        .{ "protected", .protected },   .{ "satisfies", .satisfies },
-        .{ "undefined", .undefined },   .{ "instanceof", .instanceof },
-        .{ "implements", .implements }, .{ "constructor", .constructor },
+        .{ "if", .@"if" },                .{ "of", .of },                 .{ "in", .in },
+        .{ "do", .do },                   .{ "as", .as },                 .{ "is", .is },
+        .{ "any", .any },                 .{ "for", .@"for" },            .{ "get", .get },
+        .{ "let", .let },                 .{ "new", .new },               .{ "out", .out },
+        .{ "set", .set },                 .{ "try", .@"try" },            .{ "var", .@"var" },
+        .{ "case", .case },               .{ "this", .this },             .{ "else", .@"else" },
+        .{ "enum", .@"enum" },            .{ "void", .void },             .{ "with", .with },
+        .{ "null", .null_literal },       .{ "type", .type },             .{ "true", .true },
+        .{ "from", .from },               .{ "await", .await },           .{ "async", .async },
+        .{ "break", .@"break" },          .{ "const", .@"const" },        .{ "class", .class },
+        .{ "catch", .@"catch" },          .{ "defer", .@"defer" },        .{ "false", .false },
+        .{ "infer", .infer },             .{ "keyof", .keyof },           .{ "never", .never },
+        .{ "super", .super },             .{ "throw", .throw },           .{ "using", .using },
+        .{ "while", .@"while" },          .{ "yield", .yield },           .{ "assert", .assert },
+        .{ "bigint", .bigint },           .{ "delete", .delete },         .{ "export", .@"export" },
+        .{ "global", .global },           .{ "import", .import },         .{ "module", .module },
+        .{ "number", .number },           .{ "object", .object },         .{ "public", .public },
+        .{ "return", .@"return" },        .{ "string", .string },         .{ "symbol", .symbol },
+        .{ "switch", .@"switch" },        .{ "static", .static },         .{ "source", .source },
+        .{ "typeof", .typeof },           .{ "unique", .unique },         .{ "asserts", .asserts },
+        .{ "boolean", .boolean },         .{ "default", .default },       .{ "declare", .declare },
+        .{ "extends", .extends },         .{ "finally", .finally },       .{ "private", .private },
+        .{ "package", .package },         .{ "require", .require },       .{ "unknown", .unknown },
+        .{ "accessor", .accessor },       .{ "abstract", .abstract },     .{ "continue", .@"continue" },
+        .{ "debugger", .debugger },       .{ "function", .function },     .{ "override", .override },
+        .{ "readonly", .readonly },       .{ "interface", .interface },   .{ "intrinsic", .intrinsic },
+        .{ "namespace", .namespace },     .{ "protected", .protected },   .{ "satisfies", .satisfies },
+        .{ "undefined", .undefined },     .{ "instanceof", .instanceof }, .{ "implements", .implements },
+        .{ "constructor", .constructor },
     };
 
     const keyword_length_min = 2;

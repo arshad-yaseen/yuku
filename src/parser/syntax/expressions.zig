@@ -5,6 +5,7 @@
 const ast = @import("../ast.zig");
 const Parser = @import("../parser.zig").Parser;
 const Error = @import("../parser.zig").Error;
+const dialect = @import("dialect");
 const TokenTag = @import("../token.zig").TokenTag;
 const Token = @import("../token.zig").Token;
 const std = @import("std");
@@ -37,6 +38,120 @@ const ParseExpressionOpts = struct {
     /// recursive calls (parens, computed members, ...) leave it `false`
     /// so `in` resets to allowed.
     respect_allow_in: bool = false,
+};
+
+const DialectHost = struct {
+    pub const NodeIndex = ast.NodeIndex;
+    pub const NodeData = ast.NodeData;
+    pub const NodeTag = std.meta.Tag(ast.NodeData);
+    pub const IndexRange = ast.IndexRange;
+    pub const Span = ast.Span;
+    pub const Value = ast.String;
+    pub const Token = TokenTag;
+    pub const ErrorType = Error;
+
+    pub fn advance(parser: *Parser) Error!bool {
+        return (try parser.advance()) != null;
+    }
+
+    pub fn parseBlock(parser: *Parser) Error!?ast.NodeIndex {
+        return statements.parseBlockStatement(parser);
+    }
+
+    pub fn parseBlockWithTemporaryReturn(parser: *Parser, allow_return: bool) Error!?ast.NodeIndex {
+        return statements.parseBlockStatementWithTemporaryReturn(parser, allow_return);
+    }
+
+    pub fn parseStatement(parser: *Parser) Error!?ast.NodeIndex {
+        return statements.parseStatement(parser, .{});
+    }
+
+    pub fn currentToken(parser: *const Parser) TokenTag {
+        return parser.current_token.tag;
+    }
+
+    pub fn currentSpan(parser: *const Parser) ast.Span {
+        return parser.current_token.span;
+    }
+
+    pub fn data(parser: *const Parser, node: ast.NodeIndex) ast.NodeData {
+        return parser.tree.data(node);
+    }
+    pub fn extra(parser: *const Parser, range: ast.IndexRange) []const ast.NodeIndex {
+        return parser.tree.extra(range);
+    }
+    pub fn string(parser: *const Parser, value: ast.String) []const u8 {
+        return parser.tree.string(value);
+    }
+    pub fn source(parser: *const Parser) []const u8 {
+        return parser.source;
+    }
+    pub fn sourceText(parser: *const Parser, span: ast.Span) []const u8 {
+        return parser.spanText(span);
+    }
+    pub fn nodeSpan(parser: *const Parser, node: ast.NodeIndex) ast.Span {
+        return parser.tree.span(node);
+    }
+    pub fn allocator(parser: *Parser) std.mem.Allocator {
+        return parser.allocator();
+    }
+    pub fn addString(parser: *Parser, value: []const u8) Error!ast.String {
+        return parser.tree.addString(value);
+    }
+    pub fn addExtra(parser: *Parser, nodes: []const ast.NodeIndex) Error!ast.IndexRange {
+        return parser.tree.addExtra(nodes);
+    }
+    pub fn addNode(parser: *Parser, data_: ast.NodeData, span: ast.Span) Error!ast.NodeIndex {
+        return parser.tree.addNode(data_, span);
+    }
+    pub fn addDialectNode(parser: *Parser, record: dialect.Record, span: ast.Span) Error!ast.NodeIndex {
+        return parser.addDialectNode(record, span);
+    }
+    pub fn overlayRecord(parser: *const Parser, host: ast.NodeIndex) ?dialect.Record {
+        const index = parser.tree.dialectOverlay(@intFromEnum(host)) orelse return null;
+        return parser.tree.dialect_store.records.items[index];
+    }
+    pub fn reportWithHelp(parser: *Parser, span: ast.Span, message: []const u8, help: []const u8) Error!void {
+        return parser.report(span, message, .{ .help = help });
+    }
+    pub fn report(parser: *Parser, span: ast.Span, message: []const u8) Error!void {
+        return parser.report(span, message, .{});
+    }
+    pub fn currentReturnContext(parser: *const Parser) bool {
+        return parser.context.@"return";
+    }
+
+    pub fn parseArrayCover(parser: *Parser) Error!?ast.NodeIndex {
+        return parseArrayExpression(parser, true);
+    }
+
+    pub fn parseObjectCover(parser: *Parser) Error!?ast.NodeIndex {
+        return parseObjectExpression(parser, true);
+    }
+
+    pub fn expressionToAssignablePattern(parser: *Parser, node: ast.NodeIndex) Error!void {
+        return grammar.expressionToPattern(parser, node, .assignable);
+    }
+
+    pub fn extendNodeStart(parser: *Parser, node: ast.NodeIndex, start: u32) void {
+        const span = parser.tree.span(node);
+        std.debug.assert(start <= span.start);
+        parser.tree.setSpan(node, .{ .start = start, .end = span.end });
+    }
+
+    pub fn addRecord(parser: *Parser, record: anytype) Error!u32 {
+        return parser.tree.addDialectRecord(record) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
+
+    pub fn addOverlay(parser: *Parser, host: ast.NodeIndex, record_index: u32) Error!void {
+        parser.tree.addDialectOverlay(@intFromEnum(host), record_index) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
 };
 
 pub fn parseExpression(
@@ -117,6 +232,13 @@ fn parsePrefix(parser: *Parser, opts: ParseExpressionOpts, precedence: u8) Error
 
     if (tag == .increment or tag == .decrement) {
         return parseUpdateExpression(parser, true, .null);
+    }
+
+    if (comptime dialect.enabled and @hasDecl(dialect, "lazy_assignment_pattern")) {
+        switch (try dialect.lazy_assignment_pattern(DialectHost, parser)) {
+            .handled => |node| return node,
+            .unhandled => {},
+        }
     }
 
     if (tag.isUnaryOperator()) {
@@ -248,6 +370,18 @@ pub inline fn parsePrimaryExpression(
         .function => functions.parseFunction(parser, .{ .is_expression = true }, null),
         .class => class.parseClass(parser, .{ .is_expression = true }, null),
         .at => blk: {
+            if (comptime dialect.enabled and @hasDecl(dialect, "expression_at_code_block")) {
+                switch (try dialect.expression_at_code_block(DialectHost, parser)) {
+                    .handled => |node| break :blk node,
+                    .unhandled => {},
+                }
+            }
+            if (comptime dialect.enabled and @hasDecl(dialect, "expression_at_control_flow")) {
+                switch (try dialect.expression_at_control_flow(DialectHost, parser)) {
+                    .handled => |node| break :blk node,
+                    .unhandled => {},
+                }
+            }
             const decorators_start = parser.current_token.span.start;
             const decorators = try extensions.parseDecorators(parser) orelse break :blk null;
             break :blk try class.parseClassDecorated(

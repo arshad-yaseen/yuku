@@ -2,6 +2,7 @@ const std = @import("std");
 const ast = @import("../ast.zig");
 const Parser = @import("../parser.zig").Parser;
 const Error = @import("../parser.zig").Error;
+const dialect = @import("dialect");
 const TokenTag = @import("../token.zig").TokenTag;
 
 const literals = @import("literals.zig");
@@ -18,6 +19,90 @@ const ParseFunctionOpts = struct {
     /// `export default function`: name is optional but the result is
     /// still a `FunctionDeclaration`.
     is_default_export: bool = false,
+};
+
+const DialectHost = struct {
+    pub const NodeIndex = ast.NodeIndex;
+    pub const NodeData = ast.NodeData;
+    pub const NodeTag = std.meta.Tag(ast.NodeData);
+    pub const IndexRange = ast.IndexRange;
+    pub const Span = ast.Span;
+    pub const Value = ast.String;
+    pub const Token = TokenTag;
+    pub const ErrorType = Error;
+
+    pub fn currentToken(parser: *const Parser) TokenTag {
+        return parser.current_token.tag;
+    }
+    pub fn currentSpan(parser: *const Parser) ast.Span {
+        return parser.current_token.span;
+    }
+    pub fn data(parser: *const Parser, node: ast.NodeIndex) ast.NodeData {
+        return parser.tree.data(node);
+    }
+    pub fn extra(parser: *const Parser, range: ast.IndexRange) []const ast.NodeIndex {
+        return parser.tree.extra(range);
+    }
+    pub fn string(parser: *const Parser, value: ast.String) []const u8 {
+        return parser.tree.string(value);
+    }
+    pub fn source(parser: *const Parser) []const u8 {
+        return parser.source;
+    }
+    pub fn sourceText(parser: *const Parser, span: ast.Span) []const u8 {
+        return parser.spanText(span);
+    }
+    pub fn nodeSpan(parser: *const Parser, node: ast.NodeIndex) ast.Span {
+        return parser.tree.span(node);
+    }
+    pub fn allocator(parser: *Parser) std.mem.Allocator {
+        return parser.allocator();
+    }
+    pub fn addString(parser: *Parser, value: []const u8) Error!ast.String {
+        return parser.tree.addString(value);
+    }
+    pub fn addExtra(parser: *Parser, nodes: []const ast.NodeIndex) Error!ast.IndexRange {
+        return parser.tree.addExtra(nodes);
+    }
+    pub fn addNode(parser: *Parser, data_: ast.NodeData, span: ast.Span) Error!ast.NodeIndex {
+        return parser.tree.addNode(data_, span);
+    }
+    pub fn addDialectNode(parser: *Parser, record: dialect.Record, span: ast.Span) Error!ast.NodeIndex {
+        return parser.addDialectNode(record, span);
+    }
+    pub fn reportWithHelp(parser: *Parser, span: ast.Span, message: []const u8, help: []const u8) Error!void {
+        return parser.report(span, message, .{ .help = help });
+    }
+    pub fn currentReturnContext(parser: *const Parser) bool {
+        return parser.context.@"return";
+    }
+
+    pub fn parseBody(parser: *Parser) Error!?ast.NodeIndex {
+        return parseFunctionBodyContinuation(parser);
+    }
+    pub fn advance(parser: *Parser) Error!bool {
+        return (try parser.advance()) != null;
+    }
+    pub fn parseBlockWithTemporaryReturn(parser: *Parser, allow_return: bool) Error!?ast.NodeIndex {
+        const saved = parser.context.@"return";
+        parser.context.@"return" = allow_return;
+        defer parser.context.@"return" = saved;
+        return parseFunctionBodyContinuation(parser);
+    }
+
+    pub fn addRecord(parser: *Parser, record: anytype) Error!u32 {
+        return parser.tree.addDialectRecord(record) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
+
+    pub fn addOverlay(parser: *Parser, host: ast.NodeIndex, record_index: u32) Error!void {
+        parser.tree.addDialectOverlay(@intFromEnum(host), record_index) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
 };
 
 pub fn parseFunction(
@@ -129,8 +214,14 @@ pub fn parseFunction(
     }
 
     // ts ambient declarations and overload signatures are body-less.
-    const has_body = !is_ambient_declaration and
+    var has_body = !is_ambient_declaration and
         (!is_ts or is_function_expression or parser.current_token.tag == .left_brace);
+    if (comptime dialect.enabled and @hasDecl(dialect, "function_body_starts")) {
+        switch (dialect.function_body_starts(DialectHost, parser)) {
+            .handled => |value| has_body = value,
+            .unhandled => {},
+        }
+    }
     const body: ast.NodeIndex = if (has_body)
         try parseFunctionBody(parser) orelse .null
     else
@@ -186,7 +277,19 @@ pub fn parseFunction(
     });
 }
 
-pub fn parseFunctionBody(parser: *Parser) Error!?ast.NodeIndex {
+pub const parseFunctionBody = if (dialect.enabled and @hasDecl(dialect, "function_body"))
+    parseFunctionBodyDialect
+else
+    parseFunctionBodyContinuation;
+
+fn parseFunctionBodyDialect(parser: *Parser) Error!?ast.NodeIndex {
+    switch (try dialect.function_body(DialectHost, parser)) {
+        .handled => |node| return node,
+        .unhandled => return parseFunctionBodyContinuation(parser),
+    }
+}
+
+fn parseFunctionBodyContinuation(parser: *Parser) Error!?ast.NodeIndex {
     const start = parser.current_token.span.start;
 
     if (!try parser.expect(

@@ -10,13 +10,40 @@ const Writer = std.Io.Writer;
 pub fn generate(w: *Writer) !void {
     @setEvalBranchQuota(500_000);
     try writePrologue(w);
+    try writeDialectSchema(w);
     try writeInverseMaps(w);
     try writeRuntime(w);
+    try writeDialectRuntime(w);
     try writeIdentifierHelpers(w);
     try writeNodeEncoders(w);
     try writeDispatcher(w);
     try writeAssemble(w);
     try w.writeAll("export { encode };\n");
+}
+
+fn writeDialectSchema(w: *Writer) !void {
+    if (comptime !parser.dialect_enabled) return;
+    comptime meta.validateDialectSchema();
+    try w.writeAll("const DIALECT_TS = Symbol.for(\"yuku.estree.transfer.ts\");\n");
+    try w.writeAll("const DIALECT_RECORDS = Object.freeze([\n");
+    inline for (@typeInfo(parser.dialect_schema.Record).@"union".fields, 0..) |record, index| {
+        try w.print("  Object.freeze({{ tag: {d}, type: \"{s}\", overlay: {}, fields: Object.freeze([", .{
+            comptime rt.dialectNodeTag() + 1 + index,
+            comptime meta.dialectRecordType(record.name, record.type),
+            comptime meta.dialectRecordIsOverlay(record.type),
+        });
+        inline for (std.meta.fields(record.type), 0..) |field, field_index| {
+            if (field_index > 0) try w.writeAll(", ");
+            try w.print("Object.freeze({{ name: \"{s}\", role: \"{s}\", slot: {d}, bit: {d} }})", .{
+                comptime meta.estreeField(record.name, field.name),
+                comptime meta.dialectRoleName(field.type),
+                comptime rt.u32SlotForField(record.type, field_index) + rt.NODE_HEADER_U32S,
+                comptime rt.flagBitForField(record.type, field_index),
+            });
+        }
+        try w.writeAll("]) }),\n");
+    }
+    try w.writeAll("]);\n");
 }
 
 fn writePrologue(w: *Writer) !void {
@@ -227,6 +254,69 @@ fn writeRuntime(w: *Writer) !void {
     );
 }
 
+fn writeDialectRuntime(w: *Writer) !void {
+    if (comptime !parser.dialect_enabled) return;
+    try w.print(
+        \\  const dialectRecords = [];
+        \\  const dialectOverlays = [];
+        \\  const dialectActive = new WeakSet();
+        \\  function encDialectRecord(n, schema, hostIdx) {{
+        \\    if (dialectActive.has(n)) throw new Error("yuku-codegen: cyclic dialect record");
+        \\    dialectActive.add(n);
+        \\    try {{
+        \\      const values = [];
+        \\      for (const field of schema.fields) {{
+        \\        const v = n[field.name];
+        \\        if (field.role === "host") values.push(hostIdx);
+        \\        else {{
+        \\          if (!Object.prototype.hasOwnProperty.call(n, field.name))
+        \\            throw new Error(`yuku-codegen: missing required dialect field ${{field.name}}`);
+        \\          if (field.role === "bool") {{
+        \\            if (typeof v !== "boolean") throw new Error("yuku-codegen: invalid dialect boolean " + field.name);
+        \\            values.push(v);
+        \\          }} else if (field.role === "scalar") {{
+        \\            if (!Number.isInteger(v) || v < 0 || v > 0xFFFFFFFF) throw new Error("yuku-codegen: invalid dialect scalar " + field.name);
+        \\            values.push(v);
+        \\          }} else if (field.role === "node") {{
+        \\            if (v == null || typeof v !== "object") throw new Error("yuku-codegen: invalid dialect node " + field.name);
+        \\            values.push(encNode(v));
+        \\          }} else if (field.role === "optionalNode") {{
+        \\            if (v != null && typeof v !== "object") throw new Error("yuku-codegen: invalid optional dialect node " + field.name);
+        \\            values.push(v == null ? NULL : encNode(v));
+        \\          }} else if (field.role === "nodeList") {{
+        \\            if (!Array.isArray(v)) throw new Error("yuku-codegen: invalid dialect node list " + field.name);
+        \\            values.push(encArr(v, encNode));
+        \\          }} else if (field.role === "string") {{
+        \\            if (typeof v !== "string") throw new Error("yuku-codegen: invalid dialect string " + field.name);
+        \\            values.push(encStr(v));
+        \\          }}
+        \\        }}
+        \\      }}
+        \\      const ab = new ArrayBuffer(NODE_SIZE), u8 = new Uint8Array(ab), u32 = new Uint32Array(ab);
+        \\      u8[0] = schema.tag;
+        \\      let packedFlags = 0;
+        \\      for (let i = 0; i < schema.fields.length; i++) {{
+        \\        const field = schema.fields[i], v = values[i];
+        \\        if (field.role === "bool") {{ if (v) packedFlags |= 1 << field.bit; }}
+        \\        else if (field.role === "nodeList") {{ u32[field.slot] = v.start; u32[field.slot + 1] = v.len; }}
+        \\        else if (field.role === "string") {{ u32[field.slot] = v.start; u32[field.slot + 1] = v.end; }}
+        \\        else u32[field.slot] = v >>> 0;
+        \\      }}
+        \\      new DataView(ab).setUint16({[flags_off]d}, packedFlags, true);
+        \\      const ri = dialectRecords.length;
+        \\      dialectRecords.push(ab);
+        \\      return ri;
+        \\    }} finally {{ dialectActive.delete(n); }}
+        \\  }}
+        \\  function encDialectDirect(n, schema) {{
+        \\    const ri = encDialectRecord(n, schema, NULL);
+        \\    const idx = alloc(); tagAt(idx, {[dialect_tag]d}); slotAt(idx, 0, ri);
+        \\    spanAt(idx, asStart(n), asEnd(n)); recordComments(n, idx); return idx;
+        \\  }}
+        \\
+    , .{ .flags_off = rt.NODE_FLAGS_OFFSET, .dialect_tag = rt.dialectNodeTag() });
+}
+
 fn writeIdentifierHelpers(w: *Writer) !void {
     try w.writeAll(
         \\  function encBindingTarget(n) {
@@ -261,7 +351,7 @@ fn writeNodeEncoders(w: *Writer) !void {
 // function_body (tag 5) and block_statement (tag 4) both decode to BlockStatement, the encoder emits block_statement
 fn skipGeneration(comptime name: []const u8) bool {
     @setEvalBranchQuota(20_000);
-    return std.mem.eql(u8, name, "function_body");
+    return !meta.includeNode(name) or std.mem.eql(u8, name, "function_body");
 }
 
 fn writeGenericEncoder(
@@ -316,7 +406,9 @@ fn writeGenericEncoder(
     inline for (std.meta.fields(T), 0..) |f, i| {
         const slot = comptime rt.u32SlotForField(T, i);
         const jsf = comptime meta.estreeField(name, f.name);
-        if (f.type == ast.NodeIndex) {
+        if (f.type == u32) {
+            try w.print("    slotAt(idx, {d}, n.{s});\n", .{ slot, jsf });
+        } else if (f.type == ast.NodeIndex) {
             try w.print("    slotAt(idx, {d}, c_{s});\n", .{ slot, f.name });
         } else if (f.type == ast.IndexRange) {
             switch (comptime rt.rangeIndexOf(T, i)) {
@@ -453,12 +545,12 @@ fn isFlagField(comptime F: type) bool {
     if (F == bool) return true;
     if (F == ?ast.ImportPhase) return true;
     if (F == ?ast.Hashbang) return true;
-    if (F == ast.NodeIndex or F == ast.IndexRange or F == ast.String) return false;
+    if (F == u32 or F == ast.NodeIndex or F == ast.IndexRange or F == ast.String) return false;
     return @typeInfo(F) == .@"enum";
 }
 
 fn isEnumFlag(comptime F: type) bool {
-    if (F == ast.NodeIndex or F == ast.IndexRange or F == ast.String) return false;
+    if (F == u32 or F == ast.NodeIndex or F == ast.IndexRange or F == ast.String) return false;
     return @typeInfo(F) == .@"enum";
 }
 
@@ -1344,9 +1436,12 @@ fn writeSpecialTSIndexSig(w: *Writer, comptime tag: usize) !void {
 }
 
 fn writeDispatcher(w: *Writer) !void {
+    try w.writeAll("  const commentsByIdx = new Map();\n");
+    try w.writeAll(if (comptime parser.dialect_enabled)
+        "  function encNodeInner(n) {\n"
+    else
+        "  function encNode(n) {\n");
     try w.writeAll(
-        \\  const commentsByIdx = new Map();
-        \\  function encNode(n) {
         \\    if (n == null) return NULL;
         \\    switch (n.type) {
         \\      case "Identifier": return enc_identifier_reference(n);
@@ -1394,6 +1489,24 @@ fn writeDispatcher(w: *Writer) !void {
     try w.writeAll(
         \\      default: throw new Error("yuku-codegen: unsupported ESTree node type: " + n.type);
         \\    }
+        \\  }
+        \\
+    );
+    if (comptime parser.dialect_enabled) try w.writeAll(
+        \\  function encNode(n) {
+        \\    if (n == null) return NULL;
+        \\    const direct = DIALECT_RECORDS.filter(s => !s.overlay && s.type === n.type);
+        \\    if (direct.length > 1) throw new Error("yuku-codegen: ambiguous direct dialect schema " + n.type);
+        \\    if (direct.length === 1) return encDialectDirect(n, direct[0]);
+        \\    const idx = encNodeInner(n);
+        \\    const overlays = DIALECT_RECORDS.filter(s => s.overlay && s.type === n.type &&
+        \\      s.fields.some(f => f.role !== "host" && Object.prototype.hasOwnProperty.call(n, f.name)));
+        \\    if (overlays.length > 1) throw new Error("yuku-codegen: ambiguous overlay dialect schema " + n.type);
+        \\    if (overlays.length === 1) {
+        \\      const ri = encDialectRecord(n, overlays[0], idx);
+        \\      dialectOverlays.push({ host: idx, record: ri });
+        \\    }
+        \\    return idx;
         \\  }
         \\
     );
@@ -1455,6 +1568,7 @@ fn writeAssemble(w: *Writer) !void {
         \\      }}
         \\    }}
         \\  }}
+        \\{[dialect_decl]s}
         \\  const totalNodeBytes = nodeCount * NODE_SIZE;
         \\  const totalExtraBytes = extraCount * 4;
         \\  const totalPoolBytes = (poolLen + 3) & ~3;
@@ -1462,7 +1576,7 @@ fn writeAssemble(w: *Writer) !void {
         \\  const totalAttachedBytes = attachedCount * ATTACHED_COMMENT_SIZE;
         \\  const finalSize =
         \\    HEADER_SIZE + totalNodeBytes + totalExtraBytes + totalPoolBytes +
-        \\    totalOffsetsBytes + totalAttachedBytes;
+        \\    totalOffsetsBytes + totalAttachedBytes{[dialect_size]s};
         \\  const out = new ArrayBuffer(finalSize);
         \\  const outU8 = new Uint8Array(out);
         \\  const outU32 = new Uint32Array(out, 0, (finalSize >>> 2));
@@ -1474,7 +1588,7 @@ fn writeAssemble(w: *Writer) !void {
         \\  outU32[{[u_acc]d}] = attachedCount;
         \\  outU32[{[u_dc]d}] = 0;
         \\  outU32[{[u_pi]d}] = progIdx;
-        \\  outU32[{[u_fl]d}] = attached ? FLAG_ATTACHED_COMMENTS : 0;
+        \\  outU32[{[u_fl]d}] = {[flags_expr]s};
         \\  outU32[{[u_fna]d}] = 0;
         \\  const nodesOff = HEADER_SIZE;
         \\  const extrasOff = nodesOff + totalNodeBytes;
@@ -1486,6 +1600,7 @@ fn writeAssemble(w: *Writer) !void {
         \\  outU8.set(pool.subarray(0, poolLen), poolOff);
         \\  if (offsetsBytes !== null) outU8.set(new Uint8Array(offsetsBytes), offsetsOff);
         \\  if (attachedBytes !== null) outU8.set(new Uint8Array(attachedBytes), attachedOff);
+        \\{[dialect_copy]s}
         \\  return out;
         \\}}
         \\
@@ -1500,5 +1615,30 @@ fn writeAssemble(w: *Writer) !void {
         .u_pi = rt.HDR_PROGRAM_INDEX_U32,
         .u_fl = rt.HDR_FLAGS_U32,
         .u_fna = rt.HDR_FIRST_NON_ASCII_U32,
+        .dialect_decl = if (comptime parser.dialect_enabled)
+            \\  dialectOverlays.sort((a, b) => a.host - b.host);
+            \\  const totalDialectBytes = dialectRecords.length === 0 ? 0
+            \\    : 8 + dialectRecords.length * NODE_SIZE + dialectOverlays.length * 8;
+        else
+            "",
+        .dialect_size = if (comptime parser.dialect_enabled) " + totalDialectBytes" else "",
+        .flags_expr = if (comptime parser.dialect_enabled)
+            comptime std.fmt.comptimePrint("(attached ? FLAG_ATTACHED_COMMENTS : 0) | (root[DIALECT_TS] === true ? {d} : 0) | (dialectRecords.length ? {d} : 0)", .{ rt.FLAG_TS, rt.FLAG_DIALECT_RECORDS })
+        else
+            "attached ? FLAG_ATTACHED_COMMENTS : 0",
+        .dialect_copy = if (comptime parser.dialect_enabled)
+            \\  if (dialectRecords.length) {
+            \\    const dialectOff = attachedOff + totalAttachedBytes;
+            \\    const dv = new DataView(out);
+            \\    dv.setUint32(dialectOff, dialectRecords.length, true);
+            \\    dv.setUint32(dialectOff + 4, dialectOverlays.length, true);
+            \\    let p = dialectOff + 8;
+            \\    for (const record of dialectRecords) { outU8.set(new Uint8Array(record), p); p += NODE_SIZE; }
+            \\    for (const overlay of dialectOverlays) {
+            \\      dv.setUint32(p, overlay.host, true); dv.setUint32(p + 4, overlay.record, true); p += 8;
+            \\    }
+            \\  }
+        else
+            "",
     });
 }

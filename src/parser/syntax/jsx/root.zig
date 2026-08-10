@@ -1,8 +1,11 @@
 const std = @import("std");
 const ast = @import("../../ast.zig");
 const Precedence = @import("../../token.zig").Precedence;
+const TokenTag = @import("../../token.zig").TokenTag;
+const RawToken = @import("../../token.zig").Token;
 const Parser = @import("../../parser.zig").Parser;
 const Error = @import("../../parser.zig").Error;
+const dialect = @import("dialect");
 
 const literals = @import("../literals.zig");
 const expressions = @import("../expressions.zig");
@@ -16,6 +19,139 @@ const JsxElementContext = enum {
     child,
     /// attribute value, restores jsx_tag mode
     attribute,
+};
+
+const DialectHost = struct {
+    pub const NodeIndex = ast.NodeIndex;
+    pub const NodeData = ast.NodeData;
+    pub const NodeTag = std.meta.Tag(ast.NodeData);
+    pub const IndexRange = ast.IndexRange;
+    pub const Value = ast.String;
+    pub const Span = ast.Span;
+    pub const Token = TokenTag;
+    pub const ErrorType = Error;
+
+    pub fn currentToken(parser: *const Parser) TokenTag {
+        return parser.current_token.tag;
+    }
+
+    pub fn currentSpan(parser: *const Parser) ast.Span {
+        return parser.current_token.span;
+    }
+    pub fn data(parser: *const Parser, node: ast.NodeIndex) ast.NodeData {
+        return parser.tree.data(node);
+    }
+    pub fn extra(parser: *const Parser, range: ast.IndexRange) []const ast.NodeIndex {
+        return parser.tree.extra(range);
+    }
+    pub fn string(parser: *const Parser, value: ast.String) []const u8 {
+        return parser.tree.string(value);
+    }
+    pub fn source(parser: *const Parser) []const u8 {
+        return parser.source;
+    }
+    pub fn sourceText(parser: *const Parser, span: ast.Span) []const u8 {
+        return parser.spanText(span);
+    }
+    pub fn allocator(parser: *Parser) std.mem.Allocator {
+        return parser.allocator();
+    }
+    pub fn addString(parser: *Parser, value: []const u8) Error!ast.String {
+        return parser.tree.addString(value);
+    }
+    pub fn addExtra(parser: *Parser, nodes: []const ast.NodeIndex) Error!ast.IndexRange {
+        return parser.tree.addExtra(nodes);
+    }
+    pub fn addNode(parser: *Parser, data_: ast.NodeData, span: ast.Span) Error!ast.NodeIndex {
+        return parser.tree.addNode(data_, span);
+    }
+    pub fn addDialectNode(parser: *Parser, record: dialect.Record, span: ast.Span) Error!ast.NodeIndex {
+        return parser.addDialectNode(record, span);
+    }
+    pub fn reportWithHelp(parser: *Parser, span: ast.Span, message: []const u8, help: []const u8) Error!void {
+        return parser.report(span, message, .{ .help = help });
+    }
+    pub fn currentReturnContext(parser: *const Parser) bool {
+        return parser.context.@"return";
+    }
+    pub fn resumeAfterRawSpan(
+        parser: *Parser,
+        end: u32,
+        comptime context: JsxElementContext,
+    ) Error!bool {
+        if (end > parser.source.len) return false;
+        parser.lexer.rewindTo(end);
+        parser.current_token = RawToken.eof(end);
+        parser.prev_token_end = end;
+        switch (context) {
+            .child => parser.setLexerMode(.normal),
+            .top_level => {
+                parser.setLexerMode(.normal);
+                return (try parser.advance()) != null;
+            },
+            .attribute => {
+                parser.setLexerMode(.jsx_tag);
+                return (try parser.advance()) != null;
+            },
+        }
+        return true;
+    }
+
+    pub fn nodeSpan(parser: *const Parser, node: ast.NodeIndex) ast.Span {
+        return parser.tree.span(node);
+    }
+
+    pub fn sourceSlice(parser: *const Parser, start: u32, end: u32) ast.String {
+        return parser.tree.sourceSlice(start, end);
+    }
+
+    pub fn addTextNode(parser: *Parser, value: ast.String, span: ast.Span) Error!ast.NodeIndex {
+        return parser.tree.addNode(.{ .jsx_text = .{ .value = value } }, span);
+    }
+
+    pub fn parseChild(parser: *Parser) Error!?ast.NodeIndex {
+        return parseJsxChildFromLeftBrace(parser);
+    }
+
+    pub fn parseBlockWithTemporaryReturn(parser: *Parser, allow_return: bool) Error!?ast.NodeIndex {
+        return parser.parseDialectBlockWithTemporaryReturn(allow_return);
+    }
+
+    pub fn finishElement(parser: *Parser, opening: ast.NodeIndex, comptime context: JsxElementContext) Error!?ast.NodeIndex {
+        return finishJsxElement(parser, opening, context);
+    }
+
+    pub fn parseTagExpressionContainer(parser: *Parser) Error!?ast.NodeIndex {
+        return parseJsxExpressionContainer(parser);
+    }
+
+    pub fn namesEqual(parser: *const Parser, left: ast.NodeIndex, right: ast.NodeIndex) bool {
+        const left_span = parser.tree.span(left);
+        const right_span = parser.tree.span(right);
+        return std.mem.eql(u8, parser.spanText(left_span), parser.spanText(right_span));
+    }
+
+    pub fn advance(parser: *Parser) Error!bool {
+        return (try parser.advance()) != null;
+    }
+
+    pub fn report(parser: *Parser, span: ast.Span, message: []const u8) Error!void {
+        return parser.report(span, message, .{});
+    }
+
+    pub fn addRecord(parser: *Parser, record: anytype) Error!u32 {
+        return parser.tree.addDialectRecord(record) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
+
+    pub fn addOverlay(parser: *Parser, host: ast.NodeIndex, record_index: u32) Error!void {
+        parser.tree.addDialectOverlay(@intFromEnum(host), record_index) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
 };
 
 inline fn enterJsxTag(parser: *Parser) void {
@@ -33,8 +169,6 @@ pub fn parseJsxExpression(parser: *Parser) Error!?ast.NodeIndex {
 }
 
 fn parseJsxElement(parser: *Parser, comptime context: JsxElementContext) Error!?ast.NodeIndex {
-    const start = parser.current_token.span.start;
-
     // peek in jsx_tag mode so a fragment's '>' is not glued to the character after it,
     // as in `<>=</>`
     enterJsxTag(parser);
@@ -48,7 +182,27 @@ fn parseJsxElement(parser: *Parser, comptime context: JsxElementContext) Error!?
 
     const opening = try parseJsxOpeningElement(parser, context) orelse return null;
     const opening_data = parser.tree.data(opening).jsx_opening_element;
+
+    if (comptime dialect.enabled and @hasDecl(dialect, "jsx_element_after_open")) {
+        switch (try dialect.jsx_element_after_open(DialectHost, parser, opening, context)) {
+            .handled => |node| return node,
+            .unhandled => {},
+        }
+    }
+    if (comptime dialect.enabled and @hasDecl(dialect, "validate_jsx_element_name")) {
+        switch (try dialect.validate_jsx_element_name(DialectHost, parser, opening_data.name)) {
+            .handled => {},
+            .unhandled => {},
+        }
+    }
+
+    return finishJsxElement(parser, opening, context);
+}
+
+inline fn finishJsxElement(parser: *Parser, opening: ast.NodeIndex, comptime context: JsxElementContext) Error!?ast.NodeIndex {
+    const opening_data = parser.tree.data(opening).jsx_opening_element;
     const opening_end = parser.tree.span(opening).end;
+    const start = parser.tree.span(opening).start;
 
     // self-closing element: <elem />
     if (opening_data.self_closing) {
@@ -284,6 +438,12 @@ fn parseJsxClosingElement(
 }
 
 fn jsxNamesMatch(parser: *const Parser, a: ast.NodeIndex, b: ast.NodeIndex) bool {
+    if (comptime dialect.enabled and @hasDecl(dialect, "jsx_names_match")) {
+        switch (dialect.jsx_names_match(DialectHost, parser, a, b)) {
+            .handled => |value| return value,
+            .unhandled => {},
+        }
+    }
     const span_a = parser.tree.span(a);
     const span_b = parser.tree.span(b);
 
@@ -313,9 +473,16 @@ fn parseJsxChildren(parser: *Parser, gt_end: u32) Error!?ast.IndexRange {
         const text_token = parser.lexer.reScanJsxText(scan_from);
 
         if (text_token.len() > 0) {
+            var text_value = parser.tree.sourceSlice(text_token.span.start, text_token.span.end);
+            if (comptime dialect.enabled and @hasDecl(dialect, "jsx_text_value")) {
+                switch (try dialect.jsx_text_value(DialectHost, parser, text_token.span)) {
+                    .handled => |value| text_value = value,
+                    .unhandled => {},
+                }
+            }
             const text_node = try parser.tree.addNode(.{
                 .jsx_text = .{
-                    .value = parser.tree.sourceSlice(text_token.span.start, text_token.span.end),
+                    .value = text_value,
                 },
             }, text_token.span);
 
@@ -340,6 +507,31 @@ fn parseJsxChildren(parser: *Parser, gt_end: u32) Error!?ast.IndexRange {
                 const child = try parseJsxChildFromLeftBrace(parser) orelse return null;
                 scan_from = parser.tree.span(child).end;
                 try parser.scratch_b.append(parser.allocator(), child);
+            },
+            .at => {
+                if (comptime dialect.enabled and @hasDecl(dialect, "jsx_child_at_code_block")) {
+                    switch (try dialect.jsx_child_at_code_block(DialectHost, parser)) {
+                        .handled => |node| {
+                            const child = node orelse return null;
+                            scan_from = parser.tree.span(child).end;
+                            try parser.scratch_b.append(parser.allocator(), child);
+                            continue;
+                        },
+                        .unhandled => {},
+                    }
+                }
+                if (comptime dialect.enabled and @hasDecl(dialect, "jsx_child_at_control_flow")) {
+                    switch (try dialect.jsx_child_at_control_flow(DialectHost, parser)) {
+                        .handled => |node| {
+                            const child = node orelse return null;
+                            scan_from = parser.tree.span(child).end;
+                            try parser.scratch_b.append(parser.allocator(), child);
+                            continue;
+                        },
+                        .unhandled => {},
+                    }
+                }
+                break;
             },
             .greater_than, .right_brace => {
                 try parser.report(
@@ -618,6 +810,16 @@ fn parseJsxSpreadAttribute(parser: *Parser) Error!?ast.NodeIndex {
 
 // https://facebook.github.io/jsx/#prod-JSXElementName
 fn parseJsxElementName(parser: *Parser) Error!?ast.NodeIndex {
+    if (comptime dialect.enabled and @hasDecl(dialect, "jsx_element_name")) {
+        switch (try dialect.jsx_element_name(DialectHost, parser)) {
+            .handled => |node| return node,
+            .unhandled => {},
+        }
+    }
+    return parseJsxElementNameContinuation(parser);
+}
+
+inline fn parseJsxElementNameContinuation(parser: *Parser) Error!?ast.NodeIndex {
     if (parser.current_token.tag != .jsx_identifier) {
         try parser.reportExpected(
             parser.current_token.span,

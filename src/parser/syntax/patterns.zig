@@ -1,7 +1,9 @@
 const std = @import("std");
 const Parser = @import("../parser.zig").Parser;
 const Error = @import("../parser.zig").Error;
+const dialect = @import("dialect");
 const ast = @import("../ast.zig");
+const TokenTag = @import("../token.zig").TokenTag;
 const Precedence = @import("../token.zig").Precedence;
 
 const array = @import("array.zig");
@@ -10,7 +12,57 @@ const literals = @import("literals.zig");
 const expressions = @import("expressions.zig");
 const ts = @import("ts/types.zig");
 
+const DialectHost = struct {
+    pub const NodeIndex = ast.NodeIndex;
+    pub const Token = TokenTag;
+    pub const ErrorType = Error;
+
+    pub fn currentToken(parser: *const Parser) TokenTag {
+        return parser.current_token.tag;
+    }
+
+    pub fn currentSpan(parser: *const Parser) ast.Span {
+        return parser.current_token.span;
+    }
+
+    pub fn advance(parser: *Parser) Error!bool {
+        return (try parser.advance()) != null;
+    }
+
+    pub fn extendNodeStart(parser: *Parser, node: ast.NodeIndex, start: u32) void {
+        parser.tree.setSpan(node, .{ .start = start, .end = parser.tree.span(node).end });
+    }
+
+    pub fn parseOrdinaryBinding(parser: *Parser) Error!?ast.NodeIndex {
+        return parseBindingPatternContinuation(parser);
+    }
+
+    pub fn addRecord(parser: *Parser, record: anytype) Error!u32 {
+        return parser.tree.addDialectRecord(record) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
+
+    pub fn addOverlay(parser: *Parser, host: ast.NodeIndex, record_index: u32) Error!void {
+        parser.tree.addDialectOverlay(@intFromEnum(host), record_index) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
+};
+
 pub inline fn parseBindingPattern(parser: *Parser) Error!?ast.NodeIndex {
+    if (comptime dialect.enabled and @hasDecl(dialect, "binding_pattern")) {
+        switch (try dialect.binding_pattern(DialectHost, parser)) {
+            .handled => |node| return node,
+            .unhandled => {},
+        }
+    }
+    return parseBindingPatternContinuation(parser);
+}
+
+inline fn parseBindingPatternContinuation(parser: *Parser) Error!?ast.NodeIndex {
     if (parser.current_token.tag.isIdentifierLike()) {
         return literals.parseBindingIdentifier(parser);
     }

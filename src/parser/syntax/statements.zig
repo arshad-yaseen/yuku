@@ -4,6 +4,7 @@ const TokenTag = @import("../token.zig").TokenTag;
 const Precedence = @import("../token.zig").Precedence;
 const Parser = @import("../parser.zig").Parser;
 const Error = @import("../parser.zig").Error;
+const dialect = @import("dialect");
 const expressions = @import("expressions.zig");
 const variables = @import("variables.zig");
 const literals = @import("literals.zig");
@@ -21,6 +22,87 @@ const ParseStatementOpts = struct {
     /// true when parsing the body of `if`, `while`, `do`, `for`, `with`, or labeled statements,
     /// where lexical declarations (`let`, `const`) are not allowed without a block.
     can_be_single_statement_context: bool = false,
+};
+
+const DialectHost = struct {
+    pub const NodeIndex = ast.NodeIndex;
+    pub const NodeData = ast.NodeData;
+    pub const NodeTag = std.meta.Tag(ast.NodeData);
+    pub const IndexRange = ast.IndexRange;
+    pub const Span = ast.Span;
+    pub const Value = ast.String;
+    pub const Token = TokenTag;
+    pub const ErrorType = Error;
+    pub fn currentToken(parser: *const Parser) TokenTag {
+        return parser.current_token.tag;
+    }
+    pub fn currentSpan(parser: *const Parser) ast.Span {
+        return parser.current_token.span;
+    }
+    pub fn expect(parser: *Parser, comptime tag: TokenTag, message: []const u8) Error!bool {
+        return parser.expect(tag, message, null);
+    }
+    pub fn data(parser: *const Parser, node: ast.NodeIndex) ast.NodeData {
+        return parser.tree.data(node);
+    }
+    pub fn extra(parser: *const Parser, range: ast.IndexRange) []const ast.NodeIndex {
+        return parser.tree.extra(range);
+    }
+    pub fn string(parser: *const Parser, value: ast.String) []const u8 {
+        return parser.tree.string(value);
+    }
+    pub fn source(parser: *const Parser) []const u8 {
+        return parser.source;
+    }
+    pub fn sourceText(parser: *const Parser, span: ast.Span) []const u8 {
+        return parser.spanText(span);
+    }
+    pub fn nodeSpan(parser: *const Parser, node: ast.NodeIndex) ast.Span {
+        return parser.tree.span(node);
+    }
+    pub fn allocator(parser: *Parser) std.mem.Allocator {
+        return parser.allocator();
+    }
+    pub fn addString(parser: *Parser, value: []const u8) Error!ast.String {
+        return parser.tree.addString(value);
+    }
+    pub fn addExtra(parser: *Parser, nodes: []const ast.NodeIndex) Error!ast.IndexRange {
+        return parser.tree.addExtra(nodes);
+    }
+    pub fn addNode(parser: *Parser, data_: ast.NodeData, span: ast.Span) Error!ast.NodeIndex {
+        return parser.tree.addNode(data_, span);
+    }
+    pub fn addDialectNode(parser: *Parser, record: dialect.Record, span: ast.Span) Error!ast.NodeIndex {
+        return parser.addDialectNode(record, span);
+    }
+    pub fn overlayRecord(parser: *const Parser, host: ast.NodeIndex) ?dialect.Record {
+        const index = parser.tree.dialectOverlay(@intFromEnum(host)) orelse return null;
+        return parser.tree.dialect_store.records.items[index];
+    }
+    pub fn reportWithHelp(parser: *Parser, span: ast.Span, message: []const u8, help: []const u8) Error!void {
+        return parser.report(span, message, .{ .help = help });
+    }
+    pub fn report(parser: *Parser, span: ast.Span, message: []const u8) Error!void {
+        return parser.report(span, message, .{});
+    }
+    pub fn currentReturnContext(parser: *const Parser) bool {
+        return parser.context.@"return";
+    }
+    pub fn parseStatementExpression(parser: *Parser) Error!?ast.NodeIndex {
+        return parseExpressionStatement(parser);
+    }
+    pub fn advance(parser: *Parser) Error!bool {
+        return (try parser.advance()) != null;
+    }
+    pub fn parseExpression(parser: *Parser) Error!?ast.NodeIndex {
+        return expressions.parseExpression(parser, Precedence.Assignment, .{});
+    }
+    pub fn parseStatementNode(parser: *Parser) Error!?ast.NodeIndex {
+        return parseStatement(parser, .{});
+    }
+    pub fn parseBlockWithTemporaryReturn(parser: *Parser, allow_return: bool) Error!?ast.NodeIndex {
+        return parseBlockStatementWithTemporaryReturn(parser, allow_return);
+    }
 };
 
 pub fn parseStatement(parser: *Parser, opts: ParseStatementOpts) Error!?ast.NodeIndex {
@@ -76,6 +158,18 @@ pub fn parseStatement(parser: *Parser, opts: ParseStatementOpts) Error!?ast.Node
 /// `@dec class C` or `@dec export [default] class C`.
 fn parseDecoratedStatement(parser: *Parser) Error!?ast.NodeIndex {
     std.debug.assert(parser.current_token.tag == .at);
+    if (comptime dialect.enabled and @hasDecl(dialect, "statement_at_code_block")) {
+        switch (try dialect.statement_at_code_block(DialectHost, parser)) {
+            .handled => |node| return node,
+            .unhandled => {},
+        }
+    }
+    if (comptime dialect.enabled and @hasDecl(dialect, "statement_at_control_flow")) {
+        switch (try dialect.statement_at_control_flow(DialectHost, parser)) {
+            .handled => |node| return node,
+            .unhandled => {},
+        }
+    }
     const start = parser.current_token.span.start;
     const decorators = try extensions.parseDecorators(parser) orelse return null;
 
@@ -281,6 +375,16 @@ pub fn parseBlockStatement(parser: *Parser) Error!?ast.NodeIndex {
         .{ .block_statement = .{ .body = body } },
         .{ .start = start, .end = end },
     );
+}
+
+pub fn parseBlockStatementWithTemporaryReturn(
+    parser: *Parser,
+    allow_return: bool,
+) Error!?ast.NodeIndex {
+    const saved = parser.context.@"return";
+    parser.context.@"return" = allow_return;
+    defer parser.context.@"return" = saved;
+    return parseBlockStatement(parser);
 }
 
 /// https://tc39.es/ecma262/#sec-switch-statement
