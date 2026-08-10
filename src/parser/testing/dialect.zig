@@ -36,6 +36,34 @@ test "disabled dialect wire remains deterministic" {
     std.debug.print("disabled wire: bytes={d} sha256={x}\n", .{ bytes.len, digest });
 }
 
+// round-trip transfer instantiates disabled record decoding without dialect storage
+test "disabled dialect transfer round-trip preserves bytes" {
+    const source = "export const value: number = <Box answer={42} />;";
+    var tree = try parser.parse(std.testing.allocator, source, .{ .lang = .tsx });
+    defer tree.deinit();
+    try std.testing.expect(!tree.hasErrors());
+
+    const bytes = try std.testing.allocator.alloc(u8, transfer.bufferSize(&tree));
+    defer std.testing.allocator.free(bytes);
+    try std.testing.expectEqual(bytes.len, transfer.serializeInto(&tree, bytes));
+
+    var restored = try transfer.deserializeFromBuf(std.testing.allocator, bytes, source);
+    defer restored.deinit();
+    try std.testing.expectEqual(tree.root, restored.root);
+    try std.testing.expectEqual(tree.nodes.len, restored.nodes.len);
+    try std.testing.expect(restored.data(restored.root) == .program);
+    try std.testing.expectEqual(@as(usize, 0), @sizeOf(@TypeOf(restored.dialect_store)));
+    try std.testing.expectEqual(@as(?u32, null), restored.dialectOverlay(0));
+
+    const restored_bytes = try std.testing.allocator.alloc(u8, transfer.bufferSize(&restored));
+    defer std.testing.allocator.free(restored_bytes);
+    try std.testing.expectEqual(
+        restored_bytes.len,
+        transfer.serializeInto(&restored, restored_bytes),
+    );
+    try std.testing.expectEqual(bytes.len, restored_bytes.len);
+}
+
 test "disabled corpus behavior is deterministic" {
     const Case = struct { source: []const u8, lang: parser.ast.Lang };
     const cases = [_]Case{

@@ -2,7 +2,7 @@ const abi = @import("dialect_abi");
 
 pub const enabled = false;
 pub const hooks = [_]abi.Hook{};
-pub const Record = struct {};
+pub const Record = schema.Record;
 pub const Store = struct {};
 pub const schema = struct {
     pub const record_count: u8 = 0;
