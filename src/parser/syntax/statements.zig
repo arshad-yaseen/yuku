@@ -103,6 +103,18 @@ const DialectHost = struct {
     pub fn parseBlockWithTemporaryReturn(parser: *Parser, allow_return: bool) Error!?ast.NodeIndex {
         return parseBlockStatementWithTemporaryReturn(parser, allow_return);
     }
+    pub fn addRecord(parser: *Parser, record: anytype) Error!u32 {
+        return parser.tree.addDialectRecord(record) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
+    pub fn addOverlay(parser: *Parser, host: ast.NodeIndex, record_index: u32) Error!void {
+        parser.tree.addDialectOverlay(@intFromEnum(host), record_index) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
 };
 
 pub fn parseStatement(parser: *Parser, opts: ParseStatementOpts) Error!?ast.NodeIndex {

@@ -66,6 +66,10 @@ const DialectHost = struct {
         return statements.parseStatement(parser, .{});
     }
 
+    pub fn parseExpression(parser: *Parser) Error!?ast.NodeIndex {
+        return parseDialectExpression(parser);
+    }
+
     pub fn currentToken(parser: *const Parser) TokenTag {
         return parser.current_token.tag;
     }
@@ -153,6 +157,10 @@ const DialectHost = struct {
         };
     }
 };
+
+fn parseDialectExpression(parser: *Parser) Error!?ast.NodeIndex {
+    return parseExpression(parser, Precedence.Assignment, .{});
+}
 
 pub fn parseExpression(
     parser: *Parser,
