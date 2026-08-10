@@ -50,3 +50,26 @@ test "loose JSX parsing recovers a nested element closed by its parent" {
     try testing.expect(loose_tree.data(parent_index).jsx_element.closing_element != .null);
     try testing.expectEqual(@as(u32, 46), loose_tree.span(parent_index).end);
 }
+
+test "JSX EOF diagnostic is preserved in default and loose modes" {
+    const source = "<foo>yes";
+    const message = "Expected '</' to close the JSX element, but found 'end of file'";
+    const help = "Add a closing tag to match the opening element";
+
+    var default_tree = try parser.parse(testing.allocator, source, .{ .lang = .jsx });
+    defer default_tree.deinit();
+
+    try testing.expectEqual(@as(usize, 1), default_tree.diagnostics.items.len);
+    try testing.expectEqualStrings(message, default_tree.diagnostics.items[0].message);
+    try testing.expectEqualStrings(help, default_tree.diagnostics.items[0].help orelse "");
+
+    var loose_tree = try parser.parse(testing.allocator, source, .{
+        .lang = .jsx,
+        .loose = true,
+    });
+    defer loose_tree.deinit();
+
+    try testing.expectEqual(@as(usize, 1), loose_tree.diagnostics.items.len);
+    try testing.expectEqualStrings(message, loose_tree.diagnostics.items[0].message);
+    try testing.expectEqualStrings(help, loose_tree.diagnostics.items[0].help orelse "");
+}

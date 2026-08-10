@@ -218,7 +218,6 @@ inline fn finishJsxElement(parser: *Parser, opening: ast.NodeIndex, comptime con
     // element with children: <elem>...</elem>
     const children = try parseJsxChildren(parser, opening_end) orelse return null;
 
-    std.debug.assert(parser.current_token.tag == .less_than);
     const closing_checkpoint = parser.checkpoint();
     const closing_start = parser.current_token.span.start;
     const diagnostics_len = parser.diagnostics.items.len;
