@@ -113,6 +113,10 @@ const DialectHost = struct {
         return parseJsxChildFromLeftBrace(parser);
     }
 
+    pub fn parseExpression(parser: *Parser) Error!?ast.NodeIndex {
+        return expressions.parseExpression(parser, Precedence.Assignment, .{});
+    }
+
     pub fn parseBlockWithTemporaryReturn(parser: *Parser, allow_return: bool) Error!?ast.NodeIndex {
         return parser.parseDialectBlockWithTemporaryReturn(allow_return);
     }
