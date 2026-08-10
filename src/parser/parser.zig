@@ -50,6 +50,8 @@ pub const Options = struct {
     /// Whether and how comments are collected. Defaults to `.flat`: comments
     /// land in the flat `tree.comments` list with no per-node attachment.
     comments: CommentMode = .flat,
+    /// When true, recover nested JSX elements closed by an ancestor tag.
+    loose: bool = false,
 };
 
 pub const Context = packed struct {
@@ -104,6 +106,7 @@ pub const Parser = struct {
     lang: ast.Lang,
     preserve_parens: bool,
     comment_mode: CommentMode,
+    loose: bool,
     lexer: lexer.Lexer,
     diagnostics: std.ArrayList(ast.Diagnostic) = .empty,
 
@@ -138,6 +141,7 @@ pub const Parser = struct {
             .lang = options.lang,
             .preserve_parens = options.preserve_parens,
             .comment_mode = options.comments,
+            .loose = options.loose,
             .lexer = undefined,
             .current_token = Token.eof(0),
         };
