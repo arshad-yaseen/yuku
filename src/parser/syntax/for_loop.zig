@@ -16,6 +16,14 @@ const DialectHost = struct {
         return parser.current_token.tag;
     }
 
+    pub fn currentSpan(parser: *const Parser) ast.Span {
+        return parser.current_token.span;
+    }
+
+    pub fn sourceText(parser: *const Parser, span: ast.Span) []const u8 {
+        return parser.spanText(span);
+    }
+
     pub fn advance(parser: *Parser) Error!bool {
         return (try parser.advance()) != null;
     }
