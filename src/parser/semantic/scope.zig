@@ -1,5 +1,6 @@
 const std = @import("std");
 const ast = @import("../ast.zig");
+const dialect = @import("dialect");
 const ecmascript = @import("../ecmascript.zig");
 
 const Allocator = std.mem.Allocator;
@@ -302,6 +303,31 @@ pub const ScopeTracker = struct {
                 try self.pushScope(.class, index, flags);
             },
             .static_block => try self.pushScope(.static_block, index, self.inheritStrictFlag()),
+            .dialect_node => |node| {
+                if (comptime !dialect.enabled) {
+                    comptime std.debug.assert(@typeInfo(dialect.Store).@"struct".fields.len == 0);
+                    comptime std.debug.assert(@sizeOf(dialect.Store) == 0);
+                    return;
+                }
+                std.debug.assert(self.tree.dialect_store.records.items.len > 0);
+                std.debug.assert(node.record_index < self.tree.dialect_store.records.items.len);
+                const record = self.tree.dialect_store.records.items[node.record_index];
+                switch (record) {
+                    inline else => |payload| {
+                        const T = @TypeOf(payload);
+                        if (comptime @hasDecl(T, "scope_role")) {
+                            comptime std.debug.assert(
+                                @typeInfo(@TypeOf(T.scope_role)).@"enum".fields.len == 2,
+                            );
+                            comptime std.debug.assert(@sizeOf(@TypeOf(T.scope_role)) == 1);
+                            switch (T.scope_role) {
+                                .none => {},
+                                .block => try self.pushScope(.block, index, self.inheritStrictFlag()),
+                            }
+                        }
+                    },
+                }
+            },
             .decorator => {
                 // decorators evaluate in the scope enclosing the class:
                 // neither its type parameters nor an expression's own

@@ -1,6 +1,7 @@
 const std = @import("std");
 const util = @import("util");
 const ast = @import("../ast.zig");
+const dialect = @import("dialect");
 const sourcemap = @import("sourcemap.zig");
 const utils = @import("utils.zig");
 
@@ -8,7 +9,7 @@ const source_maps = @import("codegen_options").source_maps;
 
 const Allocator = std.mem.Allocator;
 const Tree = ast.Tree;
-const NodeIndex = ast.NodeIndex;
+pub const NodeIndex = ast.NodeIndex;
 const NodeData = ast.NodeData;
 const IndexRange = ast.IndexRange;
 const Precedence = @import("../token.zig").Precedence;
@@ -152,6 +153,7 @@ const Printer = struct {
     in_prologue: bool = false,
     /// `in` forbidden in the current declarator init (a `for` head)
     decl_no_in: bool = false,
+    dialect_overlay: bool = true,
 
     fn init(allocator: Allocator, tree: *Tree, options: Options) Error!Self {
         var p = Self{
@@ -465,7 +467,25 @@ const Printer = struct {
         if (self.at_lead != .none) {
             switch (data) {
                 .object_expression => return true,
-                .assignment_expression => |a| if (self.nodeData(a.left) == .object_pattern) return true,
+                .assignment_expression => |a| if (self.nodeData(a.left) == .object_pattern) {
+                    if (comptime @hasDecl(dialect, "codegen")) {
+                        if (comptime @hasDecl(
+                            dialect.codegen,
+                            "hasDisambiguatingAssignmentTargetPrefix",
+                        )) {
+                            const target_raw: u32 = @intFromEnum(a.left);
+                            if (self.tree.dialectOverlay(target_raw)) |record_index| {
+                                if (dialect.codegen.hasDisambiguatingAssignmentTargetPrefix(
+                                    Self,
+                                    self,
+                                    record_index,
+                                    target_raw,
+                                )) return false;
+                            }
+                        }
+                    }
+                    return true;
+                },
                 else => {},
             }
         }
@@ -514,9 +534,21 @@ const Printer = struct {
     inline fn emitNode(self: *Self, idx: NodeIndex, ctx: Ctx) Error!void {
         if (comptime source_maps) if (self.sm != null) try self.recordMapping(idx);
 
+        if (comptime @hasDecl(dialect, "codegen")) if (self.dialect_overlay) {
+            if (self.tree.dialectOverlay(@intFromEnum(idx))) |record_index| {
+                if (try dialect.codegen.printOverlay(Self, self, record_index, idx)) return;
+            }
+        };
+
         switch (self.node_data[@intFromEnum(idx)]) {
             inline else => |*node, tag| {
-                if (comptime fixedString(tag)) |s| {
+                if (comptime tag == .dialect_node) {
+                    if (comptime @hasDecl(dialect, "codegen")) {
+                        try dialect.codegen.print(Self, self, node.record_index);
+                    } else {
+                        unreachable;
+                    }
+                } else if (comptime fixedString(tag)) |s| {
                     try self.writeStr(s);
                 } else {
                     const fn_name = "emit_" ++ @tagName(tag);
@@ -534,6 +566,79 @@ const Printer = struct {
                 }
             },
         }
+    }
+
+    pub fn dialectWrite(self: *Self, bytes: []const u8) Error!void {
+        std.debug.assert(bytes.len > 0);
+        const output_len = self.code.items.len;
+        try self.writeStr(bytes);
+        std.debug.assert(self.code.items.len > output_len);
+    }
+
+    pub fn dialectSpace(self: *Self) Error!void {
+        std.debug.assert(self.code.items.len > 0);
+        const output_len = self.code.items.len;
+        try self.space();
+        std.debug.assert(self.code.items.len >= output_len);
+    }
+
+    pub fn dialectEmit(self: *Self, raw: u32) Error!void {
+        std.debug.assert(raw < self.node_data.len);
+        const output_len = self.code.items.len;
+        try self.emit(@enumFromInt(raw));
+        std.debug.assert(self.code.items.len >= output_len);
+    }
+
+    pub fn dialectEmitStatements(self: *Self, start: u32, len: u32) Error!void {
+        std.debug.assert(start + len >= start);
+        std.debug.assert(start + len <= self.tree.extras.items.len);
+        const output_len = self.code.items.len;
+        for (self.tree.extras.items[start .. start + len], 0..) |node, index| {
+            std.debug.assert(@intFromEnum(node) < self.node_data.len);
+            if (index > 0) try self.space();
+            try self.emit(node);
+            try self.flushSemi();
+        }
+        std.debug.assert(self.code.items.len >= output_len);
+    }
+
+    pub fn dialectEmitOverlaySuppressed(self: *Self, raw: u32) Error!void {
+        std.debug.assert(raw < self.node_data.len);
+        const output_len = self.code.items.len;
+        const previous = self.dialect_overlay;
+        defer self.dialect_overlay = previous;
+        self.dialect_overlay = false;
+        try self.emitNode(@enumFromInt(raw), .{});
+        std.debug.assert(self.code.items.len >= output_len);
+    }
+
+    pub fn dialectEmitForLeft(self: *Self, raw: u32) Error!void {
+        std.debug.assert(raw < self.node_data.len);
+        const output_len = self.code.items.len;
+        try self.printForLeft(@enumFromInt(raw));
+        std.debug.assert(self.code.items.len >= output_len);
+    }
+
+    pub fn dialectEmitValue(self: *Self, raw: u32) Error!void {
+        std.debug.assert(raw < self.node_data.len);
+        const output_len = self.code.items.len;
+        try self.emitValue(@enumFromInt(raw));
+        std.debug.assert(self.code.items.len >= output_len);
+    }
+
+    pub fn dialectEmitStatement(self: *Self, raw: u32) Error!void {
+        std.debug.assert(raw < self.node_data.len);
+        const output_len = self.code.items.len;
+        try self.emitStmt(@enumFromInt(raw));
+        std.debug.assert(self.code.items.len >= output_len);
+    }
+
+    pub fn dialectEmitBlock(self: *Self, start: u32, len: u32) Error!void {
+        std.debug.assert(start + len >= start);
+        std.debug.assert(start + len <= self.tree.extras.items.len);
+        const output_len = self.code.items.len;
+        try self.printBlock(.{ .start = start, .len = len }, false);
+        std.debug.assert(self.code.items.len > output_len);
     }
 
     inline fn allowComment(self: *const Self, c: ast.AttachedComment) bool {
@@ -2826,7 +2931,11 @@ const Printer = struct {
     fn emit_jsx_empty_expression(_: *Self, _: *const ast.JSXEmptyExpression) Error!void {}
 
     fn emit_jsx_text(self: *Self, t: *const ast.JSXText) Error!void {
-        try self.writeString(t.value);
+        if (comptime @hasDecl(dialect, "codegen")) {
+            try dialect.codegen.printText(Self, self, self.tree.string(t.value));
+        } else {
+            try self.writeString(t.value);
+        }
     }
 
     fn emit_jsx_spread_child(self: *Self, c: *const ast.JSXSpreadChild) Error!void {

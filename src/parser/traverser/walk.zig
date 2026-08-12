@@ -1,5 +1,6 @@
 const std = @import("std");
 const ast = @import("../ast.zig");
+const dialect = @import("dialect");
 
 const Allocator = std.mem.Allocator;
 
@@ -49,10 +50,15 @@ fn walkNode(
     else
         ctx.tree.data(index);
 
-    const result = if (action == .proceed)
-        try walkChildren(C, V, visitor, current, ctx)
-    else
-        Action.proceed;
+    var result = Action.proceed;
+    if (action == .proceed) {
+        result = try walkChildren(C, V, visitor, current, ctx);
+        if (comptime dialect.enabled) if (result != .stop) {
+            if (ctx.tree.dialectOverlay(@intFromEnum(index))) |record_index| {
+                result = try walkDialectRecord(C, V, visitor, record_index, ctx);
+            }
+        };
+    }
 
     // exits pair with enters unconditionally, they run when children
     // were skipped and while a stop unwinds, so tracking contexts
@@ -70,6 +76,16 @@ fn walkChildren(
     ctx: *C,
 ) Allocator.Error!Action {
     switch (data) {
+        .dialect_node => |node| {
+            if (comptime !dialect.enabled) {
+                comptime std.debug.assert(@typeInfo(dialect.Store).@"struct".fields.len == 0);
+                comptime std.debug.assert(@sizeOf(dialect.Store) == 0);
+                return .proceed;
+            }
+            std.debug.assert(ctx.tree.dialect_store.records.items.len > 0);
+            std.debug.assert(node.record_index < ctx.tree.dialect_store.records.items.len);
+            return walkDialectRecord(C, V, visitor, node.record_index, ctx);
+        },
         inline else => |node| {
             const T = @TypeOf(node);
             if (@typeInfo(T) == .@"struct") {
@@ -78,6 +94,80 @@ fn walkChildren(
             return .proceed;
         },
     }
+}
+
+fn walkDialectRecord(
+    comptime C: type,
+    comptime V: type,
+    visitor: *V,
+    record_index: u32,
+    ctx: *C,
+) Allocator.Error!Action {
+    std.debug.assert(ctx.tree.dialect_store.records.items.len > 0);
+    std.debug.assert(record_index < ctx.tree.dialect_store.records.items.len);
+    const record = ctx.tree.dialect_store.records.items[record_index];
+    switch (record) {
+        inline else => |payload| return walkDialectFields(C, V, visitor, payload, ctx),
+    }
+}
+
+fn walkDialectFields(
+    comptime C: type,
+    comptime V: type,
+    visitor: *V,
+    payload: anytype,
+    ctx: *C,
+) Allocator.Error!Action {
+    const T = @TypeOf(payload);
+    std.debug.assert(ctx.tree.nodes.len <= std.math.maxInt(u32));
+    std.debug.assert(ctx.tree.extras.items.len <= std.math.maxInt(u32));
+    inline for (@typeInfo(T).@"struct".fields) |field| {
+        if (comptime hasDialectRole(field.type)) {
+            const value = @field(payload, field.name);
+            switch (field.type.dialect_role) {
+                .node_ref => {
+                    std.debug.assert(value.raw != std.math.maxInt(u32));
+                    std.debug.assert(value.raw < ctx.tree.nodes.len);
+                    if ((try walkNode(C, V, visitor, @enumFromInt(value.raw), ctx)) == .stop)
+                        return .stop;
+                },
+                .optional_node_ref => {
+                    if (value.raw < ctx.tree.nodes.len) {
+                        if ((try walkNode(C, V, visitor, @enumFromInt(value.raw), ctx)) == .stop)
+                            return .stop;
+                    } else {
+                        std.debug.assert(value.raw == std.math.maxInt(u32));
+                        std.debug.assert(value.raw >= ctx.tree.nodes.len);
+                    }
+                },
+                .node_list => {
+                    std.debug.assert(value.start + value.len >= value.start);
+                    const end = value.start + value.len;
+                    std.debug.assert(end <= ctx.tree.extras.items.len);
+                    for (ctx.tree.extras.items[value.start..end]) |child| {
+                        if ((try walkNode(C, V, visitor, child, ctx)) == .stop) return .stop;
+                    }
+                },
+                .string_slice => {
+                    std.debug.assert(value.start <= value.end);
+                    std.debug.assert(value.end <= ctx.tree.source.len);
+                },
+                .overlay_host => {
+                    std.debug.assert(value.raw != std.math.maxInt(u32));
+                    std.debug.assert(value.raw < ctx.tree.nodes.len);
+                },
+                .scalar_u32 => {},
+            }
+        }
+    }
+    return .proceed;
+}
+
+fn hasDialectRole(comptime T: type) bool {
+    return switch (@typeInfo(T)) {
+        .@"struct", .@"enum", .@"union", .@"opaque" => @hasDecl(T, "dialect_role"),
+        else => false,
+    };
 }
 
 fn walkStructFields(

@@ -33,7 +33,17 @@ pub const Hook = enum(u8) {
 
 /// Dependency-free reflected field roles. Dialect schemas use these wrappers
 /// instead of borrowing parser AST types or relying on field-name conventions.
-pub const FieldRole = enum { scalar_u32, node_ref, optional_node_ref, node_list, string_slice, overlay_host };
+pub const FieldRole = enum(u8) {
+    scalar_u32,
+    node_ref,
+    optional_node_ref,
+    node_list,
+    string_slice,
+    overlay_host,
+};
+
+/// Dialect-neutral lexical behavior attached to reflected record payloads.
+pub const ScopeRole = enum(u8) { none, block };
 
 fn Word(comptime role: FieldRole) type {
     return packed struct(u32) {
@@ -63,4 +73,8 @@ pub const StringSlice = extern struct {
 comptime {
     std.debug.assert(@typeInfo(Hook).@"enum".fields.len == 19);
     std.debug.assert(@sizeOf(Hook) == 1);
+    std.debug.assert(@typeInfo(FieldRole).@"enum".fields.len == 6);
+    std.debug.assert(@sizeOf(FieldRole) == 1);
+    std.debug.assert(@typeInfo(ScopeRole).@"enum".fields.len == 2);
+    std.debug.assert(@sizeOf(ScopeRole) == 1);
 }
