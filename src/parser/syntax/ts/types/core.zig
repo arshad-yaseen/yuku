@@ -259,7 +259,17 @@ fn parsePrimaryType(parser: *Parser) Error!?ast.NodeIndex {
                 }
                 return parseTypeReference(parser);
             },
-            .left_paren => return parseParenthesizedType(parser),
+            .left_paren => {
+                if (try isStartOfFunctionOrConstructorType(parser)) {
+                    return parseFunctionOrConstructorType(parser);
+                }
+                return parseParenthesizedType(parser);
+            },
+            .new, .abstract, .less_than, .left_shift => {
+                if (try isStartOfFunctionOrConstructorType(parser)) {
+                    return parseFunctionOrConstructorType(parser);
+                }
+            },
             .left_bracket => return parseTupleType(parser),
             .left_brace => return if (object.isStartOfMappedType(parser))
                 object.parseMappedType(parser)
@@ -516,7 +526,7 @@ fn parseInferConstraint(parser: *Parser) Error!ast.NodeIndex {
     try parser.advance() orelse return .null;
 
     parser.ts_context.disallow_conditional_types = true;
-    const constraint = try parseUnionType(parser) orelse {
+    const constraint = try parseTypeNoConditional(parser) orelse {
         parser.rewind(cp);
         return .null;
     };
