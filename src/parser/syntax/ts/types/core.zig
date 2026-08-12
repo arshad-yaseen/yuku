@@ -265,6 +265,11 @@ fn parsePrimaryType(parser: *Parser) Error!?ast.NodeIndex {
                 }
                 return parseParenthesizedType(parser);
             },
+            .new, .abstract, .less_than, .left_shift => {
+                if (try isStartOfFunctionOrConstructorType(parser)) {
+                    return parseFunctionOrConstructorType(parser);
+                }
+            },
             .left_bracket => return parseTupleType(parser),
             .left_brace => return if (object.isStartOfMappedType(parser))
                 object.parseMappedType(parser)
