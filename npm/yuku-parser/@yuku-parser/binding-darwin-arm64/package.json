@@ -1,6 +1,6 @@
 {
   "name": "@yuku-parser/binding-darwin-arm64",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "license": "MIT",
   "os": [
     "darwin"
