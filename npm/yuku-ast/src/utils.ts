@@ -46,7 +46,11 @@ export function literalValue(
   return node.value;
 }
 
-type Wrapper =
+/**
+ * An expression that only wraps another one: parentheses and the
+ * TypeScript assertion forms erased on the way to JavaScript.
+ */
+export type Wrapper =
   | ParenthesizedExpression
   | TSAsExpression
   | TSSatisfiesExpression
@@ -61,8 +65,16 @@ const WRAPPERS = new Set<NodeType>([
   "TSTypeAssertion",
 ]);
 
-function isWrapper(node: Expression): node is Wrapper {
-  return WRAPPERS.has(node.type);
+/**
+ * True when `node` is a {@link Wrapper}, the expressions {@link unwrap}
+ * strips to reach the one that carries the meaning. Its `expression` is
+ * the node underneath.
+ *
+ * @example
+ * isWrapper(node) ? node.expression : node
+ */
+export function isWrapper(node: MaybeNode): node is Wrapper {
+  return node != null && WRAPPERS.has(node.type);
 }
 
 /**

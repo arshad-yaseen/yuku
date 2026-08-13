@@ -26,9 +26,11 @@ export {
   bindingIdentifiers,
   findAll,
   isCallOf,
+  isWrapper,
   literalValue,
   nameOf,
   unwrap,
+  type Wrapper,
 } from "./utils.ts";
 export {
   _walk,

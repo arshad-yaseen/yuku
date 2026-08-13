@@ -106,6 +106,7 @@ import {
   nameOf,          // Identifier name or string Literal value
   literalValue,    // string | number | boolean | bigint | RegExp | null
   unwrap,          // strips parens and erased TS assertion wrappers
+  isWrapper,       // true for the wrappers unwrap strips
   isCallOf,        // isCallOf(node, "require")
   bindingIdentifiers, // every binding Identifier a pattern introduces
   findAll,         // findAll(program, "CallExpression")
