@@ -1,8 +1,8 @@
 test/parser/misc/ts
 ===================
-Passed:       45/45 (100.00%)
+Passed:       46/46 (100.00%)
 Failed:       0
-AST mismatch: 0/45
+AST mismatch: 0/46
 
 ✓ test/parser/misc/ts/ambient-file-declarations.module.d.ts
 ✓ test/parser/misc/ts/ambient-reserved-param.ts
@@ -49,6 +49,16 @@ error: A type argument list cannot be empty
 ✓ test/parser/misc/ts/extends-non-null-assertion.ts
 ✓ test/parser/misc/ts/function-overloads.ts
 ✓ test/parser/misc/ts/infer-constraint-function-type.ts
+error: Expected '?' in a conditional type, but found 'extends'
+   |
+16 | 
+17 | type UnionFnConstraint<T> = T extends infer F extends string | () => void ? F : never;
+   |                                               ^^^^^^^
+18 | type UnionCtorConstraint<T> = T extends infer C extends string | new () => object ? C : never;
+   |
+   = help: A conditional type is written 'T extends U ? X : Y'
+
+
 ✓ test/parser/misc/ts/instantiation-expression-edges.ts
 ✓ test/parser/misc/ts/instantiation-property-access-invalid.ts
 error: An instantiation expression cannot be followed by a property access
@@ -168,6 +178,14 @@ error: Bad escape sequence in untagged template literal
 27 | type BadHex = `\x${string}`;
    |
 
+✓ test/parser/misc/ts/type-assertion-vs-generic-arrow.ts
 ✓ test/parser/misc/ts/typed-arrow-predicate-in-ternary-jsx.module.tsx
 ✓ test/parser/misc/ts/typed-arrow-predicate-in-ternary.ts
 ✓ test/parser/misc/ts/unparenthesized-function-type-in-union.ts
+error: Expected a type, but found ')'
+   |
+ 1 | type A = B | () => void;
+   |               ^
+ 2 | type UnionTail = Handler | () => void;
+   |
+

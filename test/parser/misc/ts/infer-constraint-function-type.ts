@@ -1,8 +1,3 @@
-// an `infer X extends ...` constraint accepts any non-conditional type, which
-// includes function and constructor types. parsing only a union here dropped
-// the whole alias, which is how a .d.ts bundler lost `infer Last extends
-// () => void` from its regenerated declarations.
-
 type LastFn<Fns> = Fns extends [...any[], infer Last extends () => void] ? Last : never;
 type PipeResult<Fns extends ((...args: any[]) => any)[]> =
   Fns extends [...any[], infer Last extends (...args: any[]) => any]
@@ -18,11 +13,11 @@ type ParenFnConstraint<T> = T extends infer F extends (() => void) ? F : never;
 type FnUnionConstraint<T> = T extends infer F extends (() => void) | null ? F : never;
 type FnArrayConstraint<T> = T extends infer F extends (() => void)[] ? F : never;
 type PredicateFnConstraint<T> = T extends infer F extends (value: unknown) => value is string ? F : never;
+
 type UnionFnConstraint<T> = T extends infer F extends string | () => void ? F : never;
 type UnionCtorConstraint<T> = T extends infer C extends string | new () => object ? C : never;
 type UnionGenericFnConstraint<T> = T extends infer F extends string | <U>(value: U) => U ? F : never;
 
-// nested infer positions run through the same constraint parser
 type InObject<T> = T extends { handler: infer F extends () => void } ? F : never;
 type InTuple<T> = T extends [infer F extends () => void, string] ? F : never;
 type InTypeArgument<T> = T extends Promise<infer F extends () => void> ? F : never;
@@ -34,7 +29,6 @@ type Chained<T> = T extends infer F extends () => void
     : never
   : never;
 
-// constraints that already worked keep working
 type NoConstraint<T> = T extends infer U ? U : never;
 type KeywordConstraint<T> = T extends infer U extends string ? U : never;
 type UnionConstraint<T> = T extends infer U extends string | number ? U : never;
@@ -43,7 +37,5 @@ type ArrayConstraint<T> = T extends infer U extends readonly unknown[] ? U : nev
 type KeyofConstraint<T, K> = K extends infer U extends keyof T ? U : never;
 type TemplateConstraint<T> = T extends infer U extends `a${string}` ? U : never;
 
-// a `?` right after the constraint means the `extends` belonged to the outer
-// conditional, so the constraint is rewound instead of swallowing it
 type RewoundConstraint<T> = T extends (infer U extends string ? 1 : 0) ? U : never;
 type RewoundBeforeFn<T> = T extends (infer U extends () => void ? 1 : 0) ? U : never;
