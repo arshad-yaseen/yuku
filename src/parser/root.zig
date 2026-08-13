@@ -1,6 +1,7 @@
 const parser = @import("parser.zig");
 
 pub const parse = parser.parse;
+pub const Parser = parser.Parser;
 pub const Options = parser.Options;
 pub const CommentMode = parser.CommentMode;
 

@@ -19,6 +19,7 @@ pub fn build(b: *std.Build) void {
 
     const codegen_options = b.addOptions();
     codegen_options.addOption(bool, "source_maps", enable_source_maps);
+    const parser_extension = b.addOptions().createModule();
 
     const parser_module = b.addModule("parser", .{
         .root_source_file = b.path("src/parser/root.zig"),
@@ -28,6 +29,7 @@ pub fn build(b: *std.Build) void {
 
     parser_module.addImport("util", util_module);
     parser_module.addImport("codegen_options", codegen_options.createModule());
+    parser_module.addImport("parser_extension", parser_extension);
 
     const gen_unicode_id_table = b.addExecutable(.{
         .name = "gen-unicode-id",
@@ -84,6 +86,7 @@ pub fn build(b: *std.Build) void {
     });
     fuzz_parser.addImport("util", fuzz_util);
     fuzz_parser.addImport("codegen_options", codegen_options.createModule());
+    fuzz_parser.addImport("parser_extension", parser_extension);
     const fuzz_driver = b.createModule(.{
         .root_source_file = b.path("src/parser/testing/fuzz/main.zig"),
         .target = b.graph.host,
