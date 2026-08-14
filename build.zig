@@ -19,7 +19,15 @@ pub fn build(b: *std.Build) void {
 
     const codegen_options = b.addOptions();
     codegen_options.addOption(bool, "source_maps", enable_source_maps);
-    const parser_extension = b.addOptions().createModule();
+    const parser_extension_source = b.option(
+        []const u8,
+        "parser-extension",
+        "Path to a Zig source file supplying parser extension points (default: none)",
+    );
+    // pins neither target nor optimize, so the fuzz graph below can share the instance
+    const parser_extension = if (parser_extension_source) |source| b.createModule(.{
+        .root_source_file = if (std.fs.path.isAbsolute(source)) .{ .cwd_relative = source } else b.path(source),
+    }) else b.addOptions().createModule();
 
     const parser_module = b.addModule("parser", .{
         .root_source_file = b.path("src/parser/root.zig"),
@@ -73,6 +81,26 @@ pub fn build(b: *std.Build) void {
     // corpus-driven tests read test/parser/suite relative to the repo root
     run_zig_tests.setCwd(b.path("."));
     test_step.dependOn(&run_zig_tests.step);
+
+    const reference_extension = b.createModule(.{
+        .root_source_file = b.path("src/parser/testing/extension.zig"),
+    });
+    const extension_parser = b.createModule(.{
+        .root_source_file = b.path("src/parser/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    extension_parser.addImport("util", util_module);
+    extension_parser.addImport("codegen_options", codegen_options.createModule());
+    extension_parser.addImport("parser_extension", reference_extension);
+    const extension_tests = b.createModule(.{
+        .root_source_file = b.path("src/parser/testing/extension_test.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    extension_tests.addImport("parser", extension_parser);
+    extension_tests.addImport("extension", reference_extension);
+    test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = extension_tests })).step);
 
     const fuzz_util = b.createModule(.{
         .root_source_file = b.path("src/util/root.zig"),

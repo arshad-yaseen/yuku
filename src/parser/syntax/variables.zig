@@ -218,6 +218,16 @@ pub fn canStartLetBinding(tag: TokenTag) bool {
     return canStartBinding(tag) and !tag.isUnconditionallyReserved();
 }
 
+test "canStartLetBinding matches the longhand it replaced" {
+    inline for (@typeInfo(TokenTag).@"enum".fields) |field| {
+        const tag = @field(TokenTag, field.name);
+        try std.testing.expectEqual(
+            tag == .left_bracket or tag == .left_brace or canStartBindingIdentifier(tag),
+            canStartLetBinding(tag),
+        );
+    }
+}
+
 /// Determines if 'let' should be parsed as an identifier rather than a variable
 /// declaration keyword. the only ExpressionStatement lookahead restriction is
 /// `let [`, so sloppy-mode `let = 1`, `let.foo`, or `let in obj` are

@@ -347,7 +347,7 @@ fn parseForOfStatementRest(
 
     const right = try expressions.parseExpression(parser, Precedence.Assignment, .{}) orelse
         return null;
-    if (comptime @hasDecl(parser_extension, "for_of_tail"))
+    if (comptime @hasDecl(parser_extension, "for_of_tail")) if (parser.current_token.tag != .right_paren)
         if (try parser_extension.for_of_tail(Error!??ast.NodeIndex, parser, .{
             .start = start,
             .left = left,
