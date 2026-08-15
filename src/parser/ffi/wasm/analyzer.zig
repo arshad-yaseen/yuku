@@ -21,6 +21,7 @@ const flag = struct {
     const lang_shift = 2; // bits 2..4: ast.Lang index
     const preserve_parens = 1 << 5;
     const attach_comments = 1 << 7;
+    const allow_return = 1 << 8;
 };
 
 export fn alloc(len: usize) [*]u8 {
@@ -41,6 +42,7 @@ fn run(source: []const u8, flags: u32) ![]u8 {
         .source_type = @enumFromInt(@as(u2, @truncate(flags & flag.source_type_mask))),
         .lang = @enumFromInt(@as(u3, @truncate(flags >> flag.lang_shift))),
         .preserve_parens = flags & flag.preserve_parens != 0,
+        .allow_return_outside_function = flags & flag.allow_return != 0,
         .comments = if (flags & flag.attach_comments != 0) .both else .flat,
     });
     defer tree.deinit();
