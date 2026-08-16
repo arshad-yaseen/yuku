@@ -119,6 +119,7 @@ pub fn parseVariableDeclarator(
     const id_span = parser.tree.span(id);
 
     var definite = false;
+    var annotated = false;
     var end = id_span.end;
 
     if (is_ts) {
@@ -135,6 +136,7 @@ pub fn parseVariableDeclarator(
         if (parser.current_token.tag == .colon) {
             const annotation = try ts.parseTypeAnnotation(parser) orelse return null;
             ts.applyTypeAnnotationToPattern(parser, id, annotation);
+            annotated = true;
             end = parser.tree.span(annotation).end;
         }
     }
@@ -190,6 +192,8 @@ pub fn parseVariableDeclarator(
             }
         },
     }
+
+    if (definite) try ts.checkDefiniteAssignment(parser, id_span, annotated, init != .null);
 
     return try parser.tree.addNode(
         .{ .variable_declarator = .{ .id = id, .init = init, .definite = definite } },

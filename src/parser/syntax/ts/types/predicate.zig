@@ -178,6 +178,29 @@ pub fn applyDecoratorsToPattern(
     parser.tree.setData(pattern, data);
 }
 
+// `x!` promises an assignment the checker cannot see, so it needs a declared
+// type to describe and no initializer that would already prove the point.
+pub fn checkDefiniteAssignment(
+    parser: *Parser,
+    span: ast.Span,
+    has_type_annotation: bool,
+    has_initializer: bool,
+) Error!void {
+    if (has_initializer) {
+        try parser.report(
+            span,
+            "A declaration with an initializer cannot also have a definite assignment assertion",
+            .{ .help = "Remove the '!'. The initializer already assigns a value." },
+        );
+    } else if (!has_type_annotation) {
+        try parser.report(
+            span,
+            "A declaration with a definite assignment assertion must also have a type annotation",
+            .{ .help = "Annotate the declaration, for example 'x!: string'." },
+        );
+    }
+}
+
 // marks `x?`, `[...]?`, `{...}?` optional and stretches the span to `end`.
 pub fn markPatternOptional(parser: *Parser, pattern: ast.NodeIndex, end: u32) void {
     var data = parser.tree.data(pattern);

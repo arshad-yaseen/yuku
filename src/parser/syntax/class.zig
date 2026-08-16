@@ -607,6 +607,13 @@ fn parseMethodDefinition(
     if (parser.current_token.tag == .left_brace) {
         body = try functions.parseFunctionBody(parser) orelse return null;
         end = parser.tree.span(body).end;
+
+        if (mods.abstract) switch (mods.kind) {
+            .get, .set => try reportAbstractImplementation(parser, body, .accessor),
+            .method => try reportAbstractImplementation(parser, body, .method),
+            // an abstract constructor is already rejected as a misplaced modifier
+            .constructor => {},
+        };
     } else if (is_ts) {
         function_type = .ts_empty_body_function_expression;
         end = try parser.eatSemicolon(return_type_end) orelse return null;
@@ -642,6 +649,19 @@ fn parseMethodDefinition(
         .abstract = mods.abstract,
         .accessibility = mods.accessibility,
     } }, .{ .start = elem_start, .end = end });
+}
+
+// an `abstract` member declares a shape a subclass has to fill in, so a body
+// here contradicts the modifier.
+fn reportAbstractImplementation(
+    parser: *Parser,
+    body: ast.NodeIndex,
+    kind: enum { method, accessor },
+) Error!void {
+    try parser.report(parser.tree.span(body), switch (kind) {
+        .method => "An abstract method cannot have an implementation",
+        .accessor => "An abstract accessor cannot have an implementation",
+    }, .{ .help = "Remove the body, or drop the 'abstract' modifier." });
 }
 
 // class field or auto-accessor (`accessor x = 1`).
@@ -691,7 +711,20 @@ fn parsePropertyDefinition(
         value = try expressions.parseExpression(parser, Precedence.Assignment, .{}) orelse
             return null;
         end = parser.tree.span(value).end;
+
+        if (mods.abstract) try parser.report(
+            parser.tree.span(value),
+            "An abstract property cannot have an initializer",
+            .{ .help = "Remove the initializer, or drop the 'abstract' modifier." },
+        );
     }
+
+    if (definite) try ts.checkDefiniteAssignment(
+        parser,
+        parser.tree.span(key),
+        type_annotation != .null,
+        value != .null,
+    );
 
     // terminator
     switch (parser.current_token.tag) {
@@ -790,10 +823,26 @@ fn detectConstructorKind(
     }
 }
 
-// forbids `async` / `*` on constructors and `*` on getters / setters.
+// forbids the field-only ts modifiers on anything callable, `async` / `*` on
+// constructors, and `*` on getters / setters.
 fn validateMethodModifiers(parser: *Parser, key: ast.NodeIndex, mods: Modifiers) Error!void {
     const span = parser.tree.span(key);
+
+    if (mods.declare) try parser.report(
+        span,
+        "A 'declare' modifier cannot appear on a class element of this kind",
+        .{ .help = "Remove 'declare'. Only class fields carry it." },
+    );
+    if (mods.readonly) try parser.report(
+        span,
+        "A 'readonly' modifier can only appear on a property declaration or index signature",
+        .{ .help = "Remove 'readonly' from this method." },
+    );
+
     if (mods.kind == .constructor) {
+        if (mods.abstract) try parser.report(span, "Constructor cannot be abstract", .{
+            .help = "Remove the 'abstract' modifier. Only methods and properties can be abstract.",
+        });
         if (mods.is_async) try parser.report(span, "Constructor cannot be async", .{
             .help = "Remove the 'async' modifier from the constructor.",
         });

@@ -1,0 +1,137 @@
+test/parser/suite/ts/fail
+=========================
+Passed:       12/12 (100.00%)
+Failed:       0
+
+✓ test/parser/suite/ts/fail/06270979b3a1f3a4.ts
+error: Computed property names are not allowed in enums
+   |
+ 1 | enum Numeric {
+ 2 |   [1] = 1,
+   |   ^^^
+ 3 | }
+   |
+   = help: Name the member with an identifier or a string literal.
+
+
+✓ test/parser/suite/ts/fail/06c4541399cc191a.ts
+error: A parameter property may not be declared using a binding pattern
+   |
+10 | class ArrayPatterns {
+11 |   constructor(public []) {}
+   |                      ^^
+12 | }
+   |
+   = help: Name the parameter, then destructure it inside the constructor body.
+
+
+✓ test/parser/suite/ts/fail/1c417ce4905500de.ts
+error: A 'declare' modifier cannot appear on a class element of this kind
+   |
+ 7 | class OnMethods {
+ 8 |   declare method() {}
+   |           ^^^^^^
+ 9 |   declare bodyless(): void;
+   |
+   = help: Remove 'declare'. Only class fields carry it.
+
+
+✓ test/parser/suite/ts/fail/1fdea7676cb28f5d.ts
+error: An abstract method cannot have an implementation
+   |
+ 9 | abstract class WithImplementation {
+10 |   abstract method() {}
+   |                     ^^
+11 |   abstract get getter() {}
+   |
+   = help: Remove the body, or drop the 'abstract' modifier.
+
+
+✓ test/parser/suite/ts/fail/2d4f196729c94fde.module.ts
+error: A type-only import can specify a default import or named bindings, but not both
+   |
+ 4 | 
+ 5 | import type defaultAndEmpty, {} from "d";
+   |             ^^^^^^^^^^^^^^^^^^^
+ 6 | import type defaultAndNamed, { alsoNamed } from "e";
+   |
+   = help: Split this into one 'import type' per clause.
+
+
+✓ test/parser/suite/ts/fail/55ea9592d3748117.ts
+error: A 'readonly' modifier can only appear on a property declaration or index signature
+   |
+ 7 | class OnMethods {
+ 8 |   readonly method() {}
+   |            ^^^^^^
+ 9 |   readonly bodyless(): void;
+   |
+   = help: Remove 'readonly' from this method.
+
+
+✓ test/parser/suite/ts/fail/58939adbad1095b0.ts
+error: A namespace declaration requires a body
+   |
+ 6 | 
+ 7 | namespace Bodyless;
+   | ^^^^^^^^^^^^^^^^^^
+ 8 | namespace Qualified.Bodyless;
+   |
+   = help: Add a '{ }' body after the name.
+
+
+✓ test/parser/suite/ts/fail/7214fd783757e2ed.ts
+error: Constructor cannot be abstract
+   |
+ 2 | abstract class A {
+ 3 |     abstract constructor() {}
+   |              ^^^^^^^^^^^
+ 4 | }
+   |
+   = help: Remove the 'abstract' modifier. Only methods and properties can be abstract.
+
+
+✓ test/parser/suite/ts/fail/7edc21a87e9f1aa5.ts
+error: A declaration with a definite assignment assertion must also have a type annotation
+   |
+ 4 | class C {
+ 5 |     p!;
+   |     ^
+ 6 | }
+   |
+   = help: Annotate the declaration, for example 'x!: string'.
+
+
+✓ test/parser/suite/ts/fail/d8644e21c6eb5c15.module.ts
+error: An import alias cannot use 'import type'
+   |
+ 3 | import Alias = Namespace.Member;
+ 4 | import type TypeAlias = Namespace.Member;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 5 | import type Shorthand = Local;
+   |
+   = help: Drop 'type', or import the type with 'import type x from "m"'.
+
+
+✓ test/parser/suite/ts/fail/dffebcacdfc8c7b0.ts
+error: A declaration with a definite assignment assertion must also have a type annotation
+   |
+ 3 | 
+ 4 | let bare!;
+   |     ^^^^
+ 5 | var bareVar!;
+   |
+   = help: Annotate the declaration, for example 'x!: string'.
+
+
+✓ test/parser/suite/ts/fail/f8e915459f4c4e81.ts
+error: A 'readonly' modifier can only appear on a property declaration or index signature
+   |
+ 6 | interface OnSignatures {
+ 7 |   readonly method();
+   |   ^^^^^^^^^^^^^^^
+ 8 |   readonly generic<T>(value: T): T;
+   |
+   = help: Remove 'readonly' from this signature.
+
+
