@@ -248,6 +248,22 @@ describe("JSX", () => {
             function "Foo""
       `);
   });
+
+  test("a lowercase member root resolves while a direct lowercase tag stays intrinsic", () => {
+    // member roots are expressions while direct lowercase tags are intrinsic
+    expect(
+      summary(`const motion = {}; const App = () => <><motion.div /><div /></>;`, {
+        path: "input.jsx",
+      }),
+    ).toMatchInlineSnapshot(`
+        "global
+          module [strict]
+            motion#0  const
+            App#1  const
+            function =>
+              motion → #0"
+      `);
+  });
 });
 
 describe("reference cross-indexes", () => {
