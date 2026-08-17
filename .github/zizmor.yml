@@ -7,3 +7,11 @@ rules:
       # (setup-zig, setup-bun) are disabled through their use-cache / no-cache
       # inputs, which zizmor detects directly, not through this ignore.
       - publish-to-npm.yml
+
+  use-trusted-publishing:
+    ignore:
+      # The preview publisher holds no registry credential to replace with a
+      # trusted-publishing exchange. It authenticates by having its GitHub App
+      # verify the workflow run, which is why the job declares no permissions
+      # and reads no secret.
+      - continuous-release.yml
