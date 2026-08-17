@@ -23,7 +23,6 @@ function packFlags(o = {}) {
   let f = (SOURCE_TYPES[o.sourceType] ?? 1) | ((LANGS[o.lang] ?? 0) << 2);
   if (o.preserveParens !== false) f |= 1 << 5;
   if (o.attachComments) f |= 1 << 7;
-  if (o.allowReturnOutsideFunction) f |= 1 << 8;
   return f;
 }
 
