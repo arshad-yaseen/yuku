@@ -26,6 +26,7 @@ pub const extension_points = [_][]const u8{
     "jsx_child_at_control_flow", // as above, consulted second
     "jsx_element_after_open", // fn(comptime R: type, parser, opening, context) R
     "jsx_element_name", // fn(comptime R: type, parser) R; opening and closing tags alike
+    "jsx_fragment_after_open", // fn(comptime R: type, parser, opening) R
     "jsx_names_match", // fn(parser, a, b) ?bool; does a closing tag match its opening tag
     "jsx_text_boundary", // fn(source: []const u8, cursor: u32) ?bool; true ends the text run
     "jsx_text_value", // fn(comptime R: type, parser, span) R, R = Error!?ast.String; interned value

@@ -7,7 +7,7 @@ const Hook = extension.Hook;
 
 const Case = struct { source: []const u8, lang: ast.Lang = .js };
 
-/// between them these reach all 19 extension points; none of them is a parse error.
+/// between them these reach all 20 extension points; none of them is a parse error.
 const corpus = [_]Case{
     .{ .source =
     \\let x = 1;
@@ -19,7 +19,7 @@ const corpus = [_]Case{
     .{ .source = "@dec class C {}\nconst c = (@dec class {});", .lang = .ts },
     .{ .source = "for (const i of items @tail) f(i);" },
     .{ .source = "import x from bare;" },
-    .{ .source = "const el = <div a={1}>hi{ok}</div>;", .lang = .jsx },
+    .{ .source = "const el = <div a={1}>hi{ok}</div>;\nconst frag = <><b>bold</b></>;", .lang = .jsx },
     .{ .source = "const el = <p>!!shout</p>;", .lang = .jsx },
     .{ .source = "const el = <div>x</_>;\nconst d = <Deprecated />;", .lang = .jsx },
 };

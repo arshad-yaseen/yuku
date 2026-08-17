@@ -109,6 +109,12 @@ fn parseJsxFragment(parser: *Parser) Error!?ast.NodeIndex {
         .{ .jsx_opening_fragment = .{} },
         .{ .start = start, .end = opening_end },
     );
+    if (comptime @hasDecl(parser_extension, "jsx_fragment_after_open"))
+        if (try parser_extension.jsx_fragment_after_open(
+            Error!??ast.NodeIndex,
+            parser,
+            opening,
+        )) |node| return node;
 
     // parse children (don't advance past '>', parseJsxChildren scans from there)
     const children = try parseJsxChildren(parser, opening_end) orelse return null;

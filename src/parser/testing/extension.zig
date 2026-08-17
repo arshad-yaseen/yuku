@@ -1,4 +1,4 @@
-//! reference `parser_extension` binding: implements all 19 extension points, counts every
+//! reference `parser_extension` binding: implements all 20 extension points, counts every
 //! call, and takes a real handled path on marker syntax stock JS/TS/JSX rejects.
 
 const std = @import("std");
@@ -15,6 +15,7 @@ pub const Hook = enum {
     jsx_child_at_control_flow,
     jsx_element_after_open,
     jsx_element_name,
+    jsx_fragment_after_open,
     jsx_names_match,
     jsx_text_boundary,
     jsx_text_value,
@@ -83,6 +84,9 @@ pub fn jsx_element_after_open(comptime R: type, parser: anytype, opening: anytyp
 }
 pub fn jsx_element_name(comptime R: type, parser: anytype) R {
     return decline(R, parser, .jsx_element_name);
+}
+pub fn jsx_fragment_after_open(comptime R: type, parser: anytype, opening: anytype) R {
+    return decline(R, .{ parser, opening }, .jsx_fragment_after_open);
 }
 
 /// `</_>` closes any element.
