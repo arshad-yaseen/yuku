@@ -13,8 +13,8 @@ import type {
   TSSatisfiesExpression,
   TSTypeAssertion,
 } from "@yuku-toolchain/types";
-import { is } from "./is.ts";
-import { walk } from "./walk.ts";
+import { is } from "./is.js";
+import { walk } from "./walk.js";
 
 type MaybeNode = Node | null | undefined;
 

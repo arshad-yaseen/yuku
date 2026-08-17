@@ -18,13 +18,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsdown"
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@yuku-toolchain/types": "workspace:^"
-  },
-  "devDependencies": {
-    "tsdown": "^0.22.14"
   },
   "keywords": [
     "ast",
