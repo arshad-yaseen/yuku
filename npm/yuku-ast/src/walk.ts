@@ -1,7 +1,7 @@
 import type { Node, NodeOfType, NodeType } from "@yuku-toolchain/types";
-import { ALIAS_GROUPS, type AliasMap, type AliasName } from "./aliases.ts";
-import { WalkContext } from "./context.ts";
-import { CHILD_KEYS } from "./generated.ts";
+import { ALIAS_GROUPS, type AliasMap, type AliasName } from "./aliases.js";
+import { WalkContext } from "./context.js";
+import { CHILD_KEYS } from "./generated.js";
 
 /** A visitor function for one node type or alias. */
 export type WalkHandler<T extends Node = Node, S = unknown> = (

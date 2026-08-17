@@ -1,5 +1,5 @@
 import type { Node, NodeOfType, NodeType } from "@yuku-toolchain/types";
-import { NODE_TYPES } from "./generated.ts";
+import { NODE_TYPES } from "./generated.js";
 
 // distributes over unions, so b.Literal accepts each literal shape
 type BuilderInput<T> = T extends Node

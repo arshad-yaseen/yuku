@@ -9,7 +9,7 @@ import type {
   ImportPhase,
   Program,
 } from "@yuku-toolchain/types";
-import { bindingIdentifiers, nameOf } from "./utils.ts";
+import { bindingIdentifiers, nameOf } from "./utils.js";
 
 /** One imported binding, one record per specifier. */
 export interface CollectedImport {
