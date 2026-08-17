@@ -34,3 +34,9 @@ updates:
     ignore:
       - dependency-name: "yuku-*"
       - dependency-name: "@yuku-*/*"
+      # TypeScript 7 is the native port, whose npm package drops the JavaScript
+      # compiler API that the tsc differential test runs against, and
+      # @typescript-eslint/typescript-estree still requires < 6.1.0. Stay on 6
+      # until both are resolved.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
