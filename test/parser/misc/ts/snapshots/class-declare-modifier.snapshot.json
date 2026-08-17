@@ -1,0 +1,540 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 361,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "ClassDeclaration",
+        "start": 0,
+        "end": 120,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 6,
+          "end": 11,
+          "name": "Valid",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 12,
+          "end": 120,
+          "body": [
+            {
+              "type": "PropertyDefinition",
+              "start": 16,
+              "end": 38,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 24,
+                "end": 29,
+                "name": "field",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": null,
+              "computed": false,
+              "static": false,
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 29,
+                "end": 37,
+                "typeAnnotation": {
+                  "type": "TSNumberKeyword",
+                  "start": 31,
+                  "end": 37
+                }
+              },
+              "declare": true,
+              "override": false,
+              "optional": false,
+              "definite": false,
+              "readonly": false,
+              "accessibility": null
+            },
+            {
+              "type": "PropertyDefinition",
+              "start": 41,
+              "end": 76,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 56,
+                "end": 67,
+                "name": "staticField",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": null,
+              "computed": false,
+              "static": true,
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 67,
+                "end": 75,
+                "typeAnnotation": {
+                  "type": "TSNumberKeyword",
+                  "start": 69,
+                  "end": 75
+                }
+              },
+              "declare": true,
+              "override": false,
+              "optional": false,
+              "definite": false,
+              "readonly": false,
+              "accessibility": null
+            },
+            {
+              "type": "PropertyDefinition",
+              "start": 79,
+              "end": 118,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 96,
+                "end": 109,
+                "name": "readonlyField",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": null,
+              "computed": false,
+              "static": false,
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 109,
+                "end": 117,
+                "typeAnnotation": {
+                  "type": "TSNumberKeyword",
+                  "start": 111,
+                  "end": 117
+                }
+              },
+              "declare": true,
+              "override": false,
+              "optional": false,
+              "definite": false,
+              "readonly": true,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      },
+      {
+        "type": "ClassDeclaration",
+        "start": 122,
+        "end": 360,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 128,
+          "end": 137,
+          "name": "OnMethods",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 138,
+          "end": 360,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 142,
+              "end": 161,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 150,
+                "end": 156,
+                "name": "method",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 156,
+                "end": 161,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 159,
+                  "end": 161,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "method",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            },
+            {
+              "type": "MethodDefinition",
+              "start": 164,
+              "end": 189,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 172,
+                "end": 180,
+                "name": "bodyless",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "TSEmptyBodyFunctionExpression",
+                "start": 180,
+                "end": 189,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": null,
+                "expression": false,
+                "typeParameters": null,
+                "returnType": {
+                  "type": "TSTypeAnnotation",
+                  "start": 182,
+                  "end": 188,
+                  "typeAnnotation": {
+                    "type": "TSVoidKeyword",
+                    "start": 184,
+                    "end": 188
+                  }
+                },
+                "declare": false
+              },
+              "kind": "method",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            },
+            {
+              "type": "MethodDefinition",
+              "start": 192,
+              "end": 215,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 204,
+                "end": 210,
+                "name": "getter",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 210,
+                "end": 215,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 213,
+                  "end": 215,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "get",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            },
+            {
+              "type": "MethodDefinition",
+              "start": 218,
+              "end": 246,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 230,
+                "end": 236,
+                "name": "setter",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 236,
+                "end": 246,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [
+                  {
+                    "type": "Identifier",
+                    "start": 237,
+                    "end": 242,
+                    "name": "value",
+                    "decorators": [],
+                    "typeAnnotation": null,
+                    "optional": false
+                  }
+                ],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 244,
+                  "end": 246,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "set",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            },
+            {
+              "type": "MethodDefinition",
+              "start": 249,
+              "end": 286,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 261,
+                "end": 275,
+                "name": "bodylessGetter",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "TSEmptyBodyFunctionExpression",
+                "start": 275,
+                "end": 286,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": null,
+                "expression": false,
+                "typeParameters": null,
+                "returnType": {
+                  "type": "TSTypeAnnotation",
+                  "start": 277,
+                  "end": 285,
+                  "typeAnnotation": {
+                    "type": "TSNumberKeyword",
+                    "start": 279,
+                    "end": 285
+                  }
+                },
+                "declare": false
+              },
+              "kind": "get",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            },
+            {
+              "type": "MethodDefinition",
+              "start": 289,
+              "end": 331,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 301,
+                "end": 315,
+                "name": "bodylessSetter",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "TSEmptyBodyFunctionExpression",
+                "start": 315,
+                "end": 331,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [
+                  {
+                    "type": "Identifier",
+                    "start": 316,
+                    "end": 329,
+                    "name": "value",
+                    "decorators": [],
+                    "typeAnnotation": {
+                      "type": "TSTypeAnnotation",
+                      "start": 321,
+                      "end": 329,
+                      "typeAnnotation": {
+                        "type": "TSNumberKeyword",
+                        "start": 323,
+                        "end": 329
+                      }
+                    },
+                    "optional": false
+                  }
+                ],
+                "body": null,
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "set",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            },
+            {
+              "type": "MethodDefinition",
+              "start": 334,
+              "end": 358,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 342,
+                "end": 353,
+                "name": "constructor",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 353,
+                "end": 358,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 356,
+                  "end": 358,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "constructor",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "A 'declare' modifier cannot appear on a class element of this kind",
+      "start": 150,
+      "end": 156,
+      "help": "Remove 'declare'. Only class fields carry it.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A 'declare' modifier cannot appear on a class element of this kind",
+      "start": 172,
+      "end": 180,
+      "help": "Remove 'declare'. Only class fields carry it.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A 'declare' modifier cannot appear on a class element of this kind",
+      "start": 204,
+      "end": 210,
+      "help": "Remove 'declare'. Only class fields carry it.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A 'declare' modifier cannot appear on a class element of this kind",
+      "start": 230,
+      "end": 236,
+      "help": "Remove 'declare'. Only class fields carry it.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A 'declare' modifier cannot appear on a class element of this kind",
+      "start": 261,
+      "end": 275,
+      "help": "Remove 'declare'. Only class fields carry it.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A 'declare' modifier cannot appear on a class element of this kind",
+      "start": 301,
+      "end": 315,
+      "help": "Remove 'declare'. Only class fields carry it.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A 'declare' modifier cannot appear on a class element of this kind",
+      "start": 342,
+      "end": 353,
+      "help": "Remove 'declare'. Only class fields carry it.",
+      "labels": []
+    }
+  ]
+}

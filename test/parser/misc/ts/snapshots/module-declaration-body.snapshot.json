@@ -1,0 +1,297 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 325,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "TSModuleDeclaration",
+        "start": 0,
+        "end": 21,
+        "id": {
+          "type": "Identifier",
+          "start": 10,
+          "end": 18,
+          "name": "WithBody",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "kind": "namespace",
+        "declare": false,
+        "global": false,
+        "body": {
+          "type": "TSModuleBlock",
+          "start": 19,
+          "end": 21,
+          "body": []
+        }
+      },
+      {
+        "type": "TSModuleDeclaration",
+        "start": 22,
+        "end": 49,
+        "id": {
+          "type": "TSQualifiedName",
+          "start": 32,
+          "end": 46,
+          "left": {
+            "type": "Identifier",
+            "start": 32,
+            "end": 41,
+            "name": "Qualified",
+            "decorators": [],
+            "typeAnnotation": null,
+            "optional": false
+          },
+          "right": {
+            "type": "Identifier",
+            "start": 42,
+            "end": 46,
+            "name": "Name",
+            "decorators": [],
+            "optional": false,
+            "typeAnnotation": null
+          }
+        },
+        "kind": "namespace",
+        "declare": false,
+        "global": false,
+        "body": {
+          "type": "TSModuleBlock",
+          "start": 47,
+          "end": 49,
+          "body": []
+        }
+      },
+      {
+        "type": "TSModuleDeclaration",
+        "start": 50,
+        "end": 73,
+        "id": {
+          "type": "Identifier",
+          "start": 57,
+          "end": 70,
+          "name": "ModuleKeyword",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "kind": "module",
+        "declare": false,
+        "global": false,
+        "body": {
+          "type": "TSModuleBlock",
+          "start": 71,
+          "end": 73,
+          "body": []
+        }
+      },
+      {
+        "type": "TSModuleDeclaration",
+        "start": 74,
+        "end": 108,
+        "id": {
+          "type": "Literal",
+          "start": 89,
+          "end": 107,
+          "value": "ambient-external",
+          "raw": "\"ambient-external\""
+        },
+        "kind": "module",
+        "declare": true,
+        "global": false
+      },
+      {
+        "type": "TSModuleDeclaration",
+        "start": 109,
+        "end": 155,
+        "id": {
+          "type": "Literal",
+          "start": 124,
+          "end": 152,
+          "value": "ambient-external-with-body",
+          "raw": "\"ambient-external-with-body\""
+        },
+        "kind": "module",
+        "declare": true,
+        "global": false,
+        "body": {
+          "type": "TSModuleBlock",
+          "start": 153,
+          "end": 155,
+          "body": []
+        }
+      },
+      {
+        "type": "TSModuleDeclaration",
+        "start": 157,
+        "end": 176,
+        "id": {
+          "type": "Identifier",
+          "start": 167,
+          "end": 175,
+          "name": "Bodyless",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "kind": "namespace",
+        "declare": false,
+        "global": false
+      },
+      {
+        "type": "TSModuleDeclaration",
+        "start": 177,
+        "end": 206,
+        "id": {
+          "type": "TSQualifiedName",
+          "start": 187,
+          "end": 205,
+          "left": {
+            "type": "Identifier",
+            "start": 187,
+            "end": 196,
+            "name": "Qualified",
+            "decorators": [],
+            "typeAnnotation": null,
+            "optional": false
+          },
+          "right": {
+            "type": "Identifier",
+            "start": 197,
+            "end": 205,
+            "name": "Bodyless",
+            "decorators": [],
+            "optional": false,
+            "typeAnnotation": null
+          }
+        },
+        "kind": "namespace",
+        "declare": false,
+        "global": false
+      },
+      {
+        "type": "TSModuleDeclaration",
+        "start": 207,
+        "end": 229,
+        "id": {
+          "type": "Identifier",
+          "start": 214,
+          "end": 228,
+          "name": "ModuleBodyless",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "kind": "module",
+        "declare": false,
+        "global": false
+      },
+      {
+        "type": "TSModuleDeclaration",
+        "start": 230,
+        "end": 264,
+        "id": {
+          "type": "Identifier",
+          "start": 248,
+          "end": 263,
+          "name": "AmbientBodyless",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "kind": "namespace",
+        "declare": true,
+        "global": false
+      },
+      {
+        "type": "TSModuleDeclaration",
+        "start": 265,
+        "end": 302,
+        "id": {
+          "type": "Identifier",
+          "start": 280,
+          "end": 301,
+          "name": "AmbientModuleBodyless",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "kind": "module",
+        "declare": true,
+        "global": false
+      },
+      {
+        "type": "TSModuleDeclaration",
+        "start": 303,
+        "end": 324,
+        "id": {
+          "type": "Identifier",
+          "start": 313,
+          "end": 324,
+          "name": "NoSemicolon",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "kind": "namespace",
+        "declare": false,
+        "global": false
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "A namespace declaration requires a body",
+      "start": 157,
+      "end": 175,
+      "help": "Add a '{ }' body after the name.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A namespace declaration requires a body",
+      "start": 177,
+      "end": 205,
+      "help": "Add a '{ }' body after the name.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A module declaration requires a body",
+      "start": 207,
+      "end": 228,
+      "help": "Add a '{ }' body after the name.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A namespace declaration requires a body",
+      "start": 230,
+      "end": 263,
+      "help": "Add a '{ }' body after the name.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A module declaration requires a body",
+      "start": 265,
+      "end": 301,
+      "help": "Add a '{ }' body after the name.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A namespace declaration requires a body",
+      "start": 303,
+      "end": 324,
+      "help": "Add a '{ }' body after the name.",
+      "labels": []
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 188,
+    "sourceType": "module",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "TSImportEqualsDeclaration",
+        "start": 0,
+        "end": 36,
+        "id": {
+          "type": "Identifier",
+          "start": 12,
+          "end": 20,
+          "name": "Required",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "moduleReference": {
+          "type": "TSExternalModuleReference",
+          "start": 23,
+          "end": 35,
+          "expression": {
+            "type": "Literal",
+            "start": 31,
+            "end": 34,
+            "value": "a",
+            "raw": "\"a\""
+          }
+        },
+        "importKind": "type"
+      },
+      {
+        "type": "TSImportEqualsDeclaration",
+        "start": 38,
+        "end": 70,
+        "id": {
+          "type": "Identifier",
+          "start": 45,
+          "end": 50,
+          "name": "Alias",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "moduleReference": {
+          "type": "TSQualifiedName",
+          "start": 53,
+          "end": 69,
+          "left": {
+            "type": "Identifier",
+            "start": 53,
+            "end": 62,
+            "name": "Namespace",
+            "decorators": [],
+            "optional": false,
+            "typeAnnotation": null
+          },
+          "right": {
+            "type": "Identifier",
+            "start": 63,
+            "end": 69,
+            "name": "Member",
+            "decorators": [],
+            "optional": false,
+            "typeAnnotation": null
+          }
+        },
+        "importKind": "value"
+      },
+      {
+        "type": "TSImportEqualsDeclaration",
+        "start": 71,
+        "end": 112,
+        "id": {
+          "type": "Identifier",
+          "start": 83,
+          "end": 92,
+          "name": "TypeAlias",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "moduleReference": {
+          "type": "TSQualifiedName",
+          "start": 95,
+          "end": 111,
+          "left": {
+            "type": "Identifier",
+            "start": 95,
+            "end": 104,
+            "name": "Namespace",
+            "decorators": [],
+            "optional": false,
+            "typeAnnotation": null
+          },
+          "right": {
+            "type": "Identifier",
+            "start": 105,
+            "end": 111,
+            "name": "Member",
+            "decorators": [],
+            "optional": false,
+            "typeAnnotation": null
+          }
+        },
+        "importKind": "type"
+      },
+      {
+        "type": "TSImportEqualsDeclaration",
+        "start": 113,
+        "end": 143,
+        "id": {
+          "type": "Identifier",
+          "start": 125,
+          "end": 134,
+          "name": "Shorthand",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "moduleReference": {
+          "type": "Identifier",
+          "start": 137,
+          "end": 142,
+          "name": "Local",
+          "decorators": [],
+          "optional": false,
+          "typeAnnotation": null
+        },
+        "importKind": "type"
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 145,
+        "end": 187,
+        "declaration": {
+          "type": "TSImportEqualsDeclaration",
+          "start": 152,
+          "end": 187,
+          "id": {
+            "type": "Identifier",
+            "start": 159,
+            "end": 167,
+            "name": "Exported",
+            "decorators": [],
+            "typeAnnotation": null,
+            "optional": false
+          },
+          "moduleReference": {
+            "type": "TSQualifiedName",
+            "start": 170,
+            "end": 186,
+            "left": {
+              "type": "Identifier",
+              "start": 170,
+              "end": 179,
+              "name": "Namespace",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            },
+            "right": {
+              "type": "Identifier",
+              "start": 180,
+              "end": 186,
+              "name": "Member",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            }
+          },
+          "importKind": "value"
+        },
+        "specifiers": [],
+        "source": null,
+        "attributes": [],
+        "exportKind": "value"
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "An import alias cannot use 'import type'",
+      "start": 71,
+      "end": 111,
+      "help": "Drop 'type', or import the type with 'import type x from \"m\"'.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "An import alias cannot use 'import type'",
+      "start": 113,
+      "end": 142,
+      "help": "Drop 'type', or import the type with 'import type x from \"m\"'.",
+      "labels": []
+    }
+  ]
+}

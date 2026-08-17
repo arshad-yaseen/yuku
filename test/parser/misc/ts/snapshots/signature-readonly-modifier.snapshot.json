@@ -1,0 +1,557 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 416,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "TSInterfaceDeclaration",
+        "start": 0,
+        "end": 83,
+        "id": {
+          "type": "Identifier",
+          "start": 10,
+          "end": 15,
+          "name": "Valid",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "extends": [],
+        "body": {
+          "type": "TSInterfaceBody",
+          "start": 16,
+          "end": 83,
+          "body": [
+            {
+              "type": "TSPropertySignature",
+              "start": 20,
+              "end": 46,
+              "key": {
+                "type": "Identifier",
+                "start": 29,
+                "end": 37,
+                "name": "property",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 37,
+                "end": 45,
+                "typeAnnotation": {
+                  "type": "TSNumberKeyword",
+                  "start": 39,
+                  "end": 45
+                }
+              },
+              "computed": false,
+              "optional": false,
+              "readonly": true,
+              "accessibility": null,
+              "static": false
+            },
+            {
+              "type": "TSIndexSignature",
+              "start": 49,
+              "end": 81,
+              "parameters": [
+                {
+                  "type": "Identifier",
+                  "start": 59,
+                  "end": 70,
+                  "name": "key",
+                  "decorators": [],
+                  "typeAnnotation": {
+                    "type": "TSTypeAnnotation",
+                    "start": 62,
+                    "end": 70,
+                    "typeAnnotation": {
+                      "type": "TSStringKeyword",
+                      "start": 64,
+                      "end": 70
+                    }
+                  },
+                  "optional": false
+                }
+              ],
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 71,
+                "end": 80,
+                "typeAnnotation": {
+                  "type": "TSUnknownKeyword",
+                  "start": 73,
+                  "end": 80
+                }
+              },
+              "readonly": true,
+              "static": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSInterfaceDeclaration",
+        "start": 85,
+        "end": 265,
+        "id": {
+          "type": "Identifier",
+          "start": 95,
+          "end": 107,
+          "name": "OnSignatures",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "extends": [],
+        "body": {
+          "type": "TSInterfaceBody",
+          "start": 108,
+          "end": 265,
+          "body": [
+            {
+              "type": "TSMethodSignature",
+              "start": 112,
+              "end": 130,
+              "key": {
+                "type": "Identifier",
+                "start": 121,
+                "end": 127,
+                "name": "method",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "computed": false,
+              "optional": false,
+              "kind": "method",
+              "typeParameters": null,
+              "params": [],
+              "returnType": null,
+              "accessibility": null,
+              "readonly": false,
+              "static": false
+            },
+            {
+              "type": "TSMethodSignature",
+              "start": 133,
+              "end": 166,
+              "key": {
+                "type": "Identifier",
+                "start": 142,
+                "end": 149,
+                "name": "generic",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "computed": false,
+              "optional": false,
+              "kind": "method",
+              "typeParameters": {
+                "type": "TSTypeParameterDeclaration",
+                "start": 149,
+                "end": 152,
+                "params": [
+                  {
+                    "type": "TSTypeParameter",
+                    "start": 150,
+                    "end": 151,
+                    "name": {
+                      "type": "Identifier",
+                      "start": 150,
+                      "end": 151,
+                      "name": "T",
+                      "decorators": [],
+                      "typeAnnotation": null,
+                      "optional": false
+                    },
+                    "constraint": null,
+                    "default": null,
+                    "in": false,
+                    "out": false,
+                    "const": false
+                  }
+                ]
+              },
+              "params": [
+                {
+                  "type": "Identifier",
+                  "start": 153,
+                  "end": 161,
+                  "name": "value",
+                  "decorators": [],
+                  "typeAnnotation": {
+                    "type": "TSTypeAnnotation",
+                    "start": 158,
+                    "end": 161,
+                    "typeAnnotation": {
+                      "type": "TSTypeReference",
+                      "start": 160,
+                      "end": 161,
+                      "typeName": {
+                        "type": "Identifier",
+                        "start": 160,
+                        "end": 161,
+                        "name": "T",
+                        "decorators": [],
+                        "optional": false,
+                        "typeAnnotation": null
+                      },
+                      "typeArguments": null
+                    }
+                  },
+                  "optional": false
+                }
+              ],
+              "returnType": {
+                "type": "TSTypeAnnotation",
+                "start": 162,
+                "end": 165,
+                "typeAnnotation": {
+                  "type": "TSTypeReference",
+                  "start": 164,
+                  "end": 165,
+                  "typeName": {
+                    "type": "Identifier",
+                    "start": 164,
+                    "end": 165,
+                    "name": "T",
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  },
+                  "typeArguments": null
+                }
+              },
+              "accessibility": null,
+              "readonly": false,
+              "static": false
+            },
+            {
+              "type": "TSMethodSignature",
+              "start": 169,
+              "end": 199,
+              "key": {
+                "type": "Identifier",
+                "start": 182,
+                "end": 188,
+                "name": "getter",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "computed": false,
+              "optional": false,
+              "kind": "get",
+              "typeParameters": null,
+              "params": [],
+              "returnType": {
+                "type": "TSTypeAnnotation",
+                "start": 190,
+                "end": 198,
+                "typeAnnotation": {
+                  "type": "TSNumberKeyword",
+                  "start": 192,
+                  "end": 198
+                }
+              },
+              "accessibility": null,
+              "readonly": false,
+              "static": false
+            },
+            {
+              "type": "TSMethodSignature",
+              "start": 202,
+              "end": 237,
+              "key": {
+                "type": "Identifier",
+                "start": 215,
+                "end": 221,
+                "name": "setter",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "computed": false,
+              "optional": false,
+              "kind": "set",
+              "typeParameters": null,
+              "params": [
+                {
+                  "type": "Identifier",
+                  "start": 222,
+                  "end": 235,
+                  "name": "value",
+                  "decorators": [],
+                  "typeAnnotation": {
+                    "type": "TSTypeAnnotation",
+                    "start": 227,
+                    "end": 235,
+                    "typeAnnotation": {
+                      "type": "TSNumberKeyword",
+                      "start": 229,
+                      "end": 235
+                    }
+                  },
+                  "optional": false
+                }
+              ],
+              "returnType": null,
+              "accessibility": null,
+              "readonly": false,
+              "static": false
+            },
+            {
+              "type": "TSMethodSignature",
+              "start": 240,
+              "end": 263,
+              "key": {
+                "type": "Identifier",
+                "start": 249,
+                "end": 252,
+                "name": "new",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "computed": false,
+              "optional": false,
+              "kind": "method",
+              "typeParameters": null,
+              "params": [],
+              "returnType": {
+                "type": "TSTypeAnnotation",
+                "start": 255,
+                "end": 262,
+                "typeAnnotation": {
+                  "type": "TSTypeReference",
+                  "start": 257,
+                  "end": 262,
+                  "typeName": {
+                    "type": "Identifier",
+                    "start": 257,
+                    "end": 262,
+                    "name": "Valid",
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  },
+                  "typeArguments": null
+                }
+              },
+              "accessibility": null,
+              "readonly": false,
+              "static": false
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 267,
+        "end": 355,
+        "id": {
+          "type": "Identifier",
+          "start": 272,
+          "end": 284,
+          "name": "ValidLiteral",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTypeLiteral",
+          "start": 287,
+          "end": 354,
+          "members": [
+            {
+              "type": "TSPropertySignature",
+              "start": 291,
+              "end": 317,
+              "key": {
+                "type": "Identifier",
+                "start": 300,
+                "end": 308,
+                "name": "property",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 308,
+                "end": 316,
+                "typeAnnotation": {
+                  "type": "TSNumberKeyword",
+                  "start": 310,
+                  "end": 316
+                }
+              },
+              "computed": false,
+              "optional": false,
+              "readonly": true,
+              "accessibility": null,
+              "static": false
+            },
+            {
+              "type": "TSIndexSignature",
+              "start": 320,
+              "end": 352,
+              "parameters": [
+                {
+                  "type": "Identifier",
+                  "start": 330,
+                  "end": 341,
+                  "name": "key",
+                  "decorators": [],
+                  "typeAnnotation": {
+                    "type": "TSTypeAnnotation",
+                    "start": 333,
+                    "end": 341,
+                    "typeAnnotation": {
+                      "type": "TSStringKeyword",
+                      "start": 335,
+                      "end": 341
+                    }
+                  },
+                  "optional": false
+                }
+              ],
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 342,
+                "end": 351,
+                "typeAnnotation": {
+                  "type": "TSUnknownKeyword",
+                  "start": 344,
+                  "end": 351
+                }
+              },
+              "readonly": true,
+              "static": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 357,
+        "end": 415,
+        "id": {
+          "type": "Identifier",
+          "start": 362,
+          "end": 381,
+          "name": "LiteralOnSignatures",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTypeLiteral",
+          "start": 384,
+          "end": 414,
+          "members": [
+            {
+              "type": "TSMethodSignature",
+              "start": 388,
+              "end": 412,
+              "key": {
+                "type": "Identifier",
+                "start": 397,
+                "end": 403,
+                "name": "method",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "computed": false,
+              "optional": false,
+              "kind": "method",
+              "typeParameters": null,
+              "params": [],
+              "returnType": {
+                "type": "TSTypeAnnotation",
+                "start": 405,
+                "end": 411,
+                "typeAnnotation": {
+                  "type": "TSVoidKeyword",
+                  "start": 407,
+                  "end": 411
+                }
+              },
+              "accessibility": null,
+              "readonly": false,
+              "static": false
+            }
+          ]
+        },
+        "declare": false
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "A 'readonly' modifier can only appear on a property declaration or index signature",
+      "start": 112,
+      "end": 127,
+      "help": "Remove 'readonly' from this signature.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A 'readonly' modifier can only appear on a property declaration or index signature",
+      "start": 133,
+      "end": 149,
+      "help": "Remove 'readonly' from this signature.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A 'readonly' modifier can only appear on a property declaration or index signature",
+      "start": 169,
+      "end": 188,
+      "help": "Remove 'readonly' from this signature.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A 'readonly' modifier can only appear on a property declaration or index signature",
+      "start": 202,
+      "end": 221,
+      "help": "Remove 'readonly' from this signature.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A 'readonly' modifier can only appear on a property declaration or index signature",
+      "start": 240,
+      "end": 252,
+      "help": "Remove 'readonly' from this signature.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A 'readonly' modifier can only appear on a property declaration or index signature",
+      "start": 388,
+      "end": 403,
+      "help": "Remove 'readonly' from this signature.",
+      "labels": []
+    }
+  ]
+}
