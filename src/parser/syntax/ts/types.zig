@@ -21,6 +21,7 @@ pub const parseTypeOrTypePredicate = predicate.parseTypeOrTypePredicate;
 pub const applyTypeAnnotationToPattern = predicate.applyTypeAnnotationToPattern;
 pub const applyDecoratorsToPattern = predicate.applyDecoratorsToPattern;
 pub const markPatternOptional = predicate.markPatternOptional;
+pub const checkDefiniteAssignment = predicate.checkDefiniteAssignment;
 
 pub const parseTypeLiteral = object.parseTypeLiteral;
 pub const parseObjectTypeMembers = object.parseObjectTypeMembers;

@@ -330,6 +330,16 @@ pub fn parseFormalParameter(
 
     var pattern = try patterns.parseBindingPattern(parser) orelse return null;
 
+    // a parameter property declares a class field named after the parameter,
+    // and a destructuring pattern has no single name to lend it
+    if (pp.present and patterns.isDestructuringPattern(parser, pattern)) {
+        try parser.report(
+            parser.tree.span(pattern),
+            "A parameter property may not be declared using a binding pattern",
+            .{ .help = "Name the parameter, then destructure it inside the constructor body." },
+        );
+    }
+
     if (is_ts) {
         if (parser.current_token.tag == .question) {
             const question_end = parser.current_token.span.end;

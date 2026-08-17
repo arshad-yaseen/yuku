@@ -61,7 +61,6 @@ jobs:
         run: |
           bun run pkg-pr-new publish --compact --comment=off \
             --json preview-packages.json \
-            --packageManager=npm,pnpm,yarn,bun \
             './npm/*' \
             './npm/*/@*/binding-*'
 

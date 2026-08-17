@@ -1,0 +1,846 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 502,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "ClassDeclaration",
+        "start": 0,
+        "end": 167,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 6,
+          "end": 11,
+          "name": "Valid",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 12,
+          "end": 167,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 16,
+              "end": 165,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 16,
+                "end": 27,
+                "name": "constructor",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 27,
+                "end": 165,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [
+                  {
+                    "type": "TSParameterProperty",
+                    "start": 33,
+                    "end": 53,
+                    "decorators": [],
+                    "parameter": {
+                      "type": "Identifier",
+                      "start": 40,
+                      "end": 53,
+                      "name": "named",
+                      "decorators": [],
+                      "typeAnnotation": {
+                        "type": "TSTypeAnnotation",
+                        "start": 45,
+                        "end": 53,
+                        "typeAnnotation": {
+                          "type": "TSNumberKeyword",
+                          "start": 47,
+                          "end": 53
+                        }
+                      },
+                      "optional": false
+                    },
+                    "override": false,
+                    "readonly": false,
+                    "accessibility": "public",
+                    "static": false
+                  },
+                  {
+                    "type": "TSParameterProperty",
+                    "start": 59,
+                    "end": 93,
+                    "decorators": [],
+                    "parameter": {
+                      "type": "Identifier",
+                      "start": 76,
+                      "end": 93,
+                      "name": "annotated",
+                      "decorators": [],
+                      "typeAnnotation": {
+                        "type": "TSTypeAnnotation",
+                        "start": 85,
+                        "end": 93,
+                        "typeAnnotation": {
+                          "type": "TSStringKeyword",
+                          "start": 87,
+                          "end": 93
+                        }
+                      },
+                      "optional": false
+                    },
+                    "override": false,
+                    "readonly": true,
+                    "accessibility": "private",
+                    "static": false
+                  },
+                  {
+                    "type": "TSParameterProperty",
+                    "start": 99,
+                    "end": 127,
+                    "decorators": [],
+                    "parameter": {
+                      "type": "Identifier",
+                      "start": 109,
+                      "end": 127,
+                      "name": "optional",
+                      "decorators": [],
+                      "typeAnnotation": {
+                        "type": "TSTypeAnnotation",
+                        "start": 118,
+                        "end": 127,
+                        "typeAnnotation": {
+                          "type": "TSBooleanKeyword",
+                          "start": 120,
+                          "end": 127
+                        }
+                      },
+                      "optional": true
+                    },
+                    "override": false,
+                    "readonly": false,
+                    "accessibility": "protected",
+                    "static": false
+                  },
+                  {
+                    "type": "TSParameterProperty",
+                    "start": 133,
+                    "end": 157,
+                    "decorators": [],
+                    "parameter": {
+                      "type": "AssignmentPattern",
+                      "start": 142,
+                      "end": 157,
+                      "left": {
+                        "type": "Identifier",
+                        "start": 142,
+                        "end": 153,
+                        "name": "withDefault",
+                        "decorators": [],
+                        "typeAnnotation": null,
+                        "optional": false
+                      },
+                      "right": {
+                        "type": "Literal",
+                        "start": 156,
+                        "end": 157,
+                        "value": 1,
+                        "raw": "1"
+                      },
+                      "decorators": [],
+                      "typeAnnotation": null,
+                      "optional": false
+                    },
+                    "override": true,
+                    "readonly": false,
+                    "accessibility": null,
+                    "static": false
+                  }
+                ],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 163,
+                  "end": 165,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "constructor",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      },
+      {
+        "type": "ClassDeclaration",
+        "start": 169,
+        "end": 220,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 175,
+          "end": 188,
+          "name": "ArrayPatterns",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 189,
+          "end": 220,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 193,
+              "end": 218,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 193,
+                "end": 204,
+                "name": "constructor",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 204,
+                "end": 218,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [
+                  {
+                    "type": "TSParameterProperty",
+                    "start": 205,
+                    "end": 214,
+                    "decorators": [],
+                    "parameter": {
+                      "type": "ArrayPattern",
+                      "start": 212,
+                      "end": 214,
+                      "elements": [],
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "override": false,
+                    "readonly": false,
+                    "accessibility": "public",
+                    "static": false
+                  }
+                ],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 216,
+                  "end": 218,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "constructor",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      },
+      {
+        "type": "ClassDeclaration",
+        "start": 222,
+        "end": 275,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 228,
+          "end": 242,
+          "name": "ObjectPatterns",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 243,
+          "end": 275,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 247,
+              "end": 273,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 247,
+                "end": 258,
+                "name": "constructor",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 258,
+                "end": 273,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [
+                  {
+                    "type": "TSParameterProperty",
+                    "start": 259,
+                    "end": 269,
+                    "decorators": [],
+                    "parameter": {
+                      "type": "ObjectPattern",
+                      "start": 267,
+                      "end": 269,
+                      "properties": [],
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "override": false,
+                    "readonly": false,
+                    "accessibility": "private",
+                    "static": false
+                  }
+                ],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 271,
+                  "end": 273,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "constructor",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      },
+      {
+        "type": "ClassDeclaration",
+        "start": 277,
+        "end": 344,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 283,
+          "end": 301,
+          "name": "PatternWithDefault",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 302,
+          "end": 344,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 306,
+              "end": 342,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 306,
+                "end": 317,
+                "name": "constructor",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 317,
+                "end": 342,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [
+                  {
+                    "type": "TSParameterProperty",
+                    "start": 318,
+                    "end": 338,
+                    "decorators": [],
+                    "parameter": {
+                      "type": "AssignmentPattern",
+                      "start": 327,
+                      "end": 338,
+                      "left": {
+                        "type": "ArrayPattern",
+                        "start": 327,
+                        "end": 333,
+                        "elements": [
+                          {
+                            "type": "Identifier",
+                            "start": 328,
+                            "end": 329,
+                            "name": "a",
+                            "decorators": [],
+                            "typeAnnotation": null,
+                            "optional": false
+                          },
+                          {
+                            "type": "Identifier",
+                            "start": 331,
+                            "end": 332,
+                            "name": "b",
+                            "decorators": [],
+                            "typeAnnotation": null,
+                            "optional": false
+                          }
+                        ],
+                        "decorators": [],
+                        "optional": false,
+                        "typeAnnotation": null
+                      },
+                      "right": {
+                        "type": "ArrayExpression",
+                        "start": 336,
+                        "end": 338,
+                        "elements": []
+                      },
+                      "decorators": [],
+                      "typeAnnotation": null,
+                      "optional": false
+                    },
+                    "override": false,
+                    "readonly": true,
+                    "accessibility": null,
+                    "static": false
+                  }
+                ],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 340,
+                  "end": 342,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "constructor",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      },
+      {
+        "type": "ClassDeclaration",
+        "start": 346,
+        "end": 435,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 352,
+          "end": 365,
+          "name": "NestedPattern",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 366,
+          "end": 435,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 370,
+              "end": 433,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 370,
+                "end": 381,
+                "name": "constructor",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 381,
+                "end": 433,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [
+                  {
+                    "type": "TSParameterProperty",
+                    "start": 382,
+                    "end": 429,
+                    "decorators": [],
+                    "parameter": {
+                      "type": "ObjectPattern",
+                      "start": 392,
+                      "end": 429,
+                      "properties": [
+                        {
+                          "type": "Property",
+                          "start": 394,
+                          "end": 402,
+                          "kind": "init",
+                          "key": {
+                            "type": "Identifier",
+                            "start": 394,
+                            "end": 395,
+                            "name": "a",
+                            "decorators": [],
+                            "optional": false,
+                            "typeAnnotation": null
+                          },
+                          "value": {
+                            "type": "ObjectPattern",
+                            "start": 397,
+                            "end": 402,
+                            "properties": [
+                              {
+                                "type": "Property",
+                                "start": 399,
+                                "end": 400,
+                                "kind": "init",
+                                "key": {
+                                  "type": "Identifier",
+                                  "start": 399,
+                                  "end": 400,
+                                  "name": "b",
+                                  "decorators": [],
+                                  "optional": false,
+                                  "typeAnnotation": null
+                                },
+                                "value": {
+                                  "type": "Identifier",
+                                  "start": 399,
+                                  "end": 400,
+                                  "name": "b",
+                                  "decorators": [],
+                                  "typeAnnotation": null,
+                                  "optional": false
+                                },
+                                "method": false,
+                                "shorthand": true,
+                                "computed": false,
+                                "optional": false
+                              }
+                            ],
+                            "decorators": [],
+                            "optional": false,
+                            "typeAnnotation": null
+                          },
+                          "method": false,
+                          "shorthand": false,
+                          "computed": false,
+                          "optional": false
+                        }
+                      ],
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": {
+                        "type": "TSTypeAnnotation",
+                        "start": 404,
+                        "end": 429,
+                        "typeAnnotation": {
+                          "type": "TSTypeReference",
+                          "start": 406,
+                          "end": 429,
+                          "typeName": {
+                            "type": "Identifier",
+                            "start": 406,
+                            "end": 412,
+                            "name": "Record",
+                            "decorators": [],
+                            "optional": false,
+                            "typeAnnotation": null
+                          },
+                          "typeArguments": {
+                            "type": "TSTypeParameterInstantiation",
+                            "start": 412,
+                            "end": 429,
+                            "params": [
+                              {
+                                "type": "TSStringKeyword",
+                                "start": 413,
+                                "end": 419
+                              },
+                              {
+                                "type": "TSUnknownKeyword",
+                                "start": 421,
+                                "end": 428
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "override": false,
+                    "readonly": false,
+                    "accessibility": "protected",
+                    "static": false
+                  }
+                ],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 431,
+                  "end": 433,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "constructor",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      },
+      {
+        "type": "ClassDeclaration",
+        "start": 437,
+        "end": 501,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 443,
+          "end": 465,
+          "name": "PlainParameterPatterns",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 466,
+          "end": 501,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 470,
+              "end": 499,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 470,
+                "end": 481,
+                "name": "constructor",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 481,
+                "end": 499,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [
+                  {
+                    "type": "ArrayPattern",
+                    "start": 482,
+                    "end": 488,
+                    "elements": [
+                      {
+                        "type": "Identifier",
+                        "start": 483,
+                        "end": 484,
+                        "name": "a",
+                        "decorators": [],
+                        "typeAnnotation": null,
+                        "optional": false
+                      },
+                      {
+                        "type": "Identifier",
+                        "start": 486,
+                        "end": 487,
+                        "name": "b",
+                        "decorators": [],
+                        "typeAnnotation": null,
+                        "optional": false
+                      }
+                    ],
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  },
+                  {
+                    "type": "ObjectPattern",
+                    "start": 490,
+                    "end": 495,
+                    "properties": [
+                      {
+                        "type": "Property",
+                        "start": 492,
+                        "end": 493,
+                        "kind": "init",
+                        "key": {
+                          "type": "Identifier",
+                          "start": 492,
+                          "end": 493,
+                          "name": "c",
+                          "decorators": [],
+                          "optional": false,
+                          "typeAnnotation": null
+                        },
+                        "value": {
+                          "type": "Identifier",
+                          "start": 492,
+                          "end": 493,
+                          "name": "c",
+                          "decorators": [],
+                          "typeAnnotation": null,
+                          "optional": false
+                        },
+                        "method": false,
+                        "shorthand": true,
+                        "computed": false,
+                        "optional": false
+                      }
+                    ],
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  }
+                ],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 497,
+                  "end": 499,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "constructor",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "A parameter property may not be declared using a binding pattern",
+      "start": 212,
+      "end": 214,
+      "help": "Name the parameter, then destructure it inside the constructor body.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A parameter property may not be declared using a binding pattern",
+      "start": 267,
+      "end": 269,
+      "help": "Name the parameter, then destructure it inside the constructor body.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A parameter property may not be declared using a binding pattern",
+      "start": 327,
+      "end": 333,
+      "help": "Name the parameter, then destructure it inside the constructor body.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A parameter property may not be declared using a binding pattern",
+      "start": 392,
+      "end": 404,
+      "help": "Name the parameter, then destructure it inside the constructor body.",
+      "labels": []
+    }
+  ]
+}
