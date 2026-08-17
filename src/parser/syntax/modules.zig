@@ -79,7 +79,7 @@ pub fn parseImportDeclarationFrom(parser: *Parser, start: u32) Error!?ast.NodeIn
         }
     }
 
-    const specifiers = try parseImportClause(parser) orelse return null;
+    const specifiers = try parseImportClause(parser, import_kind) orelse return null;
 
     if (parser.current_token.tag != .from) {
         try parser.reportExpected(
@@ -163,7 +163,7 @@ fn parseSideEffectImport(
 }
 
 // ImportClause: default, * as, { }, default comma star, default comma braces
-fn parseImportClause(parser: *Parser) Error!?ast.IndexRange {
+fn parseImportClause(parser: *Parser, import_kind: ast.ImportOrExportKind) Error!?ast.IndexRange {
     const checkpoint = parser.scratch_a.begin();
     defer parser.scratch_a.reset(checkpoint);
 
@@ -200,6 +200,14 @@ fn parseImportClause(parser: *Parser) Error!?ast.IndexRange {
                 .{},
             );
             return null;
+        }
+
+        if (import_kind == .type) {
+            try parser.report(
+                .{ .start = parser.tree.span(default_import).start, .end = parser.prev_token_end },
+                "A type-only import can specify a default import or named bindings, but not both",
+                .{ .help = "Split this into one 'import type' per clause." },
+            );
         }
     }
 

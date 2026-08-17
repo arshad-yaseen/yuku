@@ -14,8 +14,8 @@ import type {
   StaticMemberExpression,
   StringLiteral,
 } from "@yuku-toolchain/types";
-import { ALIAS_GROUPS, type AliasMap, type AliasName } from "./aliases.ts";
-import { NODE_TYPES } from "./generated.ts";
+import { ALIAS_GROUPS, type AliasMap, type AliasName } from "./aliases.js";
+import { NODE_TYPES } from "./generated.js";
 
 type MaybeNode = Node | null | undefined;
 

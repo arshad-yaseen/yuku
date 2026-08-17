@@ -1,0 +1,854 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 413,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "ClassDeclaration",
+        "start": 0,
+        "end": 125,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 6,
+          "end": 11,
+          "name": "Valid",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 15,
+          "end": 125,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 19,
+              "end": 43,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 19,
+                "end": 30,
+                "name": "constructor",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 30,
+                "end": 43,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [
+                  {
+                    "type": "Identifier",
+                    "start": 31,
+                    "end": 39,
+                    "name": "value",
+                    "decorators": [],
+                    "typeAnnotation": {
+                      "type": "TSTypeAnnotation",
+                      "start": 36,
+                      "end": 39,
+                      "typeAnnotation": {
+                        "type": "TSTypeReference",
+                        "start": 38,
+                        "end": 39,
+                        "typeName": {
+                          "type": "Identifier",
+                          "start": 38,
+                          "end": 39,
+                          "name": "T",
+                          "decorators": [],
+                          "optional": false,
+                          "typeAnnotation": null
+                        },
+                        "typeArguments": null
+                      }
+                    },
+                    "optional": false
+                  }
+                ],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 41,
+                  "end": 43,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "constructor",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            },
+            {
+              "type": "MethodDefinition",
+              "start": 46,
+              "end": 68,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 46,
+                "end": 52,
+                "name": "method",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 52,
+                "end": 68,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [
+                  {
+                    "type": "Identifier",
+                    "start": 56,
+                    "end": 64,
+                    "name": "value",
+                    "decorators": [],
+                    "typeAnnotation": {
+                      "type": "TSTypeAnnotation",
+                      "start": 61,
+                      "end": 64,
+                      "typeAnnotation": {
+                        "type": "TSTypeReference",
+                        "start": 63,
+                        "end": 64,
+                        "typeName": {
+                          "type": "Identifier",
+                          "start": 63,
+                          "end": 64,
+                          "name": "U",
+                          "decorators": [],
+                          "optional": false,
+                          "typeAnnotation": null
+                        },
+                        "typeArguments": null
+                      }
+                    },
+                    "optional": false
+                  }
+                ],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 66,
+                  "end": 68,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": {
+                  "type": "TSTypeParameterDeclaration",
+                  "start": 52,
+                  "end": 55,
+                  "params": [
+                    {
+                      "type": "TSTypeParameter",
+                      "start": 53,
+                      "end": 54,
+                      "name": {
+                        "type": "Identifier",
+                        "start": 53,
+                        "end": 54,
+                        "name": "U",
+                        "decorators": [],
+                        "typeAnnotation": null,
+                        "optional": false
+                      },
+                      "constraint": null,
+                      "default": null,
+                      "in": false,
+                      "out": false,
+                      "const": false
+                    }
+                  ]
+                },
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "method",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            },
+            {
+              "type": "MethodDefinition",
+              "start": 71,
+              "end": 97,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 78,
+                "end": 89,
+                "name": "constructor",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 89,
+                "end": 97,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 95,
+                  "end": 97,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": {
+                  "type": "TSTypeParameterDeclaration",
+                  "start": 89,
+                  "end": 92,
+                  "params": [
+                    {
+                      "type": "TSTypeParameter",
+                      "start": 90,
+                      "end": 91,
+                      "name": {
+                        "type": "Identifier",
+                        "start": 90,
+                        "end": 91,
+                        "name": "U",
+                        "decorators": [],
+                        "typeAnnotation": null,
+                        "optional": false
+                      },
+                      "constraint": null,
+                      "default": null,
+                      "in": false,
+                      "out": false,
+                      "const": false
+                    }
+                  ]
+                },
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "method",
+              "computed": false,
+              "static": true,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            },
+            {
+              "type": "MethodDefinition",
+              "start": 100,
+              "end": 123,
+              "decorators": [],
+              "key": {
+                "type": "Literal",
+                "start": 101,
+                "end": 114,
+                "value": "constructor",
+                "raw": "\"constructor\""
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 115,
+                "end": 123,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 121,
+                  "end": 123,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": {
+                  "type": "TSTypeParameterDeclaration",
+                  "start": 115,
+                  "end": 118,
+                  "params": [
+                    {
+                      "type": "TSTypeParameter",
+                      "start": 116,
+                      "end": 117,
+                      "name": {
+                        "type": "Identifier",
+                        "start": 116,
+                        "end": 117,
+                        "name": "U",
+                        "decorators": [],
+                        "typeAnnotation": null,
+                        "optional": false
+                      },
+                      "constraint": null,
+                      "default": null,
+                      "in": false,
+                      "out": false,
+                      "const": false
+                    }
+                  ]
+                },
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "method",
+              "computed": true,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": {
+          "type": "TSTypeParameterDeclaration",
+          "start": 11,
+          "end": 14,
+          "params": [
+            {
+              "type": "TSTypeParameter",
+              "start": 12,
+              "end": 13,
+              "name": {
+                "type": "Identifier",
+                "start": 12,
+                "end": 13,
+                "name": "T",
+                "decorators": [],
+                "typeAnnotation": null,
+                "optional": false
+              },
+              "constraint": null,
+              "default": null,
+              "in": false,
+              "out": false,
+              "const": false
+            }
+          ]
+        },
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      },
+      {
+        "type": "ClassDeclaration",
+        "start": 127,
+        "end": 172,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 133,
+          "end": 146,
+          "name": "OnConstructor",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 147,
+          "end": 172,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 151,
+              "end": 170,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 151,
+                "end": 162,
+                "name": "constructor",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 162,
+                "end": 170,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 168,
+                  "end": 170,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": {
+                  "type": "TSTypeParameterDeclaration",
+                  "start": 162,
+                  "end": 165,
+                  "params": [
+                    {
+                      "type": "TSTypeParameter",
+                      "start": 163,
+                      "end": 164,
+                      "name": {
+                        "type": "Identifier",
+                        "start": 163,
+                        "end": 164,
+                        "name": "T",
+                        "decorators": [],
+                        "typeAnnotation": null,
+                        "optional": false
+                      },
+                      "constraint": null,
+                      "default": null,
+                      "in": false,
+                      "out": false,
+                      "const": false
+                    }
+                  ]
+                },
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "constructor",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      },
+      {
+        "type": "ClassDeclaration",
+        "start": 174,
+        "end": 227,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 180,
+          "end": 199,
+          "name": "OnQuotedConstructor",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 200,
+          "end": 227,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 204,
+              "end": 225,
+              "decorators": [],
+              "key": {
+                "type": "Literal",
+                "start": 204,
+                "end": 217,
+                "value": "constructor",
+                "raw": "\"constructor\""
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 217,
+                "end": 225,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 223,
+                  "end": 225,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": {
+                  "type": "TSTypeParameterDeclaration",
+                  "start": 217,
+                  "end": 220,
+                  "params": [
+                    {
+                      "type": "TSTypeParameter",
+                      "start": 218,
+                      "end": 219,
+                      "name": {
+                        "type": "Identifier",
+                        "start": 218,
+                        "end": 219,
+                        "name": "T",
+                        "decorators": [],
+                        "typeAnnotation": null,
+                        "optional": false
+                      },
+                      "constraint": null,
+                      "default": null,
+                      "in": false,
+                      "out": false,
+                      "const": false
+                    }
+                  ]
+                },
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "constructor",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      },
+      {
+        "type": "ClassDeclaration",
+        "start": 229,
+        "end": 288,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 235,
+          "end": 260,
+          "name": "OnSingleQuotedConstructor",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 261,
+          "end": 288,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 265,
+              "end": 286,
+              "decorators": [],
+              "key": {
+                "type": "Literal",
+                "start": 265,
+                "end": 278,
+                "value": "constructor",
+                "raw": "'constructor'"
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 278,
+                "end": 286,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 284,
+                  "end": 286,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": {
+                  "type": "TSTypeParameterDeclaration",
+                  "start": 278,
+                  "end": 281,
+                  "params": [
+                    {
+                      "type": "TSTypeParameter",
+                      "start": 279,
+                      "end": 280,
+                      "name": {
+                        "type": "Identifier",
+                        "start": 279,
+                        "end": 280,
+                        "name": "T",
+                        "decorators": [],
+                        "typeAnnotation": null,
+                        "optional": false
+                      },
+                      "constraint": null,
+                      "default": null,
+                      "in": false,
+                      "out": false,
+                      "const": false
+                    }
+                  ]
+                },
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "constructor",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      },
+      {
+        "type": "ClassDeclaration",
+        "start": 290,
+        "end": 348,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 304,
+          "end": 324,
+          "name": "OnAmbientConstructor",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 325,
+          "end": 348,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 329,
+              "end": 346,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 329,
+                "end": 340,
+                "name": "constructor",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "TSEmptyBodyFunctionExpression",
+                "start": 340,
+                "end": 346,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": null,
+                "expression": false,
+                "typeParameters": {
+                  "type": "TSTypeParameterDeclaration",
+                  "start": 340,
+                  "end": 343,
+                  "params": [
+                    {
+                      "type": "TSTypeParameter",
+                      "start": 341,
+                      "end": 342,
+                      "name": {
+                        "type": "Identifier",
+                        "start": 341,
+                        "end": 342,
+                        "name": "T",
+                        "decorators": [],
+                        "typeAnnotation": null,
+                        "optional": false
+                      },
+                      "constraint": null,
+                      "default": null,
+                      "in": false,
+                      "out": false,
+                      "const": false
+                    }
+                  ]
+                },
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "constructor",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": true
+      },
+      {
+        "type": "ClassDeclaration",
+        "start": 350,
+        "end": 412,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 365,
+          "end": 386,
+          "name": "OnAbstractConstructor",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 387,
+          "end": 412,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 391,
+              "end": 410,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 391,
+                "end": 402,
+                "name": "constructor",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 402,
+                "end": 410,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 408,
+                  "end": 410,
+                  "body": []
+                },
+                "expression": false,
+                "typeParameters": {
+                  "type": "TSTypeParameterDeclaration",
+                  "start": 402,
+                  "end": 405,
+                  "params": [
+                    {
+                      "type": "TSTypeParameter",
+                      "start": 403,
+                      "end": 404,
+                      "name": {
+                        "type": "Identifier",
+                        "start": 403,
+                        "end": 404,
+                        "name": "T",
+                        "decorators": [],
+                        "typeAnnotation": null,
+                        "optional": false
+                      },
+                      "constraint": null,
+                      "default": null,
+                      "in": false,
+                      "out": false,
+                      "const": false
+                    }
+                  ]
+                },
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "constructor",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": true,
+        "declare": false
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "Type parameters cannot appear on a constructor declaration",
+      "start": 162,
+      "end": 165,
+      "help": "Declare the type parameters on the class instead.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Type parameters cannot appear on a constructor declaration",
+      "start": 217,
+      "end": 220,
+      "help": "Declare the type parameters on the class instead.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Type parameters cannot appear on a constructor declaration",
+      "start": 278,
+      "end": 281,
+      "help": "Declare the type parameters on the class instead.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Type parameters cannot appear on a constructor declaration",
+      "start": 340,
+      "end": 343,
+      "help": "Declare the type parameters on the class instead.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Type parameters cannot appear on a constructor declaration",
+      "start": 402,
+      "end": 405,
+      "help": "Declare the type parameters on the class instead.",
+      "labels": []
+    }
+  ]
+}

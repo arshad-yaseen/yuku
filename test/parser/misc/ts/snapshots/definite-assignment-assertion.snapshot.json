@@ -1,0 +1,562 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 389,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "VariableDeclaration",
+        "start": 0,
+        "end": 23,
+        "kind": "let",
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 4,
+            "end": 22,
+            "id": {
+              "type": "Identifier",
+              "start": 4,
+              "end": 22,
+              "name": "annotated",
+              "decorators": [],
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 14,
+                "end": 22,
+                "typeAnnotation": {
+                  "type": "TSNumberKeyword",
+                  "start": 16,
+                  "end": 22
+                }
+              },
+              "optional": false
+            },
+            "init": null,
+            "definite": true
+          }
+        ],
+        "declare": false
+      },
+      {
+        "type": "VariableDeclaration",
+        "start": 24,
+        "end": 51,
+        "kind": "var",
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 28,
+            "end": 50,
+            "id": {
+              "type": "Identifier",
+              "start": 28,
+              "end": 50,
+              "name": "alsoAnnotated",
+              "decorators": [],
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 42,
+                "end": 50,
+                "typeAnnotation": {
+                  "type": "TSStringKeyword",
+                  "start": 44,
+                  "end": 50
+                }
+              },
+              "optional": false
+            },
+            "init": null,
+            "definite": true
+          }
+        ],
+        "declare": false
+      },
+      {
+        "type": "VariableDeclaration",
+        "start": 53,
+        "end": 63,
+        "kind": "let",
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 57,
+            "end": 62,
+            "id": {
+              "type": "Identifier",
+              "start": 57,
+              "end": 61,
+              "name": "bare",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            },
+            "init": null,
+            "definite": true
+          }
+        ],
+        "declare": false
+      },
+      {
+        "type": "VariableDeclaration",
+        "start": 64,
+        "end": 77,
+        "kind": "var",
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 68,
+            "end": 76,
+            "id": {
+              "type": "Identifier",
+              "start": 68,
+              "end": 75,
+              "name": "bareVar",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            },
+            "init": null,
+            "definite": true
+          }
+        ],
+        "declare": false
+      },
+      {
+        "type": "VariableDeclaration",
+        "start": 78,
+        "end": 103,
+        "kind": "let",
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 82,
+            "end": 102,
+            "id": {
+              "type": "Identifier",
+              "start": 82,
+              "end": 97,
+              "name": "withInitializer",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            },
+            "init": {
+              "type": "Literal",
+              "start": 101,
+              "end": 102,
+              "value": 1,
+              "raw": "1"
+            },
+            "definite": true
+          }
+        ],
+        "declare": false
+      },
+      {
+        "type": "VariableDeclaration",
+        "start": 104,
+        "end": 146,
+        "kind": "let",
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 108,
+            "end": 145,
+            "id": {
+              "type": "Identifier",
+              "start": 108,
+              "end": 141,
+              "name": "annotatedWithInitializer",
+              "decorators": [],
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 133,
+                "end": 141,
+                "typeAnnotation": {
+                  "type": "TSNumberKeyword",
+                  "start": 135,
+                  "end": 141
+                }
+              },
+              "optional": false
+            },
+            "init": {
+              "type": "Literal",
+              "start": 144,
+              "end": 145,
+              "value": 1,
+              "raw": "1"
+            },
+            "definite": true
+          }
+        ],
+        "declare": false
+      },
+      {
+        "type": "VariableDeclaration",
+        "start": 147,
+        "end": 179,
+        "kind": "const",
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 153,
+            "end": 178,
+            "id": {
+              "type": "Identifier",
+              "start": 153,
+              "end": 173,
+              "name": "constWithInitializer",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            },
+            "init": {
+              "type": "Literal",
+              "start": 177,
+              "end": 178,
+              "value": 1,
+              "raw": "1"
+            },
+            "definite": true
+          }
+        ],
+        "declare": false
+      },
+      {
+        "type": "ClassDeclaration",
+        "start": 181,
+        "end": 388,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 187,
+          "end": 193,
+          "name": "Fields",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 194,
+          "end": 388,
+          "body": [
+            {
+              "type": "PropertyDefinition",
+              "start": 198,
+              "end": 217,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 198,
+                "end": 207,
+                "name": "annotated",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": null,
+              "computed": false,
+              "static": false,
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 208,
+                "end": 216,
+                "typeAnnotation": {
+                  "type": "TSNumberKeyword",
+                  "start": 210,
+                  "end": 216
+                }
+              },
+              "declare": false,
+              "override": false,
+              "optional": false,
+              "definite": true,
+              "readonly": false,
+              "accessibility": null
+            },
+            {
+              "type": "AccessorProperty",
+              "start": 220,
+              "end": 252,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 229,
+                "end": 242,
+                "name": "annotatedAuto",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": null,
+              "computed": false,
+              "static": false,
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 243,
+                "end": 251,
+                "typeAnnotation": {
+                  "type": "TSNumberKeyword",
+                  "start": 245,
+                  "end": 251
+                }
+              },
+              "declare": false,
+              "override": false,
+              "optional": false,
+              "definite": true,
+              "readonly": false,
+              "accessibility": null
+            },
+            {
+              "type": "PropertyDefinition",
+              "start": 256,
+              "end": 262,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 256,
+                "end": 260,
+                "name": "bare",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": null,
+              "computed": false,
+              "static": false,
+              "typeAnnotation": null,
+              "declare": false,
+              "override": false,
+              "optional": false,
+              "definite": true,
+              "readonly": false,
+              "accessibility": null
+            },
+            {
+              "type": "PropertyDefinition",
+              "start": 265,
+              "end": 286,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 265,
+                "end": 280,
+                "name": "withInitializer",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "Literal",
+                "start": 284,
+                "end": 285,
+                "value": 1,
+                "raw": "1"
+              },
+              "computed": false,
+              "static": false,
+              "typeAnnotation": null,
+              "declare": false,
+              "override": false,
+              "optional": false,
+              "definite": true,
+              "readonly": false,
+              "accessibility": null
+            },
+            {
+              "type": "PropertyDefinition",
+              "start": 289,
+              "end": 327,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 289,
+                "end": 313,
+                "name": "annotatedWithInitializer",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "Literal",
+                "start": 325,
+                "end": 326,
+                "value": 1,
+                "raw": "1"
+              },
+              "computed": false,
+              "static": false,
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 314,
+                "end": 322,
+                "typeAnnotation": {
+                  "type": "TSNumberKeyword",
+                  "start": 316,
+                  "end": 322
+                }
+              },
+              "declare": false,
+              "override": false,
+              "optional": false,
+              "definite": true,
+              "readonly": false,
+              "accessibility": null
+            },
+            {
+              "type": "AccessorProperty",
+              "start": 330,
+              "end": 349,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 339,
+                "end": 347,
+                "name": "autoBare",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": null,
+              "computed": false,
+              "static": false,
+              "typeAnnotation": null,
+              "declare": false,
+              "override": false,
+              "optional": false,
+              "definite": true,
+              "readonly": false,
+              "accessibility": null
+            },
+            {
+              "type": "AccessorProperty",
+              "start": 352,
+              "end": 386,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 361,
+                "end": 380,
+                "name": "autoWithInitializer",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "Literal",
+                "start": 384,
+                "end": 385,
+                "value": 1,
+                "raw": "1"
+              },
+              "computed": false,
+              "static": false,
+              "typeAnnotation": null,
+              "declare": false,
+              "override": false,
+              "optional": false,
+              "definite": true,
+              "readonly": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "A declaration with a definite assignment assertion must also have a type annotation",
+      "start": 57,
+      "end": 61,
+      "help": "Annotate the declaration, for example 'x!: string'.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A declaration with a definite assignment assertion must also have a type annotation",
+      "start": 68,
+      "end": 75,
+      "help": "Annotate the declaration, for example 'x!: string'.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A declaration with an initializer cannot also have a definite assignment assertion",
+      "start": 82,
+      "end": 97,
+      "help": "Remove the '!'. The initializer already assigns a value.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A declaration with an initializer cannot also have a definite assignment assertion",
+      "start": 108,
+      "end": 132,
+      "help": "Remove the '!'. The initializer already assigns a value.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A declaration with an initializer cannot also have a definite assignment assertion",
+      "start": 153,
+      "end": 173,
+      "help": "Remove the '!'. The initializer already assigns a value.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A declaration with a definite assignment assertion must also have a type annotation",
+      "start": 256,
+      "end": 260,
+      "help": "Annotate the declaration, for example 'x!: string'.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A declaration with an initializer cannot also have a definite assignment assertion",
+      "start": 265,
+      "end": 280,
+      "help": "Remove the '!'. The initializer already assigns a value.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A declaration with an initializer cannot also have a definite assignment assertion",
+      "start": 289,
+      "end": 313,
+      "help": "Remove the '!'. The initializer already assigns a value.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A declaration with a definite assignment assertion must also have a type annotation",
+      "start": 339,
+      "end": 347,
+      "help": "Annotate the declaration, for example 'x!: string'.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A declaration with an initializer cannot also have a definite assignment assertion",
+      "start": 361,
+      "end": 380,
+      "help": "Remove the '!'. The initializer already assigns a value.",
+      "labels": []
+    }
+  ]
+}

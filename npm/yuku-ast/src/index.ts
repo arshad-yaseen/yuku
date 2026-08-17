@@ -1,7 +1,7 @@
-export { ALIAS_GROUPS, ALIAS_NAMES, type AliasMap, type AliasName } from "./aliases.ts";
-export { b } from "./builders.ts";
-export { WalkContext } from "./context.ts";
-export { CHILD_KEYS, NODE_TYPES } from "./generated.ts";
+export { ALIAS_GROUPS, ALIAS_NAMES, type AliasMap, type AliasName } from "./aliases.js";
+export { b } from "./builders.js";
+export { WalkContext } from "./context.js";
+export { CHILD_KEYS, NODE_TYPES } from "./generated.js";
 export {
   isIdentifierChar,
   isIdentifierName,
@@ -12,8 +12,8 @@ export {
   isStrictBindReservedWord,
   isStrictReservedWord,
   isValidIdentifier,
-} from "./identifier.ts";
-export { is } from "./is.ts";
+} from "./identifier.js";
+export { is } from "./is.js";
 export {
   collectExportDeclaration,
   collectExports,
@@ -21,7 +21,7 @@ export {
   collectImports,
   type CollectedExport,
   type CollectedImport,
-} from "./modules.ts";
+} from "./modules.js";
 export {
   bindingIdentifiers,
   findAll,
@@ -31,7 +31,7 @@ export {
   nameOf,
   unwrap,
   type Wrapper,
-} from "./utils.ts";
+} from "./utils.js";
 export {
   _walk,
   _walkAsync,
@@ -43,4 +43,4 @@ export {
   type Visitors,
   type WalkHandler,
   type WalkHooks,
-} from "./walk.ts";
+} from "./walk.js";

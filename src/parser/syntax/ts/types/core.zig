@@ -705,11 +705,42 @@ fn parseTupleType(parser: *Parser) Error!?ast.NodeIndex {
     )) return null;
 
     const element_types = try parser.flushToExtras(&parser.scratch_a, checkpoint);
+    try checkTupleElementOrder(parser, element_types);
 
     return try parser.tree.addNode(
         .{ .ts_tuple_type = .{ .element_types = element_types } },
         .{ .start = start, .end = parser.prev_token_end },
     );
+}
+
+const TupleElementKind = enum { required, optional, rest };
+
+fn tupleElementKind(parser: *Parser, element: ast.NodeIndex) TupleElementKind {
+    return switch (parser.tree.data(element)) {
+        .ts_rest_type => .rest,
+        .ts_optional_type => .optional,
+        .ts_named_tuple_member => |member| if (member.optional) .optional else .required,
+        else => .required,
+    };
+}
+
+// arity is read left to right, so an element that must be present cannot sit
+// behind one that may be absent. A rest element spreads an unknown number of
+// slots and neither satisfies nor clears the optional that came before it.
+fn checkTupleElementOrder(parser: *Parser, element_types: ast.IndexRange) Error!void {
+    var seen_optional = false;
+
+    for (parser.tree.extra(element_types)) |element| {
+        switch (tupleElementKind(parser, element)) {
+            .required => if (seen_optional) return parser.report(
+                parser.tree.span(element),
+                "A required element cannot follow an optional element",
+                .{ .help = "Mark this element optional, or move it before the optional ones." },
+            ),
+            .optional => seen_optional = true,
+            .rest => {},
+        }
+    }
 }
 
 // `...T` rest, named `label[?]: T`, or a plain type.
