@@ -26,8 +26,6 @@ if (packages.length === 0) {
   process.exit(1);
 }
 
-const bindings = metadata.packages.length - packages.length;
-
 const body = [
   MARKER,
   "### Preview packages",
@@ -37,8 +35,6 @@ const body = [
   ...packages
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((pkg) => `| \`${pkg.name}\` | \`npm i ${pkg.url}\` |`),
-  "",
-  `<sub>${bindings} platform bindings are published alongside these and resolve automatically.</sub>`,
 ].join("\n");
 
 const api = `https://api.github.com/repos/${GITHUB_REPOSITORY}`;
