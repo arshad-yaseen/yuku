@@ -583,6 +583,14 @@ fn parseMethodDefinition(
     else
         .null;
 
+    // a constructor is invoked through the class, which owns the type
+    // parameters, so it has nowhere of its own to bind them
+    if (mods.kind == .constructor and type_parameters != .null) try parser.report(
+        parser.tree.span(type_parameters),
+        "Type parameters cannot appear on a constructor declaration",
+        .{ .help = "Declare the type parameters on the class instead." },
+    );
+
     const params = try functions.parseFormalParameters(
         parser,
         .unique_formal_parameters,

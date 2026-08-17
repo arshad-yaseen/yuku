@@ -1,8 +1,8 @@
 test/parser/misc/ts
 ===================
-Passed:       58/58 (100.00%)
+Passed:       60/60 (100.00%)
 Failed:       0
-AST mismatch: 0/58
+AST mismatch: 0/60
 
 ✓ test/parser/misc/ts/abstract-constructor-body.ts
 error: Constructor cannot be abstract
@@ -65,6 +65,17 @@ error: A 'readonly' modifier can only appear on a property declaration or index 
 
 
 ✓ test/parser/misc/ts/constructor-overloads.ts
+✓ test/parser/misc/ts/constructor-type-parameters.ts
+error: Type parameters cannot appear on a constructor declaration
+   |
+ 8 | class OnConstructor {
+ 9 |   constructor<T>() {}
+   |              ^^^
+10 | }
+   |
+   = help: Declare the type parameters on the class instead.
+
+
 ✓ test/parser/misc/ts/declare-function-overloads.ts
 ✓ test/parser/misc/ts/decorated-abstract-class-expression-invalid.ts
 error: Expected 'class' keyword, but found 'abstract'
@@ -309,6 +320,17 @@ error: Bad escape sequence in untagged template literal
    |                  ^^
 27 | type BadHex = `\x${string}`;
    |
+
+✓ test/parser/misc/ts/tuple-element-order.ts
+error: A required element cannot follow an optional element
+   |
+ 8 | 
+ 9 | type RequiredAfterOptional = [x?: A, y: B];
+   |                                      ^^^^
+10 | type RequiredAfterOptionalUnnamed = [A?, B];
+   |
+   = help: Mark this element optional, or move it before the optional ones.
+
 
 ✓ test/parser/misc/ts/type-assertion-vs-generic-arrow.ts
 ✓ test/parser/misc/ts/typed-arrow-predicate-in-ternary-jsx.module.tsx
