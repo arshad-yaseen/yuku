@@ -81,3 +81,24 @@ test "lookahead-driven keywords still parse cleanly when the next token is valid
         }
     }
 }
+
+// `return` at the top level is a syntax error in scripts and modules, but
+// embedders that parse a function body as a program can opt in. commonjs
+// keeps its implicit [+Return] regardless of the option.
+test "allow_return_outside_function toggles top-level return" {
+    const source = "return 42;";
+
+    try expectRejected(source, .{ .source_type = .script, .lang = .js });
+    try expectRejected(source, .{ .source_type = .module, .lang = .js });
+
+    const opts = [_]parser.Options{
+        .{ .source_type = .script, .lang = .js, .allow_return_outside_function = true },
+        .{ .source_type = .module, .lang = .js, .allow_return_outside_function = true },
+        .{ .source_type = .commonjs, .lang = .js },
+    };
+    for (opts) |o| {
+        var tree = try parser.parse(testing.allocator, source, o);
+        defer tree.deinit();
+        try testing.expectEqual(@as(usize, 0), tree.diagnostics.items.len);
+    }
+}
