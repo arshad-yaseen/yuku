@@ -350,10 +350,18 @@ function setDiagnostics(diags, source) {
 function renderSquiggles() {
   if (!diagHighlights) return;
   for (const h of Object.values(diagHighlights)) h.clear();
+  const textLen = codeView.textContent.length;
   for (const d of currentDiags) {
     const bucket = diagHighlights[DIAG_LEVEL[d.severity] ?? "info"];
     // zero-length spans render nothing, stretch them to one char
-    const range = rangeFromOffsets(codeView, d.start, d.end > d.start ? d.end : d.start + 1);
+    let start = Math.min(Math.max(d.start, 0), textLen);
+    let end = d.end > d.start ? d.end : d.start + 1;
+    end = Math.min(Math.max(end, 0), textLen);
+    if (end === start && start > 0) {
+      start -= 1;
+      end = start + 1;
+    }
+    const range = rangeFromOffsets(codeView, start, end);
     if (range) bucket.add(range);
   }
 }
