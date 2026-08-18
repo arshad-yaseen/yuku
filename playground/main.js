@@ -932,7 +932,14 @@ status.addEventListener("click", () => {
   persist();
 });
 
-jar.onUpdate(render);
+// codejar fires onupdate on every keyup, even caret-only moves like arrow
+// keys. gate on the text actually changing so those no longer reparse
+let lastCode = null;
+jar.onUpdate((code) => {
+  if (code === lastCode) return;
+  lastCode = code;
+  render();
+});
 
 // registered before the render listeners so render sees the synced values
 $("minify").addEventListener("change", (e) => {
