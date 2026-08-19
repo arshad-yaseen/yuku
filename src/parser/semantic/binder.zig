@@ -1103,14 +1103,17 @@ pub const SymbolTracker = struct {
                 _ = try self.declare(name, member.id);
                 self.pending = saved;
             },
-            // the leftmost capitalized `jsx_identifier` of a tag is a js
-            // binding reference. lowercase tags (`<div>`) are intrinsic
-            // element names and the rest of the chain is property syntax.
+            // a member tag evaluates its leftmost object regardless of casing.
+            // direct lowercase tags are intrinsic names. the rest is property syntax.
             inline .jsx_opening_element, .jsx_closing_element => |el| {
                 if (jsxTagRoot(self.tree, el.name)) |root_idx| {
                     const id = self.tree.data(root_idx).jsx_identifier;
                     const text = self.tree.string(id.name);
-                    if (text.len > 0 and text[0] >= 'A' and text[0] <= 'Z') {
+                    const member = switch (self.tree.data(el.name)) {
+                        .jsx_member_expression => true,
+                        else => false,
+                    };
+                    if (member or (text.len > 0 and text[0] >= 'A' and text[0] <= 'Z')) {
                         _ = try self.addReference(id.name, scope.current, root_idx, .{});
                     }
                 }

@@ -1,6 +1,6 @@
 {
   "name": "yuku-ast",
-  "version": "0.8.4",
+  "version": "0.9.0",
   "description": "Typed AST toolkit for JavaScript and TypeScript ESTree trees: walker, builders, guards, and syntactic utilities",
   "license": "MIT",
   "repository": {
@@ -18,13 +18,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsdown"
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@yuku-toolchain/types": "workspace:^"
-  },
-  "devDependencies": {
-    "tsdown": "^0.15.6"
   },
   "keywords": [
     "ast",

@@ -12,6 +12,7 @@ import {
   isCallOf,
   isIdentifierName,
   isValidIdentifier,
+  isWrapper,
   literalValue,
   nameOf,
   unwrap,
@@ -85,6 +86,22 @@ describe("utils", () => {
   test("unwrap strips parens and TS assertion wrappers", () => {
     const inner = unwrap(firstExpression(`((x as any))!`));
     expect(is.Identifier(inner, "x")).toBe(true);
+  });
+
+  test("isWrapper matches every form unwrap strips, and narrows to it", () => {
+    expect(isWrapper(firstExpression(`(x)`))).toBe(true);
+    expect(isWrapper(firstExpression(`x as any`))).toBe(true);
+    expect(isWrapper(firstExpression(`x satisfies any`))).toBe(true);
+    expect(isWrapper(firstExpression(`x!`))).toBe(true);
+    expect(isWrapper(firstExpression(`<any>x`))).toBe(true);
+
+    expect(isWrapper(firstExpression(`x`))).toBe(false);
+    expect(isWrapper(firstExpression(`f<string>`))).toBe(false);
+    expect(isWrapper(program(`x;`))).toBe(false);
+    expect(isWrapper(null)).toBe(false);
+
+    const node = firstExpression(`(x as any)!`);
+    expect(isWrapper(node) && is.Identifier(unwrap(node.expression), "x")).toBe(true);
   });
 
   test("isCallOf matches the unwrapped callee", () => {

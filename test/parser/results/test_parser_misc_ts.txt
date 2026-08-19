@@ -1,8 +1,19 @@
 test/parser/misc/ts
 ===================
-Passed:       43/43 (100.00%)
+Passed:       60/60 (100.00%)
 Failed:       0
-AST mismatch: 0/43
+AST mismatch: 0/60
+
+✓ test/parser/misc/ts/abstract-constructor-body.ts
+error: Constructor cannot be abstract
+   |
+ 2 | abstract class A {
+ 3 |     abstract constructor() {}
+   |              ^^^^^^^^^^^
+ 4 | }
+   |
+   = help: Remove the 'abstract' modifier. Only methods and properties can be abstract.
+
 
 ✓ test/parser/misc/ts/ambient-file-declarations.module.d.ts
 ✓ test/parser/misc/ts/ambient-reserved-param.ts
@@ -20,7 +31,51 @@ error: Invalid assignment target
 
 
 ✓ test/parser/misc/ts/catch-type-annotation.ts
+✓ test/parser/misc/ts/class-abstract-implementation.ts
+error: An abstract method cannot have an implementation
+   |
+ 9 | abstract class WithImplementation {
+10 |   abstract method() {}
+   |                     ^^
+11 |   abstract get getter() {}
+   |
+   = help: Remove the body, or drop the 'abstract' modifier.
+
+
+✓ test/parser/misc/ts/class-declare-modifier.ts
+error: A 'declare' modifier cannot appear on a class element of this kind
+   |
+ 7 | class OnMethods {
+ 8 |   declare method() {}
+   |           ^^^^^^
+ 9 |   declare bodyless(): void;
+   |
+   = help: Remove 'declare'. Only class fields carry it.
+
+
+✓ test/parser/misc/ts/class-readonly-modifier.ts
+error: A 'readonly' modifier can only appear on a property declaration or index signature
+   |
+ 7 | class OnMethods {
+ 8 |   readonly method() {}
+   |            ^^^^^^
+ 9 |   readonly bodyless(): void;
+   |
+   = help: Remove 'readonly' from this method.
+
+
 ✓ test/parser/misc/ts/constructor-overloads.ts
+✓ test/parser/misc/ts/constructor-type-parameters.ts
+error: Type parameters cannot appear on a constructor declaration
+   |
+ 8 | class OnConstructor {
+ 9 |   constructor<T>() {}
+   |              ^^^
+10 | }
+   |
+   = help: Declare the type parameters on the class instead.
+
+
 ✓ test/parser/misc/ts/declare-function-overloads.ts
 ✓ test/parser/misc/ts/decorated-abstract-class-expression-invalid.ts
 error: Expected 'class' keyword, but found 'abstract'
@@ -35,6 +90,28 @@ error: Expected 'class' keyword, but found 'abstract'
 ✓ test/parser/misc/ts/decorated-export-abstract-class.module.ts
 ✓ test/parser/misc/ts/decorated-export-default-abstract-class-named.module.ts
 ✓ test/parser/misc/ts/decorated-export-default-abstract-class.module.ts
+✓ test/parser/misc/ts/definite-assignment-assertion.ts
+error: A declaration with a definite assignment assertion must also have a type annotation
+   |
+ 3 | 
+ 4 | let bare!;
+   |     ^^^^
+ 5 | var bareVar!;
+   |
+   = help: Annotate the declaration, for example 'x!: string'.
+
+
+✓ test/parser/misc/ts/definite-assignment-bare-field.ts
+error: A declaration with a definite assignment assertion must also have a type annotation
+   |
+ 4 | class C {
+ 5 |     p!;
+   |     ^
+ 6 | }
+   |
+   = help: Annotate the declaration, for example 'x!: string'.
+
+
 ✓ test/parser/misc/ts/empty-type-argument-list.ts
 error: A type argument list cannot be empty
    |
@@ -44,10 +121,54 @@ error: A type argument list cannot be empty
  6 | type B = Array<numbe<> >
    |
 
+✓ test/parser/misc/ts/enum-computed-member-name.ts
+error: Computed property names are not allowed in enums
+   |
+ 1 | enum Numeric {
+ 2 |   [1] = 1,
+   |   ^^^
+ 3 | }
+   |
+   = help: Name the member with an identifier or a string literal.
+
+
 ✓ test/parser/misc/ts/enum-declaration-line-terminator.ts
 ✓ test/parser/misc/ts/extends-fused-angle-type-args.ts
 ✓ test/parser/misc/ts/extends-non-null-assertion.ts
 ✓ test/parser/misc/ts/function-overloads.ts
+✓ test/parser/misc/ts/import-type-clause-invalid.module.ts
+error: A type-only import can specify a default import or named bindings, but not both
+   |
+ 4 | 
+ 5 | import type defaultAndEmpty, {} from "d";
+   |             ^^^^^^^^^^^^^^^^^^^
+ 6 | import type defaultAndNamed, { alsoNamed } from "e";
+   |
+   = help: Split this into one 'import type' per clause.
+
+
+✓ test/parser/misc/ts/import-type-equals-alias.module.ts
+error: An import alias cannot use 'import type'
+   |
+ 3 | import Alias = Namespace.Member;
+ 4 | import type TypeAlias = Namespace.Member;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 5 | import type Shorthand = Local;
+   |
+   = help: Drop 'type', or import the type with 'import type x from "m"'.
+
+
+✓ test/parser/misc/ts/infer-constraint-function-type.ts
+error: Expected '?' in a conditional type, but found 'extends'
+   |
+16 | 
+17 | type UnionFnConstraint<T> = T extends infer F extends string | () => void ? F : never;
+   |                                               ^^^^^^^
+18 | type UnionCtorConstraint<T> = T extends infer C extends string | new () => object ? C : never;
+   |
+   = help: A conditional type is written 'T extends U ? X : Y'
+
+
 ✓ test/parser/misc/ts/instantiation-expression-edges.ts
 ✓ test/parser/misc/ts/instantiation-property-access-invalid.ts
 error: An instantiation expression cannot be followed by a property access
@@ -61,10 +182,32 @@ error: An instantiation expression cannot be followed by a property access
 
 
 ✓ test/parser/misc/ts/jsx-fused-angle-type-args.tsx
+✓ test/parser/misc/ts/module-declaration-body.ts
+error: A namespace declaration requires a body
+   |
+ 6 | 
+ 7 | namespace Bodyless;
+   | ^^^^^^^^^^^^^^^^^^
+ 8 | namespace Qualified.Bodyless;
+   |
+   = help: Add a '{ }' body after the name.
+
+
 ✓ test/parser/misc/ts/new-expression-non-null-callee.ts
 ✓ test/parser/misc/ts/optional-chain-call-fused-angle.ts
 ✓ test/parser/misc/ts/optional-chain-instantiation-fused-angle.ts
 ✓ test/parser/misc/ts/parameter-pattern-decorators.ts
+✓ test/parser/misc/ts/parameter-property-binding-pattern.ts
+error: A parameter property may not be declared using a binding pattern
+   |
+10 | class ArrayPatterns {
+11 |   constructor(public []) {}
+   |                      ^^
+12 | }
+   |
+   = help: Name the parameter, then destructure it inside the constructor body.
+
+
 ✓ test/parser/misc/ts/redeclare-error-class.ts
 error: Identifier 'B1' has already been declared
    |
@@ -158,6 +301,17 @@ error: Rest parameter may not have a trailing comma
    = help: Remove the trailing comma after the rest parameter.
 
 
+✓ test/parser/misc/ts/signature-readonly-modifier.ts
+error: A 'readonly' modifier can only appear on a property declaration or index signature
+   |
+ 6 | interface OnSignatures {
+ 7 |   readonly method();
+   |   ^^^^^^^^^^^^^^^
+ 8 |   readonly generic<T>(value: T): T;
+   |
+   = help: Remove 'readonly' from this signature.
+
+
 ✓ test/parser/misc/ts/template-literal-type-escapes.ts
 error: Bad escape sequence in untagged template literal
    |
@@ -167,5 +321,25 @@ error: Bad escape sequence in untagged template literal
 27 | type BadHex = `\x${string}`;
    |
 
+✓ test/parser/misc/ts/tuple-element-order.ts
+error: A required element cannot follow an optional element
+   |
+ 8 | 
+ 9 | type RequiredAfterOptional = [x?: A, y: B];
+   |                                      ^^^^
+10 | type RequiredAfterOptionalUnnamed = [A?, B];
+   |
+   = help: Mark this element optional, or move it before the optional ones.
+
+
+✓ test/parser/misc/ts/type-assertion-vs-generic-arrow.ts
 ✓ test/parser/misc/ts/typed-arrow-predicate-in-ternary-jsx.module.tsx
 ✓ test/parser/misc/ts/typed-arrow-predicate-in-ternary.ts
+✓ test/parser/misc/ts/unparenthesized-function-type-in-union.ts
+error: Expected a type, but found ')'
+   |
+ 1 | type A = B | () => void;
+   |               ^
+ 2 | type UnionTail = Handler | () => void;
+   |
+

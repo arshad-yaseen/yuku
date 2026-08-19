@@ -1,0 +1,1140 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 588,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 0,
+        "end": 34,
+        "id": {
+          "type": "Identifier",
+          "start": 5,
+          "end": 10,
+          "name": "Valid",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTupleType",
+          "start": 13,
+          "end": 33,
+          "elementTypes": [
+            {
+              "type": "TSNamedTupleMember",
+              "start": 14,
+              "end": 18,
+              "label": {
+                "type": "Identifier",
+                "start": 14,
+                "end": 15,
+                "name": "x",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "elementType": {
+                "type": "TSTypeReference",
+                "start": 17,
+                "end": 18,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 17,
+                  "end": 18,
+                  "name": "A",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              },
+              "optional": false
+            },
+            {
+              "type": "TSNamedTupleMember",
+              "start": 20,
+              "end": 25,
+              "label": {
+                "type": "Identifier",
+                "start": 20,
+                "end": 21,
+                "name": "y",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "elementType": {
+                "type": "TSTypeReference",
+                "start": 24,
+                "end": 25,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 24,
+                  "end": 25,
+                  "name": "B",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              },
+              "optional": true
+            },
+            {
+              "type": "TSNamedTupleMember",
+              "start": 27,
+              "end": 32,
+              "label": {
+                "type": "Identifier",
+                "start": 27,
+                "end": 28,
+                "name": "z",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "elementType": {
+                "type": "TSTypeReference",
+                "start": 31,
+                "end": 32,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 31,
+                  "end": 32,
+                  "name": "C",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              },
+              "optional": true
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 35,
+        "end": 67,
+        "id": {
+          "type": "Identifier",
+          "start": 40,
+          "end": 52,
+          "name": "ValidUnnamed",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTupleType",
+          "start": 55,
+          "end": 66,
+          "elementTypes": [
+            {
+              "type": "TSTypeReference",
+              "start": 56,
+              "end": 57,
+              "typeName": {
+                "type": "Identifier",
+                "start": 56,
+                "end": 57,
+                "name": "A",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSOptionalType",
+              "start": 59,
+              "end": 61,
+              "typeAnnotation": {
+                "type": "TSTypeReference",
+                "start": 59,
+                "end": 60,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 59,
+                  "end": 60,
+                  "name": "B",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              }
+            },
+            {
+              "type": "TSOptionalType",
+              "start": 63,
+              "end": 65,
+              "typeAnnotation": {
+                "type": "TSTypeReference",
+                "start": 63,
+                "end": 64,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 63,
+                  "end": 64,
+                  "name": "C",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 68,
+        "end": 120,
+        "id": {
+          "type": "Identifier",
+          "start": 73,
+          "end": 95,
+          "name": "ValidRestAfterOptional",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTupleType",
+          "start": 98,
+          "end": 119,
+          "elementTypes": [
+            {
+              "type": "TSNamedTupleMember",
+              "start": 99,
+              "end": 104,
+              "label": {
+                "type": "Identifier",
+                "start": 99,
+                "end": 100,
+                "name": "x",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "elementType": {
+                "type": "TSTypeReference",
+                "start": 103,
+                "end": 104,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 103,
+                  "end": 104,
+                  "name": "A",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              },
+              "optional": true
+            },
+            {
+              "type": "TSRestType",
+              "start": 106,
+              "end": 118,
+              "typeAnnotation": {
+                "type": "TSNamedTupleMember",
+                "start": 109,
+                "end": 118,
+                "label": {
+                  "type": "Identifier",
+                  "start": 109,
+                  "end": 113,
+                  "name": "rest",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "elementType": {
+                  "type": "TSArrayType",
+                  "start": 115,
+                  "end": 118,
+                  "elementType": {
+                    "type": "TSTypeReference",
+                    "start": 115,
+                    "end": 116,
+                    "typeName": {
+                      "type": "Identifier",
+                      "start": 115,
+                      "end": 116,
+                      "name": "B",
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "typeArguments": null
+                  }
+                },
+                "optional": false
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 121,
+        "end": 172,
+        "id": {
+          "type": "Identifier",
+          "start": 126,
+          "end": 148,
+          "name": "ValidRestAfterRequired",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTupleType",
+          "start": 151,
+          "end": 171,
+          "elementTypes": [
+            {
+              "type": "TSRestType",
+              "start": 152,
+              "end": 164,
+              "typeAnnotation": {
+                "type": "TSNamedTupleMember",
+                "start": 155,
+                "end": 164,
+                "label": {
+                  "type": "Identifier",
+                  "start": 155,
+                  "end": 159,
+                  "name": "rest",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "elementType": {
+                  "type": "TSArrayType",
+                  "start": 161,
+                  "end": 164,
+                  "elementType": {
+                    "type": "TSTypeReference",
+                    "start": 161,
+                    "end": 162,
+                    "typeName": {
+                      "type": "Identifier",
+                      "start": 161,
+                      "end": 162,
+                      "name": "A",
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "typeArguments": null
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "type": "TSNamedTupleMember",
+              "start": 166,
+              "end": 170,
+              "label": {
+                "type": "Identifier",
+                "start": 166,
+                "end": 167,
+                "name": "y",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "elementType": {
+                "type": "TSTypeReference",
+                "start": 169,
+                "end": 170,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 169,
+                  "end": 170,
+                  "name": "B",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              },
+              "optional": false
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 173,
+        "end": 207,
+        "id": {
+          "type": "Identifier",
+          "start": 178,
+          "end": 191,
+          "name": "ValidVariadic",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTupleType",
+          "start": 194,
+          "end": 206,
+          "elementTypes": [
+            {
+              "type": "TSTypeReference",
+              "start": 195,
+              "end": 196,
+              "typeName": {
+                "type": "Identifier",
+                "start": 195,
+                "end": 196,
+                "name": "A",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSRestType",
+              "start": 198,
+              "end": 202,
+              "typeAnnotation": {
+                "type": "TSTypeReference",
+                "start": 201,
+                "end": 202,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 201,
+                  "end": 202,
+                  "name": "T",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              }
+            },
+            {
+              "type": "TSTypeReference",
+              "start": 204,
+              "end": 205,
+              "typeName": {
+                "type": "Identifier",
+                "start": 204,
+                "end": 205,
+                "name": "C",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 208,
+        "end": 253,
+        "id": {
+          "type": "Identifier",
+          "start": 213,
+          "end": 239,
+          "name": "ValidVariadicAfterOptional",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTupleType",
+          "start": 242,
+          "end": 252,
+          "elementTypes": [
+            {
+              "type": "TSOptionalType",
+              "start": 243,
+              "end": 245,
+              "typeAnnotation": {
+                "type": "TSTypeReference",
+                "start": 243,
+                "end": 244,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 243,
+                  "end": 244,
+                  "name": "A",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              }
+            },
+            {
+              "type": "TSRestType",
+              "start": 247,
+              "end": 251,
+              "typeAnnotation": {
+                "type": "TSTypeReference",
+                "start": 250,
+                "end": 251,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 250,
+                  "end": 251,
+                  "name": "T",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 254,
+        "end": 297,
+        "id": {
+          "type": "Identifier",
+          "start": 259,
+          "end": 281,
+          "name": "ValidOptionalAfterRest",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTupleType",
+          "start": 284,
+          "end": 296,
+          "elementTypes": [
+            {
+              "type": "TSRestType",
+              "start": 285,
+              "end": 291,
+              "typeAnnotation": {
+                "type": "TSArrayType",
+                "start": 288,
+                "end": 291,
+                "elementType": {
+                  "type": "TSTypeReference",
+                  "start": 288,
+                  "end": 289,
+                  "typeName": {
+                    "type": "Identifier",
+                    "start": 288,
+                    "end": 289,
+                    "name": "A",
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  },
+                  "typeArguments": null
+                }
+              }
+            },
+            {
+              "type": "TSOptionalType",
+              "start": 293,
+              "end": 295,
+              "typeAnnotation": {
+                "type": "TSTypeReference",
+                "start": 293,
+                "end": 294,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 293,
+                  "end": 294,
+                  "name": "B",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 299,
+        "end": 342,
+        "id": {
+          "type": "Identifier",
+          "start": 304,
+          "end": 325,
+          "name": "RequiredAfterOptional",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTupleType",
+          "start": 328,
+          "end": 341,
+          "elementTypes": [
+            {
+              "type": "TSNamedTupleMember",
+              "start": 329,
+              "end": 334,
+              "label": {
+                "type": "Identifier",
+                "start": 329,
+                "end": 330,
+                "name": "x",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "elementType": {
+                "type": "TSTypeReference",
+                "start": 333,
+                "end": 334,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 333,
+                  "end": 334,
+                  "name": "A",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              },
+              "optional": true
+            },
+            {
+              "type": "TSNamedTupleMember",
+              "start": 336,
+              "end": 340,
+              "label": {
+                "type": "Identifier",
+                "start": 336,
+                "end": 337,
+                "name": "y",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "elementType": {
+                "type": "TSTypeReference",
+                "start": 339,
+                "end": 340,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 339,
+                  "end": 340,
+                  "name": "B",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              },
+              "optional": false
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 343,
+        "end": 387,
+        "id": {
+          "type": "Identifier",
+          "start": 348,
+          "end": 376,
+          "name": "RequiredAfterOptionalUnnamed",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTupleType",
+          "start": 379,
+          "end": 386,
+          "elementTypes": [
+            {
+              "type": "TSOptionalType",
+              "start": 380,
+              "end": 382,
+              "typeAnnotation": {
+                "type": "TSTypeReference",
+                "start": 380,
+                "end": 381,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 380,
+                  "end": 381,
+                  "name": "A",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              }
+            },
+            {
+              "type": "TSTypeReference",
+              "start": 384,
+              "end": 385,
+              "typeName": {
+                "type": "Identifier",
+                "start": 384,
+                "end": 385,
+                "name": "B",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 388,
+        "end": 436,
+        "id": {
+          "type": "Identifier",
+          "start": 393,
+          "end": 422,
+          "name": "RequiredAfterOptionalTrailing",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTupleType",
+          "start": 425,
+          "end": 435,
+          "elementTypes": [
+            {
+              "type": "TSOptionalType",
+              "start": 426,
+              "end": 428,
+              "typeAnnotation": {
+                "type": "TSTypeReference",
+                "start": 426,
+                "end": 427,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 426,
+                  "end": 427,
+                  "name": "A",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              }
+            },
+            {
+              "type": "TSTypeReference",
+              "start": 430,
+              "end": 431,
+              "typeName": {
+                "type": "Identifier",
+                "start": 430,
+                "end": 431,
+                "name": "B",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSTypeReference",
+              "start": 433,
+              "end": 434,
+              "typeName": {
+                "type": "Identifier",
+                "start": 433,
+                "end": 434,
+                "name": "C",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 437,
+        "end": 480,
+        "id": {
+          "type": "Identifier",
+          "start": 442,
+          "end": 463,
+          "name": "RequiredAfterVariadic",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTupleType",
+          "start": 466,
+          "end": 479,
+          "elementTypes": [
+            {
+              "type": "TSOptionalType",
+              "start": 467,
+              "end": 469,
+              "typeAnnotation": {
+                "type": "TSTypeReference",
+                "start": 467,
+                "end": 468,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 467,
+                  "end": 468,
+                  "name": "A",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              }
+            },
+            {
+              "type": "TSRestType",
+              "start": 471,
+              "end": 475,
+              "typeAnnotation": {
+                "type": "TSTypeReference",
+                "start": 474,
+                "end": 475,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 474,
+                  "end": 475,
+                  "name": "T",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              }
+            },
+            {
+              "type": "TSTypeReference",
+              "start": 477,
+              "end": 478,
+              "typeName": {
+                "type": "Identifier",
+                "start": 477,
+                "end": 478,
+                "name": "C",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 481,
+        "end": 532,
+        "id": {
+          "type": "Identifier",
+          "start": 486,
+          "end": 513,
+          "name": "RequiredAfterOptionalNested",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTupleType",
+          "start": 516,
+          "end": 531,
+          "elementTypes": [
+            {
+              "type": "TSTupleType",
+              "start": 517,
+              "end": 530,
+              "elementTypes": [
+                {
+                  "type": "TSNamedTupleMember",
+                  "start": 518,
+                  "end": 523,
+                  "label": {
+                    "type": "Identifier",
+                    "start": 518,
+                    "end": 519,
+                    "name": "x",
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  },
+                  "elementType": {
+                    "type": "TSTypeReference",
+                    "start": 522,
+                    "end": 523,
+                    "typeName": {
+                      "type": "Identifier",
+                      "start": 522,
+                      "end": 523,
+                      "name": "A",
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "typeArguments": null
+                  },
+                  "optional": true
+                },
+                {
+                  "type": "TSNamedTupleMember",
+                  "start": 525,
+                  "end": 529,
+                  "label": {
+                    "type": "Identifier",
+                    "start": 525,
+                    "end": 526,
+                    "name": "y",
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  },
+                  "elementType": {
+                    "type": "TSTypeReference",
+                    "start": 528,
+                    "end": 529,
+                    "typeName": {
+                      "type": "Identifier",
+                      "start": 528,
+                      "end": 529,
+                      "name": "B",
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "typeArguments": null
+                  },
+                  "optional": false
+                }
+              ]
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 533,
+        "end": 587,
+        "id": {
+          "type": "Identifier",
+          "start": 538,
+          "end": 566,
+          "name": "RequiredAfterOptionalInUnion",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 569,
+          "end": 586,
+          "types": [
+            {
+              "type": "TSTupleType",
+              "start": 569,
+              "end": 576,
+              "elementTypes": [
+                {
+                  "type": "TSOptionalType",
+                  "start": 570,
+                  "end": 572,
+                  "typeAnnotation": {
+                    "type": "TSTypeReference",
+                    "start": 570,
+                    "end": 571,
+                    "typeName": {
+                      "type": "Identifier",
+                      "start": 570,
+                      "end": 571,
+                      "name": "A",
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "typeArguments": null
+                  }
+                },
+                {
+                  "type": "TSTypeReference",
+                  "start": 574,
+                  "end": 575,
+                  "typeName": {
+                    "type": "Identifier",
+                    "start": 574,
+                    "end": 575,
+                    "name": "B",
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  },
+                  "typeArguments": null
+                }
+              ]
+            },
+            {
+              "type": "TSTupleType",
+              "start": 579,
+              "end": 586,
+              "elementTypes": [
+                {
+                  "type": "TSOptionalType",
+                  "start": 580,
+                  "end": 582,
+                  "typeAnnotation": {
+                    "type": "TSTypeReference",
+                    "start": 580,
+                    "end": 581,
+                    "typeName": {
+                      "type": "Identifier",
+                      "start": 580,
+                      "end": 581,
+                      "name": "C",
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "typeArguments": null
+                  }
+                },
+                {
+                  "type": "TSTypeReference",
+                  "start": 584,
+                  "end": 585,
+                  "typeName": {
+                    "type": "Identifier",
+                    "start": 584,
+                    "end": 585,
+                    "name": "D",
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  },
+                  "typeArguments": null
+                }
+              ]
+            }
+          ]
+        },
+        "declare": false
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "A required element cannot follow an optional element",
+      "start": 336,
+      "end": 340,
+      "help": "Mark this element optional, or move it before the optional ones.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A required element cannot follow an optional element",
+      "start": 384,
+      "end": 385,
+      "help": "Mark this element optional, or move it before the optional ones.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A required element cannot follow an optional element",
+      "start": 430,
+      "end": 431,
+      "help": "Mark this element optional, or move it before the optional ones.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A required element cannot follow an optional element",
+      "start": 477,
+      "end": 478,
+      "help": "Mark this element optional, or move it before the optional ones.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A required element cannot follow an optional element",
+      "start": 525,
+      "end": 529,
+      "help": "Mark this element optional, or move it before the optional ones.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A required element cannot follow an optional element",
+      "start": 574,
+      "end": 575,
+      "help": "Mark this element optional, or move it before the optional ones.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A required element cannot follow an optional element",
+      "start": 584,
+      "end": 585,
+      "help": "Mark this element optional, or move it before the optional ones.",
+      "labels": []
+    }
+  ]
+}

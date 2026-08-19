@@ -1,0 +1,372 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 343,
+    "sourceType": "module",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "ImportDeclaration",
+        "start": 0,
+        "end": 33,
+        "specifiers": [
+          {
+            "type": "ImportDefaultSpecifier",
+            "start": 12,
+            "end": 23,
+            "local": {
+              "type": "Identifier",
+              "start": 12,
+              "end": 23,
+              "name": "defaultOnly",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            }
+          }
+        ],
+        "source": {
+          "type": "Literal",
+          "start": 29,
+          "end": 32,
+          "value": "a",
+          "raw": "\"a\""
+        },
+        "attributes": [],
+        "phase": null,
+        "importKind": "type"
+      },
+      {
+        "type": "ImportDeclaration",
+        "start": 34,
+        "end": 65,
+        "specifiers": [
+          {
+            "type": "ImportSpecifier",
+            "start": 48,
+            "end": 53,
+            "imported": {
+              "type": "Identifier",
+              "start": 48,
+              "end": 53,
+              "name": "named",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            },
+            "local": {
+              "type": "Identifier",
+              "start": 48,
+              "end": 53,
+              "name": "named",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            },
+            "importKind": "value"
+          }
+        ],
+        "source": {
+          "type": "Literal",
+          "start": 61,
+          "end": 64,
+          "value": "b",
+          "raw": "\"b\""
+        },
+        "attributes": [],
+        "phase": null,
+        "importKind": "type"
+      },
+      {
+        "type": "ImportDeclaration",
+        "start": 66,
+        "end": 106,
+        "specifiers": [
+          {
+            "type": "ImportNamespaceSpecifier",
+            "start": 78,
+            "end": 96,
+            "local": {
+              "type": "Identifier",
+              "start": 83,
+              "end": 96,
+              "name": "namespaceOnly",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            }
+          }
+        ],
+        "source": {
+          "type": "Literal",
+          "start": 102,
+          "end": 105,
+          "value": "c",
+          "raw": "\"c\""
+        },
+        "attributes": [],
+        "phase": null,
+        "importKind": "type"
+      },
+      {
+        "type": "ImportDeclaration",
+        "start": 108,
+        "end": 149,
+        "specifiers": [
+          {
+            "type": "ImportDefaultSpecifier",
+            "start": 120,
+            "end": 135,
+            "local": {
+              "type": "Identifier",
+              "start": 120,
+              "end": 135,
+              "name": "defaultAndEmpty",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            }
+          }
+        ],
+        "source": {
+          "type": "Literal",
+          "start": 145,
+          "end": 148,
+          "value": "d",
+          "raw": "\"d\""
+        },
+        "attributes": [],
+        "phase": null,
+        "importKind": "type"
+      },
+      {
+        "type": "ImportDeclaration",
+        "start": 150,
+        "end": 202,
+        "specifiers": [
+          {
+            "type": "ImportDefaultSpecifier",
+            "start": 162,
+            "end": 177,
+            "local": {
+              "type": "Identifier",
+              "start": 162,
+              "end": 177,
+              "name": "defaultAndNamed",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            }
+          },
+          {
+            "type": "ImportSpecifier",
+            "start": 181,
+            "end": 190,
+            "imported": {
+              "type": "Identifier",
+              "start": 181,
+              "end": 190,
+              "name": "alsoNamed",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            },
+            "local": {
+              "type": "Identifier",
+              "start": 181,
+              "end": 190,
+              "name": "alsoNamed",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            },
+            "importKind": "value"
+          }
+        ],
+        "source": {
+          "type": "Literal",
+          "start": 198,
+          "end": 201,
+          "value": "e",
+          "raw": "\"e\""
+        },
+        "attributes": [],
+        "phase": null,
+        "importKind": "type"
+      },
+      {
+        "type": "ImportDeclaration",
+        "start": 203,
+        "end": 253,
+        "specifiers": [
+          {
+            "type": "ImportDefaultSpecifier",
+            "start": 215,
+            "end": 234,
+            "local": {
+              "type": "Identifier",
+              "start": 215,
+              "end": 234,
+              "name": "defaultAndNamespace",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            }
+          },
+          {
+            "type": "ImportNamespaceSpecifier",
+            "start": 236,
+            "end": 243,
+            "local": {
+              "type": "Identifier",
+              "start": 241,
+              "end": 243,
+              "name": "ns",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            }
+          }
+        ],
+        "source": {
+          "type": "Literal",
+          "start": 249,
+          "end": 252,
+          "value": "f",
+          "raw": "\"f\""
+        },
+        "attributes": [],
+        "phase": null,
+        "importKind": "type"
+      },
+      {
+        "type": "ImportDeclaration",
+        "start": 255,
+        "end": 295,
+        "specifiers": [
+          {
+            "type": "ImportDefaultSpecifier",
+            "start": 262,
+            "end": 274,
+            "local": {
+              "type": "Identifier",
+              "start": 262,
+              "end": 274,
+              "name": "valueDefault",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            }
+          },
+          {
+            "type": "ImportSpecifier",
+            "start": 278,
+            "end": 283,
+            "imported": {
+              "type": "Identifier",
+              "start": 278,
+              "end": 283,
+              "name": "value",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            },
+            "local": {
+              "type": "Identifier",
+              "start": 278,
+              "end": 283,
+              "name": "value",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            },
+            "importKind": "value"
+          }
+        ],
+        "source": {
+          "type": "Literal",
+          "start": 291,
+          "end": 294,
+          "value": "g",
+          "raw": "\"g\""
+        },
+        "attributes": [],
+        "phase": null,
+        "importKind": "value"
+      },
+      {
+        "type": "ImportDeclaration",
+        "start": 296,
+        "end": 342,
+        "specifiers": [
+          {
+            "type": "ImportDefaultSpecifier",
+            "start": 303,
+            "end": 318,
+            "local": {
+              "type": "Identifier",
+              "start": 303,
+              "end": 318,
+              "name": "valueDefaultToo",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            }
+          },
+          {
+            "type": "ImportNamespaceSpecifier",
+            "start": 320,
+            "end": 332,
+            "local": {
+              "type": "Identifier",
+              "start": 325,
+              "end": 332,
+              "name": "valueNs",
+              "decorators": [],
+              "typeAnnotation": null,
+              "optional": false
+            }
+          }
+        ],
+        "source": {
+          "type": "Literal",
+          "start": 338,
+          "end": 341,
+          "value": "h",
+          "raw": "\"h\""
+        },
+        "attributes": [],
+        "phase": null,
+        "importKind": "value"
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "A type-only import can specify a default import or named bindings, but not both",
+      "start": 120,
+      "end": 139,
+      "help": "Split this into one 'import type' per clause.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A type-only import can specify a default import or named bindings, but not both",
+      "start": 162,
+      "end": 192,
+      "help": "Split this into one 'import type' per clause.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "A type-only import can specify a default import or named bindings, but not both",
+      "start": 215,
+      "end": 243,
+      "help": "Split this into one 'import type' per clause.",
+      "labels": []
+    }
+  ]
+}

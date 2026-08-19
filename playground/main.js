@@ -59,9 +59,9 @@ function leafSpan(value) {
   return el("span", "ast-null", "null");
 }
 
-function row(key, valueNode) {
+function row(key, valueNode, keyClass = "ast-key") {
   const r = el("div", "ast-row");
-  if (key !== null) r.append(el("span", "ast-key", `${key}: `));
+  if (key !== null) r.append(el("span", keyClass, `${key}: `));
   r.append(valueNode);
   return r;
 }
@@ -71,14 +71,14 @@ let astDetails = [];
 let semTargets = [];
 const openState = new Map();
 
-function branch(key, value, depth, path) {
+function branch(key, value, depth, path, keyClass = "ast-key") {
   const details = el("details");
   details.__path = path;
   const stored = openState.get(path);
   details.open = stored !== undefined ? stored : depth < OPEN_DEPTH;
   astDetails.push(details);
   const summary = el("summary");
-  if (key !== null) summary.append(el("span", "ast-key", `${key}: `));
+  if (key !== null) summary.append(el("span", keyClass, `${key}: `));
 
   let entries;
   if (Array.isArray(value)) {
@@ -105,14 +105,18 @@ function branch(key, value, depth, path) {
   return details;
 }
 
-function value_(key, value, depth, path) {
+function value_(key, value, depth, path, keyClass = "ast-key") {
   if (Array.isArray(value)) {
-    return value.length === 0 ? row(key, el("span", "ast-meta", "[]")) : branch(key, value, depth, path);
+    return value.length === 0
+      ? row(key, el("span", "ast-meta", "[]"), keyClass)
+      : branch(key, value, depth, path, keyClass);
   }
   if (value !== null && typeof value === "object") {
-    return Object.keys(value).length === 0 ? row(key, el("span", "ast-meta", "{}")) : branch(key, value, depth, path);
+    return Object.keys(value).length === 0
+      ? row(key, el("span", "ast-meta", "{}"), keyClass)
+      : branch(key, value, depth, path, keyClass);
   }
-  return row(key, leafSpan(value));
+  return row(key, leafSpan(value), keyClass);
 }
 
 const FLAG_BADGES = [
@@ -349,7 +353,10 @@ function render() {
       astView.replaceChildren(el("div", "sem-err", String(e)));
     }
   } else {
-    astView.replaceChildren(value_(null, result.program, 0, ""));
+    astView.replaceChildren(
+      value_(null, result.program, 0, ""),
+      value_("comments", result.comments, 0, "comments", "ast-type"),
+    );
   }
   astView.scrollTop = astScroll;
 

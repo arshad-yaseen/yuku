@@ -194,6 +194,19 @@ pub fn parseImportEqualsBody(
     )) return null;
 
     const module_reference = try parseModuleReference(parser) orelse return null;
+
+    // `import type x = require("m")` stays legal, an alias of a local entity
+    // name has nothing to mark type-only
+    if (import_kind == .type and
+        parser.tree.data(module_reference) != .ts_external_module_reference)
+    {
+        try parser.report(
+            .{ .start = start, .end = parser.tree.span(module_reference).end },
+            "An import alias cannot use 'import type'",
+            .{ .help = "Drop 'type', or import the type with 'import type x from \"m\"'." },
+        );
+    }
+
     const end = try parser.eatSemicolon(parser.tree.span(module_reference).end) orelse return null;
 
     return try parser.tree.addNode(.{
@@ -468,14 +481,22 @@ fn parseEnumMemberName(parser: *Parser) Error!?EnumMemberName {
     const tag = parser.current_token.tag;
 
     if (tag == .left_bracket) {
+        const start = parser.current_token.span.start;
         try parser.advance() orelse return null;
         const inner = try expressions.parseExpression(parser, Precedence.Assignment, .{}) orelse
             return null;
         if (!try parser.expect(
             .right_bracket,
-            "Expected ']' to close a computed enum member name",
-            "A computed enum member name is written '[\"name\"]'",
+            "Expected ']' to close an enum member name",
+            "Each '[' in an enum member name must be matched by a ']'",
         )) return null;
+
+        try parser.report(
+            .{ .start = start, .end = parser.prev_token_end },
+            "Computed property names are not allowed in enums",
+            .{ .help = "Name the member with an identifier or a string literal." },
+        );
+
         return .{ .id = inner, .computed = true };
     }
 
@@ -492,8 +513,7 @@ fn parseEnumMemberName(parser: *Parser) Error!?EnumMemberName {
                 "Unexpected token '{s}' as enum member name",
                 .{parser.describeToken(parser.current_token)},
             ),
-            .{ .help = "Enum member names must be identifiers, string literals, or" ++
-                " computed expressions '[name]'." },
+            .{ .help = "Enum member names must be identifiers or string literals." },
         );
         return null;
     };
@@ -536,6 +556,20 @@ pub fn parseModuleDeclaration(
         try parseModuleName(parser) orelse return null;
 
     const body = try parseOptionalModuleBlock(parser) orelse return null;
+
+    // only an ambient external module (`declare module "m"`) names a body it
+    // does not own, every other form has to bring its own
+    if (body == .null and parser.tree.data(id) != .string_literal) {
+        try parser.report(
+            .{ .start = start, .end = parser.tree.span(id).end },
+            switch (kind) {
+                .namespace => "A namespace declaration requires a body",
+                .module => "A module declaration requires a body",
+            },
+            .{ .help = "Add a '{ }' body after the name." },
+        );
+    }
+
     const end = if (body == .null)
         try parser.eatSemicolon(parser.tree.span(id).end) orelse return null
     else

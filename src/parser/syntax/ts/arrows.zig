@@ -64,7 +64,9 @@ pub fn parseArrow(parser: *Parser, is_async: bool, arrow_start: u32) Error!?ast.
     if (is_async) parser.context.await = true;
     defer parser.context.await = saved_await;
 
+    const has_angle = generics.isAngleOpen(parser.current_token.tag);
     const type_parameters = try generics.parseTypeParameters(parser);
+    if (has_angle and type_parameters == .null) return null;
 
     if (parser.current_token.tag != .left_paren) return null;
 

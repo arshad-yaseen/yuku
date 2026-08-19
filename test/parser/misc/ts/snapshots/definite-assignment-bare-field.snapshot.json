@@ -1,0 +1,94 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 90,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "ClassDeclaration",
+        "start": 71,
+        "end": 90,
+        "decorators": [],
+        "id": {
+          "type": "Identifier",
+          "start": 77,
+          "end": 78,
+          "name": "C",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 79,
+          "end": 90,
+          "body": [
+            {
+              "type": "PropertyDefinition",
+              "start": 85,
+              "end": 88,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 85,
+                "end": 86,
+                "name": "p",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": null,
+              "computed": false,
+              "static": false,
+              "typeAnnotation": null,
+              "declare": false,
+              "override": false,
+              "optional": false,
+              "definite": true,
+              "readonly": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "typeParameters": null,
+        "superTypeArguments": null,
+        "implements": [],
+        "abstract": false,
+        "declare": false
+      }
+    ]
+  },
+  "comments": [
+    {
+      "type": "Line",
+      "value": " @strict: false",
+      "start": 0,
+      "end": 17
+    },
+    {
+      "type": "Line",
+      "value": " @target: esnext",
+      "start": 18,
+      "end": 36
+    },
+    {
+      "type": "Line",
+      "value": " @useDefineForClassFields: true",
+      "start": 37,
+      "end": 70
+    }
+  ],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "A declaration with a definite assignment assertion must also have a type annotation",
+      "start": 85,
+      "end": 86,
+      "help": "Annotate the declaration, for example 'x!: string'.",
+      "labels": []
+    }
+  ]
+}

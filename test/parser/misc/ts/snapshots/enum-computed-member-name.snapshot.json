@@ -1,0 +1,501 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 312,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "TSEnumDeclaration",
+        "start": 0,
+        "end": 27,
+        "id": {
+          "type": "Identifier",
+          "start": 5,
+          "end": 12,
+          "name": "Numeric",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "body": {
+          "type": "TSEnumBody",
+          "start": 13,
+          "end": 27,
+          "members": [
+            {
+              "type": "TSEnumMember",
+              "start": 18,
+              "end": 24,
+              "id": {
+                "type": "Literal",
+                "start": 18,
+                "end": 19,
+                "value": 1,
+                "raw": "1"
+              },
+              "initializer": {
+                "type": "Literal",
+                "start": 23,
+                "end": 24,
+                "value": 1,
+                "raw": "1"
+              },
+              "computed": true
+            }
+          ]
+        },
+        "const": false,
+        "declare": false
+      },
+      {
+        "type": "TSEnumDeclaration",
+        "start": 29,
+        "end": 59,
+        "id": {
+          "type": "Identifier",
+          "start": 34,
+          "end": 43,
+          "name": "BigIntKey",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "body": {
+          "type": "TSEnumBody",
+          "start": 44,
+          "end": 59,
+          "members": [
+            {
+              "type": "TSEnumMember",
+              "start": 49,
+              "end": 56,
+              "id": {
+                "type": "Literal",
+                "start": 49,
+                "end": 51,
+                "value": "(BigInt) 1n",
+                "raw": "1n",
+                "bigint": "1"
+              },
+              "initializer": {
+                "type": "Literal",
+                "start": 55,
+                "end": 56,
+                "value": 1,
+                "raw": "1"
+              },
+              "computed": true
+            }
+          ]
+        },
+        "const": false,
+        "declare": false
+      },
+      {
+        "type": "TSEnumDeclaration",
+        "start": 61,
+        "end": 92,
+        "id": {
+          "type": "Identifier",
+          "start": 66,
+          "end": 75,
+          "name": "Reference",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "body": {
+          "type": "TSEnumBody",
+          "start": 76,
+          "end": 92,
+          "members": [
+            {
+              "type": "TSEnumMember",
+              "start": 81,
+              "end": 89,
+              "id": {
+                "type": "Identifier",
+                "start": 81,
+                "end": 84,
+                "name": "foo",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "initializer": {
+                "type": "Literal",
+                "start": 88,
+                "end": 89,
+                "value": 1,
+                "raw": "1"
+              },
+              "computed": true
+            }
+          ]
+        },
+        "const": false,
+        "declare": false
+      },
+      {
+        "type": "TSEnumDeclaration",
+        "start": 94,
+        "end": 127,
+        "id": {
+          "type": "Identifier",
+          "start": 99,
+          "end": 108,
+          "name": "StringKey",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "body": {
+          "type": "TSEnumBody",
+          "start": 109,
+          "end": 127,
+          "members": [
+            {
+              "type": "TSEnumMember",
+              "start": 114,
+              "end": 124,
+              "id": {
+                "type": "Literal",
+                "start": 114,
+                "end": 119,
+                "value": "foo",
+                "raw": "\"foo\""
+              },
+              "initializer": {
+                "type": "Literal",
+                "start": 123,
+                "end": 124,
+                "value": 1,
+                "raw": "1"
+              },
+              "computed": true
+            }
+          ]
+        },
+        "const": false,
+        "declare": false
+      },
+      {
+        "type": "TSEnumDeclaration",
+        "start": 129,
+        "end": 164,
+        "id": {
+          "type": "Identifier",
+          "start": 134,
+          "end": 145,
+          "name": "TemplateKey",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "body": {
+          "type": "TSEnumBody",
+          "start": 146,
+          "end": 164,
+          "members": [
+            {
+              "type": "TSEnumMember",
+              "start": 151,
+              "end": 161,
+              "id": {
+                "type": "TemplateLiteral",
+                "start": 151,
+                "end": 156,
+                "quasis": [
+                  {
+                    "type": "TemplateElement",
+                    "start": 151,
+                    "end": 156,
+                    "value": {
+                      "raw": "foo",
+                      "cooked": "foo"
+                    },
+                    "tail": true
+                  }
+                ],
+                "expressions": []
+              },
+              "initializer": {
+                "type": "Literal",
+                "start": 160,
+                "end": 161,
+                "value": 1,
+                "raw": "1"
+              },
+              "computed": true
+            }
+          ]
+        },
+        "const": false,
+        "declare": false
+      },
+      {
+        "type": "TSEnumDeclaration",
+        "start": 166,
+        "end": 203,
+        "id": {
+          "type": "Identifier",
+          "start": 177,
+          "end": 186,
+          "name": "ConstEnum",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "body": {
+          "type": "TSEnumBody",
+          "start": 187,
+          "end": 203,
+          "members": [
+            {
+              "type": "TSEnumMember",
+              "start": 192,
+              "end": 200,
+              "id": {
+                "type": "Identifier",
+                "start": 192,
+                "end": 195,
+                "name": "foo",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "initializer": {
+                "type": "Literal",
+                "start": 199,
+                "end": 200,
+                "value": 1,
+                "raw": "1"
+              },
+              "computed": true
+            }
+          ]
+        },
+        "const": true,
+        "declare": false
+      },
+      {
+        "type": "TSEnumDeclaration",
+        "start": 205,
+        "end": 246,
+        "id": {
+          "type": "Identifier",
+          "start": 218,
+          "end": 229,
+          "name": "AmbientEnum",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "body": {
+          "type": "TSEnumBody",
+          "start": 230,
+          "end": 246,
+          "members": [
+            {
+              "type": "TSEnumMember",
+              "start": 235,
+              "end": 243,
+              "id": {
+                "type": "Identifier",
+                "start": 235,
+                "end": 238,
+                "name": "foo",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "initializer": {
+                "type": "Literal",
+                "start": 242,
+                "end": 243,
+                "value": 1,
+                "raw": "1"
+              },
+              "computed": true
+            }
+          ]
+        },
+        "const": false,
+        "declare": true
+      },
+      {
+        "type": "TSEnumDeclaration",
+        "start": 248,
+        "end": 311,
+        "id": {
+          "type": "Identifier",
+          "start": 253,
+          "end": 258,
+          "name": "Named",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "body": {
+          "type": "TSEnumBody",
+          "start": 259,
+          "end": 311,
+          "members": [
+            {
+              "type": "TSEnumMember",
+              "start": 263,
+              "end": 264,
+              "id": {
+                "type": "Identifier",
+                "start": 263,
+                "end": 264,
+                "name": "A",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "initializer": null,
+              "computed": false
+            },
+            {
+              "type": "TSEnumMember",
+              "start": 268,
+              "end": 273,
+              "id": {
+                "type": "Identifier",
+                "start": 268,
+                "end": 269,
+                "name": "B",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "initializer": {
+                "type": "Literal",
+                "start": 272,
+                "end": 273,
+                "value": 1,
+                "raw": "1"
+              },
+              "computed": false
+            },
+            {
+              "type": "TSEnumMember",
+              "start": 277,
+              "end": 289,
+              "id": {
+                "type": "Literal",
+                "start": 277,
+                "end": 285,
+                "value": "quoted",
+                "raw": "\"quoted\""
+              },
+              "initializer": {
+                "type": "Literal",
+                "start": 288,
+                "end": 289,
+                "value": 2,
+                "raw": "2"
+              },
+              "computed": false
+            },
+            {
+              "type": "TSEnumMember",
+              "start": 293,
+              "end": 308,
+              "id": {
+                "type": "TemplateLiteral",
+                "start": 293,
+                "end": 304,
+                "quasis": [
+                  {
+                    "type": "TemplateElement",
+                    "start": 293,
+                    "end": 304,
+                    "value": {
+                      "raw": "templated",
+                      "cooked": "templated"
+                    },
+                    "tail": true
+                  }
+                ],
+                "expressions": []
+              },
+              "initializer": {
+                "type": "Literal",
+                "start": 307,
+                "end": 308,
+                "value": 3,
+                "raw": "3"
+              },
+              "computed": false
+            }
+          ]
+        },
+        "const": false,
+        "declare": false
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "Computed property names are not allowed in enums",
+      "start": 17,
+      "end": 20,
+      "help": "Name the member with an identifier or a string literal.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Computed property names are not allowed in enums",
+      "start": 48,
+      "end": 52,
+      "help": "Name the member with an identifier or a string literal.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Computed property names are not allowed in enums",
+      "start": 80,
+      "end": 85,
+      "help": "Name the member with an identifier or a string literal.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Computed property names are not allowed in enums",
+      "start": 113,
+      "end": 120,
+      "help": "Name the member with an identifier or a string literal.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Computed property names are not allowed in enums",
+      "start": 150,
+      "end": 157,
+      "help": "Name the member with an identifier or a string literal.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Computed property names are not allowed in enums",
+      "start": 191,
+      "end": 196,
+      "help": "Name the member with an identifier or a string literal.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Computed property names are not allowed in enums",
+      "start": 234,
+      "end": 239,
+      "help": "Name the member with an identifier or a string literal.",
+      "labels": []
+    }
+  ]
+}

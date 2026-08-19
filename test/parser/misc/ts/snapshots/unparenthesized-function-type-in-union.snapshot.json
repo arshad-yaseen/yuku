@@ -1,0 +1,1947 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 3293,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 1274,
+        "end": 1313,
+        "id": {
+          "type": "Identifier",
+          "start": 1279,
+          "end": 1291,
+          "name": "AbstractName",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 1294,
+          "end": 1312,
+          "types": [
+            {
+              "type": "TSTypeReference",
+              "start": 1294,
+              "end": 1301,
+              "typeName": {
+                "type": "Identifier",
+                "start": 1294,
+                "end": 1301,
+                "name": "Handler",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSTypeReference",
+              "start": 1304,
+              "end": 1312,
+              "typeName": {
+                "type": "Identifier",
+                "start": 1304,
+                "end": 1312,
+                "name": "abstract",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 1314,
+        "end": 1368,
+        "id": {
+          "type": "Identifier",
+          "start": 1319,
+          "end": 1339,
+          "name": "AbstractNameWithArgs",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 1342,
+          "end": 1367,
+          "types": [
+            {
+              "type": "TSTypeReference",
+              "start": 1342,
+              "end": 1349,
+              "typeName": {
+                "type": "Identifier",
+                "start": 1342,
+                "end": 1349,
+                "name": "Handler",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSTypeReference",
+              "start": 1352,
+              "end": 1367,
+              "typeName": {
+                "type": "Identifier",
+                "start": 1352,
+                "end": 1360,
+                "name": "abstract",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": {
+                "type": "TSTypeParameterInstantiation",
+                "start": 1360,
+                "end": 1367,
+                "params": [
+                  {
+                    "type": "TSTypeReference",
+                    "start": 1361,
+                    "end": 1366,
+                    "typeName": {
+                      "type": "Identifier",
+                      "start": 1361,
+                      "end": 1366,
+                      "name": "Other",
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "typeArguments": null
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 1369,
+        "end": 1403,
+        "id": {
+          "type": "Identifier",
+          "start": 1374,
+          "end": 1391,
+          "name": "AbstractNameAlone",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTypeReference",
+          "start": 1394,
+          "end": 1402,
+          "typeName": {
+            "type": "Identifier",
+            "start": 1394,
+            "end": 1402,
+            "name": "abstract",
+            "decorators": [],
+            "optional": false,
+            "typeAnnotation": null
+          },
+          "typeArguments": null
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 2489,
+        "end": 2517,
+        "id": {
+          "type": "Identifier",
+          "start": 2494,
+          "end": 2504,
+          "name": "ParenAlias",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSParenthesizedType",
+          "start": 2507,
+          "end": 2516,
+          "typeAnnotation": {
+            "type": "TSTypeReference",
+            "start": 2508,
+            "end": 2515,
+            "typeName": {
+              "type": "Identifier",
+              "start": 2508,
+              "end": 2515,
+              "name": "Handler",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            },
+            "typeArguments": null
+          }
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 2518,
+        "end": 2560,
+        "id": {
+          "type": "Identifier",
+          "start": 2523,
+          "end": 2539,
+          "name": "ParenUnionMember",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 2542,
+          "end": 2559,
+          "types": [
+            {
+              "type": "TSTypeReference",
+              "start": 2542,
+              "end": 2549,
+              "typeName": {
+                "type": "Identifier",
+                "start": 2542,
+                "end": 2549,
+                "name": "Handler",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSParenthesizedType",
+              "start": 2552,
+              "end": 2559,
+              "typeAnnotation": {
+                "type": "TSTypeReference",
+                "start": 2553,
+                "end": 2558,
+                "typeName": {
+                  "type": "Identifier",
+                  "start": 2553,
+                  "end": 2558,
+                  "name": "Other",
+                  "decorators": [],
+                  "optional": false,
+                  "typeAnnotation": null
+                },
+                "typeArguments": null
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 2561,
+        "end": 2603,
+        "id": {
+          "type": "Identifier",
+          "start": 2566,
+          "end": 2582,
+          "name": "ParenNestedUnion",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 2585,
+          "end": 2602,
+          "types": [
+            {
+              "type": "TSTypeReference",
+              "start": 2585,
+              "end": 2592,
+              "typeName": {
+                "type": "Identifier",
+                "start": 2585,
+                "end": 2592,
+                "name": "Handler",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSParenthesizedType",
+              "start": 2595,
+              "end": 2602,
+              "typeAnnotation": {
+                "type": "TSUnionType",
+                "start": 2596,
+                "end": 2601,
+                "types": [
+                  {
+                    "type": "TSTypeReference",
+                    "start": 2596,
+                    "end": 2597,
+                    "typeName": {
+                      "type": "Identifier",
+                      "start": 2596,
+                      "end": 2597,
+                      "name": "A",
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "typeArguments": null
+                  },
+                  {
+                    "type": "TSTypeReference",
+                    "start": 2600,
+                    "end": 2601,
+                    "typeName": {
+                      "type": "Identifier",
+                      "start": 2600,
+                      "end": 2601,
+                      "name": "B",
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "typeArguments": null
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 2604,
+        "end": 2632,
+        "id": {
+          "type": "Identifier",
+          "start": 2609,
+          "end": 2619,
+          "name": "ParenArray",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSArrayType",
+          "start": 2622,
+          "end": 2631,
+          "elementType": {
+            "type": "TSParenthesizedType",
+            "start": 2622,
+            "end": 2629,
+            "typeAnnotation": {
+              "type": "TSUnionType",
+              "start": 2623,
+              "end": 2628,
+              "types": [
+                {
+                  "type": "TSTypeReference",
+                  "start": 2623,
+                  "end": 2624,
+                  "typeName": {
+                    "type": "Identifier",
+                    "start": 2623,
+                    "end": 2624,
+                    "name": "A",
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  },
+                  "typeArguments": null
+                },
+                {
+                  "type": "TSTypeReference",
+                  "start": 2627,
+                  "end": 2628,
+                  "typeName": {
+                    "type": "Identifier",
+                    "start": 2627,
+                    "end": 2628,
+                    "name": "B",
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  },
+                  "typeArguments": null
+                }
+              ]
+            }
+          }
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 2633,
+        "end": 2678,
+        "id": {
+          "type": "Identifier",
+          "start": 2638,
+          "end": 2650,
+          "name": "ParenIndexed",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSIndexedAccessType",
+          "start": 2653,
+          "end": 2677,
+          "objectType": {
+            "type": "TSParenthesizedType",
+            "start": 2653,
+            "end": 2668,
+            "typeAnnotation": {
+              "type": "TSTypeQuery",
+              "start": 2654,
+              "end": 2667,
+              "exprName": {
+                "type": "Identifier",
+                "start": 2661,
+                "end": 2667,
+                "name": "holder",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            }
+          },
+          "indexType": {
+            "type": "TSLiteralType",
+            "start": 2669,
+            "end": 2676,
+            "literal": {
+              "type": "Literal",
+              "start": 2669,
+              "end": 2676,
+              "value": "value",
+              "raw": "\"value\""
+            }
+          }
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 2679,
+        "end": 2723,
+        "id": {
+          "type": "Identifier",
+          "start": 2684,
+          "end": 2697,
+          "name": "ParenFunction",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 2700,
+          "end": 2722,
+          "types": [
+            {
+              "type": "TSTypeReference",
+              "start": 2700,
+              "end": 2707,
+              "typeName": {
+                "type": "Identifier",
+                "start": 2700,
+                "end": 2707,
+                "name": "Handler",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSParenthesizedType",
+              "start": 2710,
+              "end": 2722,
+              "typeAnnotation": {
+                "type": "TSFunctionType",
+                "start": 2711,
+                "end": 2721,
+                "typeParameters": null,
+                "params": [],
+                "returnType": {
+                  "type": "TSTypeAnnotation",
+                  "start": 2714,
+                  "end": 2721,
+                  "typeAnnotation": {
+                    "type": "TSVoidKeyword",
+                    "start": 2717,
+                    "end": 2721
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 2724,
+        "end": 2775,
+        "id": {
+          "type": "Identifier",
+          "start": 2729,
+          "end": 2747,
+          "name": "ParenFunctionArray",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 2750,
+          "end": 2774,
+          "types": [
+            {
+              "type": "TSTypeReference",
+              "start": 2750,
+              "end": 2757,
+              "typeName": {
+                "type": "Identifier",
+                "start": 2750,
+                "end": 2757,
+                "name": "Handler",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSArrayType",
+              "start": 2760,
+              "end": 2774,
+              "elementType": {
+                "type": "TSParenthesizedType",
+                "start": 2760,
+                "end": 2772,
+                "typeAnnotation": {
+                  "type": "TSFunctionType",
+                  "start": 2761,
+                  "end": 2771,
+                  "typeParameters": null,
+                  "params": [],
+                  "returnType": {
+                    "type": "TSTypeAnnotation",
+                    "start": 2764,
+                    "end": 2771,
+                    "typeAnnotation": {
+                      "type": "TSVoidKeyword",
+                      "start": 2767,
+                      "end": 2771
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 2776,
+        "end": 2830,
+        "id": {
+          "type": "Identifier",
+          "start": 2781,
+          "end": 2797,
+          "name": "ParenConstructor",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 2800,
+          "end": 2829,
+          "types": [
+            {
+              "type": "TSTypeReference",
+              "start": 2800,
+              "end": 2807,
+              "typeName": {
+                "type": "Identifier",
+                "start": 2800,
+                "end": 2807,
+                "name": "Handler",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSParenthesizedType",
+              "start": 2810,
+              "end": 2829,
+              "typeAnnotation": {
+                "type": "TSConstructorType",
+                "start": 2811,
+                "end": 2828,
+                "abstract": false,
+                "typeParameters": null,
+                "params": [],
+                "returnType": {
+                  "type": "TSTypeAnnotation",
+                  "start": 2818,
+                  "end": 2828,
+                  "typeAnnotation": {
+                    "type": "TSTypeReference",
+                    "start": 2821,
+                    "end": 2828,
+                    "typeName": {
+                      "type": "Identifier",
+                      "start": 2821,
+                      "end": 2828,
+                      "name": "Handler",
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "typeArguments": null
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 2831,
+        "end": 2892,
+        "id": {
+          "type": "Identifier",
+          "start": 2836,
+          "end": 2857,
+          "name": "ParenConstructorArray",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 2860,
+          "end": 2891,
+          "types": [
+            {
+              "type": "TSTypeReference",
+              "start": 2860,
+              "end": 2867,
+              "typeName": {
+                "type": "Identifier",
+                "start": 2860,
+                "end": 2867,
+                "name": "Handler",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSArrayType",
+              "start": 2870,
+              "end": 2891,
+              "elementType": {
+                "type": "TSParenthesizedType",
+                "start": 2870,
+                "end": 2889,
+                "typeAnnotation": {
+                  "type": "TSConstructorType",
+                  "start": 2871,
+                  "end": 2888,
+                  "abstract": false,
+                  "typeParameters": null,
+                  "params": [],
+                  "returnType": {
+                    "type": "TSTypeAnnotation",
+                    "start": 2878,
+                    "end": 2888,
+                    "typeAnnotation": {
+                      "type": "TSTypeReference",
+                      "start": 2881,
+                      "end": 2888,
+                      "typeName": {
+                        "type": "Identifier",
+                        "start": 2881,
+                        "end": 2888,
+                        "name": "Handler",
+                        "decorators": [],
+                        "optional": false,
+                        "typeAnnotation": null
+                      },
+                      "typeArguments": null
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 2893,
+        "end": 2964,
+        "id": {
+          "type": "Identifier",
+          "start": 2898,
+          "end": 2918,
+          "name": "ParenGenericFunction",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 2921,
+          "end": 2963,
+          "types": [
+            {
+              "type": "TSTypeReference",
+              "start": 2921,
+              "end": 2928,
+              "typeName": {
+                "type": "Identifier",
+                "start": 2921,
+                "end": 2928,
+                "name": "Handler",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSParenthesizedType",
+              "start": 2931,
+              "end": 2963,
+              "typeAnnotation": {
+                "type": "TSFunctionType",
+                "start": 2932,
+                "end": 2962,
+                "typeParameters": {
+                  "type": "TSTypeParameterDeclaration",
+                  "start": 2932,
+                  "end": 2939,
+                  "params": [
+                    {
+                      "type": "TSTypeParameter",
+                      "start": 2933,
+                      "end": 2938,
+                      "name": {
+                        "type": "Identifier",
+                        "start": 2933,
+                        "end": 2938,
+                        "name": "Value",
+                        "decorators": [],
+                        "typeAnnotation": null,
+                        "optional": false
+                      },
+                      "constraint": null,
+                      "default": null,
+                      "in": false,
+                      "out": false,
+                      "const": false
+                    }
+                  ]
+                },
+                "params": [
+                  {
+                    "type": "Identifier",
+                    "start": 2940,
+                    "end": 2952,
+                    "name": "value",
+                    "decorators": [],
+                    "typeAnnotation": {
+                      "type": "TSTypeAnnotation",
+                      "start": 2945,
+                      "end": 2952,
+                      "typeAnnotation": {
+                        "type": "TSTypeReference",
+                        "start": 2947,
+                        "end": 2952,
+                        "typeName": {
+                          "type": "Identifier",
+                          "start": 2947,
+                          "end": 2952,
+                          "name": "Value",
+                          "decorators": [],
+                          "optional": false,
+                          "typeAnnotation": null
+                        },
+                        "typeArguments": null
+                      }
+                    },
+                    "optional": false
+                  }
+                ],
+                "returnType": {
+                  "type": "TSTypeAnnotation",
+                  "start": 2954,
+                  "end": 2962,
+                  "typeAnnotation": {
+                    "type": "TSTypeReference",
+                    "start": 2957,
+                    "end": 2962,
+                    "typeName": {
+                      "type": "Identifier",
+                      "start": 2957,
+                      "end": 2962,
+                      "name": "Value",
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "typeArguments": null
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 2965,
+        "end": 3003,
+        "id": {
+          "type": "Identifier",
+          "start": 2970,
+          "end": 2983,
+          "name": "ParenThisType",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 2986,
+          "end": 3002,
+          "types": [
+            {
+              "type": "TSTypeReference",
+              "start": 2986,
+              "end": 2993,
+              "typeName": {
+                "type": "Identifier",
+                "start": 2986,
+                "end": 2993,
+                "name": "Handler",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSParenthesizedType",
+              "start": 2996,
+              "end": 3002,
+              "typeAnnotation": {
+                "type": "TSThisType",
+                "start": 2997,
+                "end": 3001
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 3004,
+        "end": 3055,
+        "id": {
+          "type": "Identifier",
+          "start": 3009,
+          "end": 3023,
+          "name": "ParenTupleType",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 3026,
+          "end": 3054,
+          "types": [
+            {
+              "type": "TSTypeReference",
+              "start": 3026,
+              "end": 3033,
+              "typeName": {
+                "type": "Identifier",
+                "start": 3026,
+                "end": 3033,
+                "name": "Handler",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSParenthesizedType",
+              "start": 3036,
+              "end": 3054,
+              "typeAnnotation": {
+                "type": "TSTupleType",
+                "start": 3037,
+                "end": 3053,
+                "elementTypes": [
+                  {
+                    "type": "TSNumberKeyword",
+                    "start": 3038,
+                    "end": 3044
+                  },
+                  {
+                    "type": "TSStringKeyword",
+                    "start": 3046,
+                    "end": 3052
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 3056,
+        "end": 3109,
+        "id": {
+          "type": "Identifier",
+          "start": 3061,
+          "end": 3076,
+          "name": "ParenObjectType",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 3079,
+          "end": 3108,
+          "types": [
+            {
+              "type": "TSTypeReference",
+              "start": 3079,
+              "end": 3086,
+              "typeName": {
+                "type": "Identifier",
+                "start": 3079,
+                "end": 3086,
+                "name": "Handler",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSParenthesizedType",
+              "start": 3089,
+              "end": 3108,
+              "typeAnnotation": {
+                "type": "TSTypeLiteral",
+                "start": 3090,
+                "end": 3107,
+                "members": [
+                  {
+                    "type": "TSPropertySignature",
+                    "start": 3092,
+                    "end": 3105,
+                    "key": {
+                      "type": "Identifier",
+                      "start": 3092,
+                      "end": 3097,
+                      "name": "value",
+                      "decorators": [],
+                      "optional": false,
+                      "typeAnnotation": null
+                    },
+                    "typeAnnotation": {
+                      "type": "TSTypeAnnotation",
+                      "start": 3097,
+                      "end": 3105,
+                      "typeAnnotation": {
+                        "type": "TSNumberKeyword",
+                        "start": 3099,
+                        "end": 3105
+                      }
+                    },
+                    "computed": false,
+                    "optional": false,
+                    "readonly": false,
+                    "accessibility": null,
+                    "static": false
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 3110,
+        "end": 3152,
+        "id": {
+          "type": "Identifier",
+          "start": 3115,
+          "end": 3125,
+          "name": "ParenKeyof",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnionType",
+          "start": 3128,
+          "end": 3151,
+          "types": [
+            {
+              "type": "TSTypeReference",
+              "start": 3128,
+              "end": 3135,
+              "typeName": {
+                "type": "Identifier",
+                "start": 3128,
+                "end": 3135,
+                "name": "Handler",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeArguments": null
+            },
+            {
+              "type": "TSParenthesizedType",
+              "start": 3138,
+              "end": 3151,
+              "typeAnnotation": {
+                "type": "TSTypeOperator",
+                "start": 3139,
+                "end": 3150,
+                "operator": "keyof",
+                "typeAnnotation": {
+                  "type": "TSTypeReference",
+                  "start": 3145,
+                  "end": 3150,
+                  "typeName": {
+                    "type": "Identifier",
+                    "start": 3145,
+                    "end": 3150,
+                    "name": "Other",
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  },
+                  "typeArguments": null
+                }
+              }
+            }
+          ]
+        },
+        "declare": false
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 3154,
+        "end": 3196,
+        "id": {
+          "type": "Identifier",
+          "start": 3167,
+          "end": 3174,
+          "name": "Handler",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTypeLiteral",
+          "start": 3177,
+          "end": 3195,
+          "members": [
+            {
+              "type": "TSPropertySignature",
+              "start": 3179,
+              "end": 3193,
+              "key": {
+                "type": "Identifier",
+                "start": 3179,
+                "end": 3182,
+                "name": "tag",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 3182,
+                "end": 3193,
+                "typeAnnotation": {
+                  "type": "TSLiteralType",
+                  "start": 3184,
+                  "end": 3193,
+                  "literal": {
+                    "type": "Literal",
+                    "start": 3184,
+                    "end": 3193,
+                    "value": "handler",
+                    "raw": "\"handler\""
+                  }
+                }
+              },
+              "computed": false,
+              "optional": false,
+              "readonly": false,
+              "accessibility": null,
+              "static": false
+            }
+          ]
+        },
+        "declare": true
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 3197,
+        "end": 3235,
+        "id": {
+          "type": "Identifier",
+          "start": 3210,
+          "end": 3215,
+          "name": "Other",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTypeLiteral",
+          "start": 3218,
+          "end": 3234,
+          "members": [
+            {
+              "type": "TSPropertySignature",
+              "start": 3220,
+              "end": 3232,
+              "key": {
+                "type": "Identifier",
+                "start": 3220,
+                "end": 3223,
+                "name": "tag",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 3223,
+                "end": 3232,
+                "typeAnnotation": {
+                  "type": "TSLiteralType",
+                  "start": 3225,
+                  "end": 3232,
+                  "literal": {
+                    "type": "Literal",
+                    "start": 3225,
+                    "end": 3232,
+                    "value": "other",
+                    "raw": "\"other\""
+                  }
+                }
+              },
+              "computed": false,
+              "optional": false,
+              "readonly": false,
+              "accessibility": null,
+              "static": false
+            }
+          ]
+        },
+        "declare": true
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 3236,
+        "end": 3266,
+        "id": {
+          "type": "Identifier",
+          "start": 3249,
+          "end": 3250,
+          "name": "B",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSTypeLiteral",
+          "start": 3253,
+          "end": 3265,
+          "members": [
+            {
+              "type": "TSPropertySignature",
+              "start": 3255,
+              "end": 3263,
+              "key": {
+                "type": "Identifier",
+                "start": 3255,
+                "end": 3258,
+                "name": "tag",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 3258,
+                "end": 3263,
+                "typeAnnotation": {
+                  "type": "TSLiteralType",
+                  "start": 3260,
+                  "end": 3263,
+                  "literal": {
+                    "type": "Literal",
+                    "start": 3260,
+                    "end": 3263,
+                    "value": "b",
+                    "raw": "\"b\""
+                  }
+                }
+              },
+              "computed": false,
+              "optional": false,
+              "readonly": false,
+              "accessibility": null,
+              "static": false
+            }
+          ]
+        },
+        "declare": true
+      },
+      {
+        "type": "TSTypeAliasDeclaration",
+        "start": 3267,
+        "end": 3292,
+        "id": {
+          "type": "Identifier",
+          "start": 3280,
+          "end": 3281,
+          "name": "T",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "typeAnnotation": {
+          "type": "TSUnknownKeyword",
+          "start": 3284,
+          "end": 3291
+        },
+        "declare": true
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 14,
+      "end": 15,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 14,
+      "end": 15,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 53,
+      "end": 54,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 53,
+      "end": 54,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 87,
+      "end": 88,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 87,
+      "end": 88,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 120,
+      "end": 121,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 120,
+      "end": 121,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 166,
+      "end": 167,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 166,
+      "end": 167,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 207,
+      "end": 208,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 207,
+      "end": 208,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 241,
+      "end": 242,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 241,
+      "end": 242,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a semicolon or an implicit semicolon after a statement, but found '('",
+      "start": 309,
+      "end": 310,
+      "help": "Try inserting a semicolon here",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a semicolon or an implicit semicolon after a statement, but found 'new'",
+      "start": 363,
+      "end": 366,
+      "help": "Try inserting a semicolon here",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a semicolon or an implicit semicolon after a statement, but found '('",
+      "start": 414,
+      "end": 415,
+      "help": "Try inserting a semicolon here",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a semicolon or an implicit semicolon after a statement, but found '('",
+      "start": 480,
+      "end": 481,
+      "help": "Try inserting a semicolon here",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a semicolon or an implicit semicolon after a statement, but found '('",
+      "start": 520,
+      "end": 521,
+      "help": "Try inserting a semicolon here",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a semicolon or an implicit semicolon after a statement, but found '('",
+      "start": 572,
+      "end": 573,
+      "help": "Try inserting a semicolon here",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected ';', ',', or newline between type members, but found '('",
+      "start": 631,
+      "end": 632,
+      "help": "Separate type members with ';', ',', or a newline, or close the block with '}'",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found '('",
+      "start": 631,
+      "end": 632,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected ']' to close a tuple type, but found '('",
+      "start": 682,
+      "end": 683,
+      "help": "Each '[' in a tuple type must be matched by a ']'",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found '('",
+      "start": 682,
+      "end": 683,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected '?' in a conditional type, but found '('",
+      "start": 755,
+      "end": 756,
+      "help": "A conditional type is written 'T extends U ? X : Y'",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found '('",
+      "start": 755,
+      "end": 756,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found '<'",
+      "start": 808,
+      "end": 809,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found '<'",
+      "start": 876,
+      "end": 877,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found '<'",
+      "start": 960,
+      "end": 961,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found '<'",
+      "start": 1016,
+      "end": 1017,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a semicolon or an implicit semicolon after a statement, but found '('",
+      "start": 1088,
+      "end": 1089,
+      "help": "Try inserting a semicolon here",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found '<'",
+      "start": 1162,
+      "end": 1163,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a semicolon or an implicit semicolon after a statement, but found '<'",
+      "start": 1162,
+      "end": 1163,
+      "help": "Try inserting a semicolon here",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found '<'",
+      "start": 1239,
+      "end": 1240,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found '<'",
+      "start": 1239,
+      "end": 1240,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected ')' to close a parenthesized type, but found ':'",
+      "start": 1437,
+      "end": 1438,
+      "help": "Each '(' in a type must be matched by a ')'",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ':'",
+      "start": 1437,
+      "end": 1438,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found '...'",
+      "start": 1498,
+      "end": 1501,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found '...'",
+      "start": 1498,
+      "end": 1501,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected ')' to close a parenthesized type, but found ':'",
+      "start": 1564,
+      "end": 1565,
+      "help": "Each '(' in a type must be matched by a ')'",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ':'",
+      "start": 1564,
+      "end": 1565,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected ')' to close a parenthesized type, but found ':'",
+      "start": 1617,
+      "end": 1618,
+      "help": "Each '(' in a type must be matched by a ')'",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ':'",
+      "start": 1617,
+      "end": 1618,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a semicolon or an implicit semicolon after a statement, but found '=>'",
+      "start": 1671,
+      "end": 1673,
+      "help": "Try inserting a semicolon here",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected ')' to close a parenthesized type, but found ','",
+      "start": 1709,
+      "end": 1710,
+      "help": "Each '(' in a type must be matched by a ')'",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ','",
+      "start": 1709,
+      "end": 1710,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected ')' to close a parenthesized type, but found ':'",
+      "start": 1769,
+      "end": 1770,
+      "help": "Each '(' in a type must be matched by a ')'",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ':'",
+      "start": 1769,
+      "end": 1770,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected ')' to close a parenthesized type, but found ':'",
+      "start": 1842,
+      "end": 1843,
+      "help": "Each '(' in a type must be matched by a ')'",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ':'",
+      "start": 1842,
+      "end": 1843,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 1894,
+      "end": 1895,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 1894,
+      "end": 1895,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected ')' to close a parenthesized type, but found ':'",
+      "start": 1945,
+      "end": 1946,
+      "help": "Each '(' in a type must be matched by a ')'",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ':'",
+      "start": 1945,
+      "end": 1946,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected ')' to close a parenthesized type, but found ':'",
+      "start": 2013,
+      "end": 2014,
+      "help": "Each '(' in a type must be matched by a ')'",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ':'",
+      "start": 2013,
+      "end": 2014,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2095,
+      "end": 2096,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2095,
+      "end": 2096,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2095,
+      "end": 2096,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2135,
+      "end": 2136,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2135,
+      "end": 2136,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2135,
+      "end": 2136,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2196,
+      "end": 2197,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2196,
+      "end": 2197,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a semicolon or an implicit semicolon after a statement, but found ')'",
+      "start": 2196,
+      "end": 2197,
+      "help": "Try inserting a semicolon here",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2242,
+      "end": 2243,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2242,
+      "end": 2243,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2242,
+      "end": 2243,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2298,
+      "end": 2299,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2298,
+      "end": 2299,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2298,
+      "end": 2299,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2357,
+      "end": 2358,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2357,
+      "end": 2358,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2357,
+      "end": 2358,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2415,
+      "end": 2416,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2415,
+      "end": 2416,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a semicolon or an implicit semicolon after a statement, but found '=>'",
+      "start": 2417,
+      "end": 2419,
+      "help": "Try inserting a semicolon here",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2475,
+      "end": 2476,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2475,
+      "end": 2476,
+      "help": null,
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "Expected a type, but found ')'",
+      "start": 2475,
+      "end": 2476,
+      "help": null,
+      "labels": []
+    }
+  ]
+}

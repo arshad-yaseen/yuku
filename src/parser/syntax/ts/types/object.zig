@@ -406,6 +406,11 @@ fn parsePropertyOrMethodSignature(
         parser.current_token.tag == .left_paren or
         parser.current_token.tag == .less_than;
     if (enter_method) {
+        if (is_readonly) try parser.report(
+            .{ .start = start, .end = parser.tree.span(key).end },
+            "A 'readonly' modifier can only appear on a property declaration or index signature",
+            .{ .help = "Remove 'readonly' from this signature." },
+        );
         return parseMethodSignatureBody(parser, start, key, kind, computed, is_optional);
     }
 
