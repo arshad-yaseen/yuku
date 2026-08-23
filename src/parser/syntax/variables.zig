@@ -7,7 +7,7 @@ const expressions = @import("expressions.zig");
 const patterns = @import("patterns.zig");
 const ts = @import("ts/types.zig");
 const std = @import("std");
-const parser_extension = @import("parser_extension");
+const extension = @import("../extension.zig");
 
 pub const ParseVariableDeclarationOpts = struct {
     await_using: bool = false,
@@ -205,8 +205,7 @@ pub fn parseVariableDeclarator(
 /// returns `true` when `tag` can begin a `BindingIdentifier` or destructuring
 /// pattern, i.e. the head of a variable declarator.
 pub fn canStartBinding(tag: TokenTag) bool {
-    if (comptime @hasDecl(parser_extension, "can_start_binding"))
-        if (parser_extension.can_start_binding(tag)) |value| return value;
+    if (extension.at(.binding_start, .{tag})) |answer| return answer;
     return tag.isIdentifierLike() or tag == .left_bracket or tag == .left_brace;
 }
 

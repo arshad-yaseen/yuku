@@ -16,7 +16,7 @@ const for_loop = @import("for_loop.zig");
 const modules = @import("modules.zig");
 const ts_types = @import("ts/types.zig");
 const ts_decl = @import("ts/statements.zig");
-const parser_extension = @import("parser_extension");
+const extension = @import("../extension.zig");
 
 const ParseStatementOpts = struct {
     /// true when parsing the body of `if`, `while`, `do`, `for`, `with`, or labeled statements,
@@ -77,10 +77,7 @@ pub fn parseStatement(parser: *Parser, opts: ParseStatementOpts) Error!?ast.Node
 /// `@dec class C` or `@dec export [default] class C`.
 fn parseDecoratedStatement(parser: *Parser) Error!?ast.NodeIndex {
     std.debug.assert(parser.current_token.tag == .at);
-    if (comptime @hasDecl(parser_extension, "statement_at_code_block"))
-        if (try parser_extension.statement_at_code_block(Error!??ast.NodeIndex, parser)) |node| return node;
-    if (comptime @hasDecl(parser_extension, "statement_at_control_flow"))
-        if (try parser_extension.statement_at_control_flow(Error!??ast.NodeIndex, parser)) |node| return node;
+    if (try extension.at(.at_statement, .{parser})) |outcome| return outcome.node;
     const start = parser.current_token.span.start;
     const decorators = try extensions.parseDecorators(parser) orelse return null;
 

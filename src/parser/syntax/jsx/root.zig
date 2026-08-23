@@ -7,7 +7,7 @@ const Error = @import("../../parser.zig").Error;
 const literals = @import("../literals.zig");
 const expressions = @import("../expressions.zig");
 const ts = @import("../ts/types.zig");
-const parser_extension = @import("parser_extension");
+const extension = @import("../../extension.zig");
 
 /// context for JSX element parsing, determines post-parse behavior
 const JsxElementContext = enum {
@@ -50,15 +50,10 @@ fn parseJsxElement(parser: *Parser, comptime context: JsxElementContext) Error!?
     const opening = try parseJsxOpeningElement(parser, context) orelse return null;
     const opening_data = parser.tree.data(opening).jsx_opening_element;
     const opening_end = parser.tree.span(opening).end;
-    if (comptime @hasDecl(parser_extension, "jsx_element_after_open"))
-        if (try parser_extension.jsx_element_after_open(
-            Error!??ast.NodeIndex,
-            parser,
-            opening,
-            context,
-        )) |node| return node;
-    if (comptime @hasDecl(parser_extension, "validate_jsx_element_name"))
-        try parser_extension.validate_jsx_element_name(Error!void, parser, opening_data.name);
+    if (try extension.at(.jsx_element_tail, .{ parser, opening, context })) |outcome| {
+        return outcome.node;
+    }
+    try extension.at(.jsx_element_name_check, .{ parser, opening_data.name });
 
     // self-closing element: <elem />
     if (opening_data.self_closing) {
@@ -109,12 +104,7 @@ fn parseJsxFragment(parser: *Parser) Error!?ast.NodeIndex {
         .{ .jsx_opening_fragment = .{} },
         .{ .start = start, .end = opening_end },
     );
-    if (comptime @hasDecl(parser_extension, "jsx_fragment_after_open"))
-        if (try parser_extension.jsx_fragment_after_open(
-            Error!??ast.NodeIndex,
-            parser,
-            opening,
-        )) |node| return node;
+    if (try extension.at(.jsx_fragment_tail, .{ parser, opening })) |outcome| return outcome.node;
 
     // parse children (don't advance past '>', parseJsxChildren scans from there)
     const children = try parseJsxChildren(parser, opening_end) orelse return null;
@@ -300,8 +290,7 @@ fn parseJsxClosingElement(
 }
 
 fn jsxNamesMatch(parser: *const Parser, a: ast.NodeIndex, b: ast.NodeIndex) bool {
-    if (comptime @hasDecl(parser_extension, "jsx_names_match"))
-        if (parser_extension.jsx_names_match(parser, a, b)) |value| return value;
+    if (extension.at(.jsx_names_match, .{ parser, a, b })) |matches| return matches;
     const span_a = parser.tree.span(a);
     const span_b = parser.tree.span(b);
 
@@ -332,14 +321,8 @@ fn parseJsxChildren(parser: *Parser, gt_end: u32) Error!?ast.IndexRange {
 
         if (text_token.len() > 0) {
             var text_value = parser.tree.sourceSlice(text_token.span.start, text_token.span.end);
-            if (comptime @hasDecl(parser_extension, "jsx_text_value")) {
-                if (try parser_extension.jsx_text_value(
-                    Error!?@TypeOf(text_value),
-                    parser,
-                    text_token.span,
-                )) |value| {
-                    text_value = value;
-                }
+            if (try extension.at(.jsx_text_value, .{ parser, text_token.span })) |value| {
+                text_value = value;
             }
             const text_node = try parser.tree.addNode(.{
                 .jsx_text = .{
@@ -395,10 +378,7 @@ fn parseJsxChildFromLeftBrace(parser: *Parser) Error!?ast.NodeIndex {
     // already in normal mode from parseJsxChildren
     try parser.advance() orelse return null; // consume '{'
 
-    if (comptime @hasDecl(parser_extension, "jsx_child_at_code_block"))
-        if (try parser_extension.jsx_child_at_code_block(Error!??ast.NodeIndex, parser)) |node| return node;
-    if (comptime @hasDecl(parser_extension, "jsx_child_at_control_flow"))
-        if (try parser_extension.jsx_child_at_control_flow(Error!??ast.NodeIndex, parser)) |node| return node;
+    if (try extension.at(.jsx_child, .{parser})) |outcome| return outcome.node;
 
     if (parser.current_token.tag == .spread) {
         try parser.advance() orelse return null; // consume '...'
@@ -651,8 +631,7 @@ fn parseJsxSpreadAttribute(parser: *Parser) Error!?ast.NodeIndex {
 
 // https://facebook.github.io/jsx/#prod-JSXElementName
 fn parseJsxElementName(parser: *Parser) Error!?ast.NodeIndex {
-    if (comptime @hasDecl(parser_extension, "jsx_element_name"))
-        if (try parser_extension.jsx_element_name(Error!??ast.NodeIndex, parser)) |node| return node;
+    if (try extension.at(.jsx_element_name, .{parser})) |outcome| return outcome.node;
     if (parser.current_token.tag != .jsx_identifier) {
         try parser.reportExpected(
             parser.current_token.span,

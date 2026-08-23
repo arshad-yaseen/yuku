@@ -83,7 +83,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_zig_tests.step);
 
     const reference_extension = b.createModule(.{
-        .root_source_file = b.path("src/parser/testing/extension.zig"),
+        .root_source_file = b.path("src/parser/testing/extension/binding.zig"),
     });
     const extension_parser = b.createModule(.{
         .root_source_file = b.path("src/parser/root.zig"),
@@ -94,7 +94,7 @@ pub fn build(b: *std.Build) void {
     extension_parser.addImport("codegen_options", codegen_options.createModule());
     extension_parser.addImport("parser_extension", reference_extension);
     const extension_tests = b.createModule(.{
-        .root_source_file = b.path("src/parser/testing/extension_test.zig"),
+        .root_source_file = b.path("src/parser/testing/extension/cases.zig"),
         .target = target,
         .optimize = optimize,
     });
