@@ -6,6 +6,7 @@ const TokenFlag = @import("token.zig").TokenFlag;
 const flagMask = @import("token.zig").flagMask;
 const ast = @import("ast.zig");
 const util = @import("util");
+const extension = @import("extension.zig");
 
 pub const LexicalError = error{
     UnterminatedString,
@@ -453,6 +454,9 @@ pub const Lexer = struct {
 
         while (self.cursor < self.source.len) {
             const c = self.source[self.cursor];
+            if (extension.at(.jsx_text_boundary, .{ self.source, self.cursor })) |ends| {
+                if (ends) break;
+            }
 
             switch (c) {
                 '<', '{', '>', '}' => break,
