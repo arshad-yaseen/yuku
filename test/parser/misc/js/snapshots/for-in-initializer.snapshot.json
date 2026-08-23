@@ -1,0 +1,387 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 164,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "ForInStatement",
+        "start": 0,
+        "end": 21,
+        "left": {
+          "type": "VariableDeclaration",
+          "start": 5,
+          "end": 14,
+          "kind": "var",
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 9,
+              "end": 14,
+              "id": {
+                "type": "Identifier",
+                "start": 9,
+                "end": 10,
+                "name": "a"
+              },
+              "init": {
+                "type": "Literal",
+                "start": 13,
+                "end": 14,
+                "value": 1,
+                "raw": "1"
+              }
+            }
+          ]
+        },
+        "right": {
+          "type": "Identifier",
+          "start": 18,
+          "end": 19,
+          "name": "b"
+        },
+        "body": {
+          "type": "EmptyStatement",
+          "start": 20,
+          "end": 21
+        }
+      },
+      {
+        "type": "ForInStatement",
+        "start": 23,
+        "end": 44,
+        "left": {
+          "type": "VariableDeclaration",
+          "start": 28,
+          "end": 37,
+          "kind": "let",
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 32,
+              "end": 37,
+              "id": {
+                "type": "Identifier",
+                "start": 32,
+                "end": 33,
+                "name": "c"
+              },
+              "init": {
+                "type": "Literal",
+                "start": 36,
+                "end": 37,
+                "value": 1,
+                "raw": "1"
+              }
+            }
+          ]
+        },
+        "right": {
+          "type": "Identifier",
+          "start": 41,
+          "end": 42,
+          "name": "b"
+        },
+        "body": {
+          "type": "EmptyStatement",
+          "start": 43,
+          "end": 44
+        }
+      },
+      {
+        "type": "ForInStatement",
+        "start": 45,
+        "end": 68,
+        "left": {
+          "type": "VariableDeclaration",
+          "start": 50,
+          "end": 61,
+          "kind": "const",
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 56,
+              "end": 61,
+              "id": {
+                "type": "Identifier",
+                "start": 56,
+                "end": 57,
+                "name": "d"
+              },
+              "init": {
+                "type": "Literal",
+                "start": 60,
+                "end": 61,
+                "value": 1,
+                "raw": "1"
+              }
+            }
+          ]
+        },
+        "right": {
+          "type": "Identifier",
+          "start": 65,
+          "end": 66,
+          "name": "b"
+        },
+        "body": {
+          "type": "EmptyStatement",
+          "start": 67,
+          "end": 68
+        }
+      },
+      {
+        "type": "ForInStatement",
+        "start": 69,
+        "end": 92,
+        "left": {
+          "type": "VariableDeclaration",
+          "start": 74,
+          "end": 85,
+          "kind": "var",
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 78,
+              "end": 85,
+              "id": {
+                "type": "ArrayPattern",
+                "start": 78,
+                "end": 81,
+                "elements": [
+                  {
+                    "type": "Identifier",
+                    "start": 79,
+                    "end": 80,
+                    "name": "e"
+                  }
+                ]
+              },
+              "init": {
+                "type": "Literal",
+                "start": 84,
+                "end": 85,
+                "value": 1,
+                "raw": "1"
+              }
+            }
+          ]
+        },
+        "right": {
+          "type": "Identifier",
+          "start": 89,
+          "end": 90,
+          "name": "b"
+        },
+        "body": {
+          "type": "EmptyStatement",
+          "start": 91,
+          "end": 92
+        }
+      },
+      {
+        "type": "ForInStatement",
+        "start": 93,
+        "end": 118,
+        "left": {
+          "type": "VariableDeclaration",
+          "start": 98,
+          "end": 111,
+          "kind": "var",
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 102,
+              "end": 111,
+              "id": {
+                "type": "ObjectPattern",
+                "start": 102,
+                "end": 107,
+                "properties": [
+                  {
+                    "type": "Property",
+                    "start": 104,
+                    "end": 105,
+                    "kind": "init",
+                    "key": {
+                      "type": "Identifier",
+                      "start": 104,
+                      "end": 105,
+                      "name": "f"
+                    },
+                    "value": {
+                      "type": "Identifier",
+                      "start": 104,
+                      "end": 105,
+                      "name": "f"
+                    },
+                    "method": false,
+                    "shorthand": true,
+                    "computed": false
+                  }
+                ]
+              },
+              "init": {
+                "type": "Literal",
+                "start": 110,
+                "end": 111,
+                "value": 1,
+                "raw": "1"
+              }
+            }
+          ]
+        },
+        "right": {
+          "type": "Identifier",
+          "start": 115,
+          "end": 116,
+          "name": "b"
+        },
+        "body": {
+          "type": "EmptyStatement",
+          "start": 117,
+          "end": 118
+        }
+      },
+      {
+        "type": "ForOfStatement",
+        "start": 120,
+        "end": 141,
+        "left": {
+          "type": "VariableDeclaration",
+          "start": 125,
+          "end": 134,
+          "kind": "var",
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 129,
+              "end": 134,
+              "id": {
+                "type": "Identifier",
+                "start": 129,
+                "end": 130,
+                "name": "g"
+              },
+              "init": {
+                "type": "Literal",
+                "start": 133,
+                "end": 134,
+                "value": 1,
+                "raw": "1"
+              }
+            }
+          ]
+        },
+        "right": {
+          "type": "Identifier",
+          "start": 138,
+          "end": 139,
+          "name": "b"
+        },
+        "body": {
+          "type": "EmptyStatement",
+          "start": 140,
+          "end": 141
+        },
+        "await": false
+      },
+      {
+        "type": "ForOfStatement",
+        "start": 142,
+        "end": 163,
+        "left": {
+          "type": "VariableDeclaration",
+          "start": 147,
+          "end": 156,
+          "kind": "let",
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 151,
+              "end": 156,
+              "id": {
+                "type": "Identifier",
+                "start": 151,
+                "end": 152,
+                "name": "h"
+              },
+              "init": {
+                "type": "Literal",
+                "start": 155,
+                "end": 156,
+                "value": 1,
+                "raw": "1"
+              }
+            }
+          ]
+        },
+        "right": {
+          "type": "Identifier",
+          "start": 160,
+          "end": 161,
+          "name": "b"
+        },
+        "body": {
+          "type": "EmptyStatement",
+          "start": 162,
+          "end": 163
+        },
+        "await": false
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "message": "for-in loop variable declaration may not have an initializer",
+      "start": 32,
+      "end": 37,
+      "help": "Remove the initializer from the loop variable.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "for-in loop variable declaration may not have an initializer",
+      "start": 56,
+      "end": 61,
+      "help": "Remove the initializer from the loop variable.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "for-in loop variable declaration may not have an initializer",
+      "start": 78,
+      "end": 85,
+      "help": "Remove the initializer from the loop variable.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "for-in loop variable declaration may not have an initializer",
+      "start": 102,
+      "end": 111,
+      "help": "Remove the initializer from the loop variable.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "for-of loop variable declaration may not have an initializer",
+      "start": 129,
+      "end": 134,
+      "help": "Remove the initializer from the loop variable.",
+      "labels": []
+    },
+    {
+      "severity": "error",
+      "message": "for-of loop variable declaration may not have an initializer",
+      "start": 151,
+      "end": 156,
+      "help": "Remove the initializer from the loop variable.",
+      "labels": []
+    }
+  ]
+}

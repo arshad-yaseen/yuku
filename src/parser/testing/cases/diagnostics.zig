@@ -81,3 +81,33 @@ test "lookahead-driven keywords still parse cleanly when the next token is valid
         }
     }
 }
+
+test "an initialized for-in or for-of head is rejected outside annex b" {
+    const script = [_][]const u8{
+        "for (let a = 1 in b);",
+        "for (const a = 1 in b);",
+        "for (var [a] = 1 in b);",
+        "for (var {a} = 1 in b);",
+        "for (var a = 1 of b);",
+        "for (let a = 1 of b);",
+        "for (const a = 1 of b);",
+        "async function f() { for await (var a = 1 of b); }",
+    };
+
+    for (script) |source| {
+        try expectRejected(source, .{ .source_type = .script, .lang = .js });
+    }
+
+    try expectRejected("for (var a = 1 in b);", .{ .source_type = .module, .lang = .js });
+    try expectRejected("for (var a = 1 in b);", .{ .source_type = .script, .lang = .ts });
+}
+
+test "the annex b for-in head parses without a diagnostic" {
+    var tree = try parser.parse(testing.allocator, "for (var a = 1 in b);", .{
+        .source_type = .script,
+        .lang = .js,
+    });
+    defer tree.deinit();
+
+    try testing.expectEqual(@as(usize, 0), tree.diagnostics.items.len);
+}

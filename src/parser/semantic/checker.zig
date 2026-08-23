@@ -1147,16 +1147,19 @@ pub const Checker = struct {
             const declarator = ctx.tree.data(child).variable_declarator;
             if (declarator.init == .null) continue;
 
-            const annex_b = is_for_in and !ctx.tree.isTs() and
-                decl.kind == .@"var" and !ctx.scope.isStrict() and
-                ctx.tree.data(declarator.id) == .binding_identifier;
-
-            if (annex_b) continue;
+            const deferred = ecmascript.isAnnexBForInHead(
+                ctx.tree,
+                decl.kind,
+                declarator.id,
+                is_for_in,
+            );
+            if (!deferred) continue;
+            if (!ctx.scope.isStrict()) continue;
 
             try self.report(
                 ctx.tree.span(child),
-                "for-in/of loop variable declaration may not have an initializer",
-                .{},
+                "for-in loop variable declaration may not have an initializer",
+                .{ .help = "Remove the initializer, or leave strict mode." },
             );
             return;
         }

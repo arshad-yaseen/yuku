@@ -1,8 +1,8 @@
 test/parser/misc/js
 ===================
-Passed:       52/52 (100.00%)
+Passed:       53/53 (100.00%)
 Failed:       0
-AST mismatch: 0/52
+AST mismatch: 0/53
 
 ✓ test/parser/misc/js/accessor-line-terminator.js
 ✓ test/parser/misc/js/async-arrow-function-line-terminator-1.js
@@ -97,6 +97,17 @@ error: 'for await' is only valid with for-of loops
    |              ^
  3 |   for await (x in y) {}
    |
+
+✓ test/parser/misc/js/for-in-initializer.js
+error: for-in loop variable declaration may not have an initializer
+   |
+ 2 | 
+ 3 | for (let c = 1 in b);
+   |          ^^^^^
+ 4 | for (const d = 1 in b);
+   |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/misc/js/for-of-let-lhs-invalid.js
 error: The left-hand side of a for-of statement may not start with 'let'
