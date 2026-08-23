@@ -8,6 +8,7 @@ const expressions = @import("expressions.zig");
 const variables = @import("variables.zig");
 const grammar = @import("../grammar.zig");
 const statements = @import("statements.zig");
+const ecmascript = @import("../ecmascript.zig");
 const extension = @import("../extension.zig");
 
 /// https://tc39.es/ecma262/#sec-for-statement
@@ -168,10 +169,12 @@ fn parseForWithDeclaration(
                 .{ .help = "Did you mean to use a for...of statement?" },
             );
         }
+        try validateForInOfDeclarators(parser, declarators, kind, true);
         return parseForInStatementRest(parser, start, decl, is_for_await);
     }
 
     if (parser.current_token.tag == .of) {
+        try validateForInOfDeclarators(parser, declarators, kind, false);
         return parseForOfStatementRest(parser, start, decl, is_for_await);
     }
 
@@ -382,6 +385,29 @@ fn isAsyncIdentifier(parser: *Parser, expr: ast.NodeIndex) bool {
     // compare raw source text, escaped `\u0061sync` should not match
     const span = parser.tree.span(expr);
     return std.mem.eql(u8, parser.source[span.start..span.end], "async");
+}
+
+fn validateForInOfDeclarators(
+    parser: *Parser,
+    declarators: ast.IndexRange,
+    kind: ast.VariableKind,
+    comptime is_for_in: bool,
+) Error!void {
+    for (parser.tree.extra(declarators)) |declarator| {
+        const data = parser.tree.data(declarator).variable_declarator;
+        if (data.init == .null) continue;
+        if (ecmascript.isAnnexBForInHead(&parser.tree, kind, data.id, is_for_in)) continue;
+
+        try parser.report(
+            parser.tree.span(declarator),
+            if (is_for_in)
+                "for-in loop variable declaration may not have an initializer"
+            else
+                "for-of loop variable declaration may not have an initializer",
+            .{ .help = "Remove the initializer from the loop variable." },
+        );
+        return;
+    }
 }
 
 fn validateRegularForDeclarators(

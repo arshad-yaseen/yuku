@@ -85,6 +85,20 @@ pub fn findPatternExpression(tree: *const ast.Tree, pattern: ast.NodeIndex) ?ast
     }
 }
 
+/// https://tc39.es/ecma262/#sec-initializers-in-forin-statement-heads
+pub fn isAnnexBForInHead(
+    tree: *const ast.Tree,
+    kind: ast.VariableKind,
+    declarator_id: ast.NodeIndex,
+    is_for_in: bool,
+) bool {
+    if (!is_for_in) return false;
+    if (kind != .@"var") return false;
+    if (tree.isTs()) return false;
+    if (tree.isModule()) return false;
+    return tree.data(declarator_id) == .binding_identifier;
+}
+
 /// https://tc39.es/ecma262/#sec-static-semantics-issimpleparameterlist
 pub fn findNonSimpleParameter(tree: *const ast.Tree, params: ast.FormalParameters) ?ast.NodeIndex {
     if (params.rest != .null) return params.rest;
