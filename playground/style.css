@@ -426,16 +426,28 @@ main {
   color: var(--err);
 }
 
+::highlight(yuku-diag-error),
+::highlight(yuku-diag-warning),
+::highlight(yuku-diag-info) {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  /* keep the wave unbroken across descender ink (g, j, y, ...) */
+  text-decoration-skip-ink: none;
+}
+
 ::highlight(yuku-diag-error) {
-  text-decoration: underline wavy var(--err) 1.5px;
+  text-decoration-color: var(--err);
+  text-decoration-thickness: 1.5px;
 }
 
 ::highlight(yuku-diag-warning) {
-  text-decoration: underline wavy var(--warn) 1.5px;
+  text-decoration-color: var(--warn);
+  text-decoration-thickness: 1.5px;
 }
 
 ::highlight(yuku-diag-info) {
-  text-decoration: underline wavy var(--dim) 1px;
+  text-decoration-color: var(--dim);
+  text-decoration-thickness: 1px;
 }
 
 #problems {
