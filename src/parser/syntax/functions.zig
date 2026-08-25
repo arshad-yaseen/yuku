@@ -248,8 +248,8 @@ pub fn parseFormalParameters(
             ast.IndexRange.empty;
 
         if (parser.current_token.tag == .spread) {
-            // decorators on `...rest` are silently dropped
             rest = try patterns.parseBindingRestElement(parser) orelse .null;
+            if (rest != .null) ts.applyDecoratorsToPattern(parser, rest, decorators);
 
             if (parser.current_token.tag == .comma and rest != .null) {
                 const after_comma = parser.peekAhead();
