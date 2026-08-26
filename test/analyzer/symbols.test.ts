@@ -29,8 +29,10 @@ describe("variable kinds", () => {
             g#2  const
             D#3  const
             function "f"
+              functionBody BlockStatement
             class "C"
             function <anonymous>
+              functionBody BlockStatement
             class <anonymous>"
       `);
   });
@@ -170,7 +172,8 @@ describe("declaration merging", () => {
             function "f"
               a#2  param ambient
             function "f"
-              a#3  param"
+              a#3  param
+              functionBody BlockStatement"
       `);
   });
 
@@ -202,6 +205,7 @@ describe("declaration merging", () => {
         module [strict]
           f#0  function namespace value-module ×2
           function "f"
+            functionBody BlockStatement
           tsModule
             g#1  const exported"
     `);
@@ -217,6 +221,7 @@ describe("modifiers", () => {
             a#0  const exported
             named#1  function exported default
             function "named"
+              functionBody BlockStatement
         exports
           a → #0
           default → #1"

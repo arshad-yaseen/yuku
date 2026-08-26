@@ -119,16 +119,14 @@ pub const Checker = struct {
             }
         }
 
-        // a split body environment keeps the early errors: lexical body
-        // names may not duplicate parameter names (15.2.1) or catch
-        // parameter names (14.15.1) one scope up:
-        //
-        //   function f(a = 1) { let a }   // still an error
-        //   function f(a = 1) { var a }   // legal, var stays out
+        // 15.2.1 and 14.15.1: a body's lexical names may not duplicate
+        // the parameters one scope up, and TypeScript extends that to
+        // type parameters. `excludes` decides which pairs collide, so a
+        // type parameter conflicts with a local type but not a `let`
         if (!flags.function_scoped_var and !flags.function) {
             const target_scope = ctx.scope.get(target);
             const outer = target_scope.parent;
-            const outer_holds_parameters = outer != .none and switch (target_scope.kind) {
+            const outer_holds_signature = outer != .none and switch (target_scope.kind) {
                 .function_body => true,
                 .block => blk: {
                     const outer_data = ctx.tree.data(ctx.scope.get(outer).node);
@@ -137,21 +135,19 @@ pub const Checker = struct {
                 },
                 else => false,
             };
-            if (outer_holds_parameters) {
+            if (outer_holds_signature) {
                 if (ctx.symbols.ownBinding(outer, name)) |sym| {
                     const existing = ctx.symbols.symbol(sym);
-                    if ((existing.flags.parameter or existing.flags.catch_var) and
-                        existing.flags.intersects(excludes))
-                    {
+                    if (existing.flags.intersects(excludes))
                         try self.reportRedeclaration(id, node_index, sym, existing, ctx);
-                    }
                 }
             }
         }
 
-        // per 14.2.1, a hoisting var conflicts with block-scoped
-        // names in any intermediate block it passes through.
-        if (flags.isHoistingVar()) {
+        // 14.2.1 and 15.2.1: a hoisting name conflicts with lexical
+        // names in every scope it passes through. function declarations
+        // are var-scoped at a body's top level
+        if (flags.isHoistingVar() or flags.function) {
             var iter = ctx.scope.ancestors(ctx.scope.current);
             while (iter.next()) |scope_id| {
                 if (scope_id == target) break;

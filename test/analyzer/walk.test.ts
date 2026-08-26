@@ -49,7 +49,7 @@ describe("walk", () => {
     expect(seen).toMatchInlineSnapshot(`
       {
         "bound": "module",
-        "inner": "function",
+        "inner": "functionBody",
         "outer": "function",
       }
     `);
@@ -159,7 +159,7 @@ describe("walkAsync", () => {
         seen[node.name] = ctx.scope.kind;
       },
     });
-    expect(seen).toEqual({ bound: "module", inner: "function", outer: "function" });
+    expect(seen).toEqual({ bound: "module", inner: "functionBody", outer: "function" });
   });
 
   test("mutation works from an async handler", async () => {
@@ -214,10 +214,10 @@ describe("node queries", () => {
 
   test("resolve walks the scope chain from a starting scope", () => {
     const module = analyze(`let outer = 1; function f() { let local = 2; }`);
-    const fnScope = module.scopes.find((s) => s.kind === "function")!;
-    expect(module.resolve("local", fnScope)?.name).toBe("local");
-    expect(module.resolve("outer", fnScope)?.name).toBe("outer");
-    expect(module.resolve("missing", fnScope)).toBeNull();
+    const bodyScope = module.scopes.find((s) => s.kind === "functionBody")!;
+    expect(module.resolve("local", bodyScope)?.name).toBe("local");
+    expect(module.resolve("outer", bodyScope)?.name).toBe("outer");
+    expect(module.resolve("missing", bodyScope)).toBeNull();
   });
 
   test("parentOf climbs from a node to the structure around it", () => {

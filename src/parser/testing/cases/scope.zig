@@ -351,6 +351,34 @@ test "decorators evaluate in the scope enclosing the class" {
     try testing.expectEqual(@as(usize, 2), a.sem.uses(dek.id).len);
 }
 
+test "function bodies get their own lexical scope, vars hoist past it" {
+    var a = try analyze("function f(a) { let x; }", .{ .source_type = .script });
+    defer a.deinit();
+
+    const x_scope = try declScope(&a, "x");
+    try testing.expectEqual(Scope.Kind.function_body, x_scope.kind);
+    try testing.expect(a.tree.data(x_scope.node) == .function_body);
+
+    // a simple parameter list keeps one var environment
+    const a_scope_id = (try a.symbolNamed("a")).symbol.scope;
+    try testing.expectEqual(a_scope_id, x_scope.parent);
+    try testing.expectEqual(a_scope_id, x_scope.hoist_target);
+    try testing.expectEqual(Scope.Kind.function, a.sem.scope(a_scope_id).kind);
+}
+
+test "a parameter list with expressions makes the body its own var environment" {
+    var a = try analyze("function f(a = 1) { var x; }", .{ .source_type = .script });
+    defer a.deinit();
+
+    const x_scope_id = (try a.symbolNamed("x")).symbol.scope;
+    const x_scope = a.sem.scope(x_scope_id);
+    try testing.expectEqual(Scope.Kind.function_body, x_scope.kind);
+    try testing.expectEqual(x_scope_id, x_scope.hoist_target);
+
+    const a_scope_id = (try a.symbolNamed("a")).symbol.scope;
+    try testing.expect(a_scope_id != x_scope_id);
+}
+
 test "scope ancestors walk from a scope to the root" {
     var a = try analyze("function f() { { let x; } }", .{});
     defer a.deinit();
@@ -359,6 +387,7 @@ test "scope ancestors walk from a scope to the root" {
     var it = a.sem.scopes.ancestors(x_scope_id);
 
     try testing.expectEqual(x_scope_id, it.next().?);
+    try testing.expectEqual(Scope.Kind.function_body, a.sem.scope(it.next().?).kind);
     try testing.expectEqual(Scope.Kind.function, a.sem.scope(it.next().?).kind);
     try testing.expectEqual(ScopeId.module, it.next().?);
     try testing.expectEqual(ScopeId.root, it.next().?);
@@ -385,6 +414,8 @@ test "Scope.Kind.isHoistTarget matches the spec hoist boundaries" {
     try testing.expect(Scope.Kind.isHoistTarget(.function));
     try testing.expect(Scope.Kind.isHoistTarget(.static_block));
     try testing.expect(Scope.Kind.isHoistTarget(.ts_module));
+    // a body scope decides per instance, see its hoist_target
+    try testing.expect(Scope.Kind.isHoistTarget(.function_body));
     try testing.expect(!Scope.Kind.isHoistTarget(.block));
     try testing.expect(!Scope.Kind.isHoistTarget(.class));
     try testing.expect(!Scope.Kind.isHoistTarget(.expression_name));

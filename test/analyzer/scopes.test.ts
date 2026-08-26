@@ -16,7 +16,8 @@ describe("root scope", () => {
       "global
         x#0  var
         f#1  function
-        function "f""
+        function "f"
+          functionBody BlockStatement"
     `);
   });
 });
@@ -57,11 +58,12 @@ describe("lexical scopes", () => {
             f#0  function
             function "f"
               a#1  param
-              g#2  const
-              function =>
-                b#3  param
-                a → #1
-                b → #3"
+              functionBody BlockStatement
+                g#2  const
+                function =>
+                  b#3  param
+                  a → #1
+                  b → #3"
       `);
   });
 
@@ -75,8 +77,9 @@ describe("lexical scopes", () => {
               rec#1  function
               function "rec"
                 n#2  param
-                rec → #1
-                n → #2"
+                functionBody BlockStatement
+                  rec → #1
+                  n → #2"
       `);
   });
 
@@ -88,6 +91,7 @@ describe("lexical scopes", () => {
             C#0  class
             class "C"
               function <anonymous>
+                functionBody BlockStatement
               staticBlock
                 s#1  let"
       `);
@@ -133,7 +137,8 @@ describe("strict mode", () => {
       .toMatchInlineSnapshot(`
         "global
           f#0  function
-          function "f" [strict]"
+          function "f" [strict]
+            functionBody BlockStatement"
       `);
   });
 });

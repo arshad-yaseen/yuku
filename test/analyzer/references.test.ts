@@ -12,8 +12,9 @@ describe("resolution", () => {
             f#1  function
             x → #0
             function "f"
-              x#2  let
-              x → #2"
+              functionBody BlockStatement
+                x#2  let
+                x → #2"
       `);
   });
 
@@ -33,7 +34,8 @@ describe("resolution", () => {
           module [strict]
             f#0  function
             function "f"
-              arguments → free"
+              functionBody BlockStatement
+                arguments → free"
       `);
   });
 
@@ -43,7 +45,8 @@ describe("resolution", () => {
         module [strict]
           f#0  function
           f → #0
-          function "f""
+          function "f"
+            functionBody BlockStatement"
     `);
   });
 });
@@ -125,10 +128,11 @@ describe("declaration spaces", () => {
             f#1  function
             block TSTypeAliasDeclaration
             function "f"
-              T#2  const
-              x#3  let
-              T → #0 type
-              T → #2"
+              functionBody BlockStatement
+                T#2  const
+                x#3  let
+                T → #0 type
+                T → #2"
       `);
   });
 
@@ -140,12 +144,13 @@ describe("declaration spaces", () => {
             v#0  const
             f#1  function
             function "f"
-              v#2  type
-              a#3  let
-              b#4  let
-              v → #0 typeof
-              v → #2 type
-              block TSTypeAliasDeclaration"
+              functionBody BlockStatement
+                v#2  type
+                a#3  let
+                b#4  let
+                v → #0 typeof
+                v → #2 type
+                block TSTypeAliasDeclaration"
       `);
   });
 
@@ -160,9 +165,10 @@ describe("declaration spaces", () => {
               T#1  type exported
               block TSTypeAliasDeclaration
             function "f"
-              N#3  const
-              x#4  let
-              N → #0 namespace"
+              functionBody BlockStatement
+                N#3  const
+                x#4  let
+                N → #0 namespace"
       `);
   });
 
@@ -172,10 +178,11 @@ describe("declaration spaces", () => {
         module [strict]
           f#0  function
           function "f"
-            T#1  const
-            x#2  let
-            T → free type
-            T → #1"
+            functionBody BlockStatement
+              T#1  const
+              x#2  let
+              T → free type
+              T → #1"
     `);
   });
 
@@ -223,6 +230,7 @@ describe("decorators", () => {
           C#1  class
           class "C"
             function <anonymous>
+              functionBody BlockStatement
           function =>
             x#2  param
             v → #0
@@ -245,7 +253,8 @@ describe("JSX", () => {
             function =>
               Foo → #1
               Foo → #1
-            function "Foo""
+            function "Foo"
+              functionBody BlockStatement"
       `);
   });
 

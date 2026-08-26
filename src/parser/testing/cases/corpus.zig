@@ -48,7 +48,12 @@ fn verifyScopes(tree: *const ast.Tree, sem: *const Semantic) !void {
 
         const target = sem.scope(scope.hoist_target);
         if (!target.kind.isHoistTarget()) return error.HoistTargetNotHoistable;
-        if (scope.kind.isHoistTarget()) {
+        if (scope.kind == .function_body) {
+            // its own var environment only with parameter expressions
+            if (scope.hoist_target != entry.id and
+                scope.hoist_target != sem.scope(scope.parent).hoist_target)
+                return error.FunctionBodyHoistTargetInvalid;
+        } else if (scope.kind.isHoistTarget()) {
             if (scope.hoist_target != entry.id) return error.HoistTargetNotSelf;
         } else {
             if (scope.hoist_target != sem.scope(scope.parent).hoist_target)
