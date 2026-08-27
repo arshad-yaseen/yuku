@@ -66,7 +66,7 @@ import { parse } from "yuku-parser";
 const { program, comments, diagnostics } = parse("const x = 1 + 2;");
 ```
 
-Outputs an [ESTree](https://github.com/estree/estree) / [TS-ESTree](https://www.npmjs.com/package/@typescript-eslint/typescript-estree)-compatible AST matching [Oxc](https://oxc.rs). Runs 3-10x faster than alternatives on npm. See [yuku-parser on npm](https://www.npmjs.com/package/yuku-parser) for the full API.
+Outputs an [ESTree](https://github.com/estree/estree) / [TS-ESTree](https://www.npmjs.com/package/@typescript-eslint/typescript-estree)-compatible AST matching [Oxc](https://oxc.rs). Runs 3-10x faster than alternatives on npm. Alongside the options below it takes `attachComments` (the JS spelling of the `comments` mode) and `semanticErrors`, which folds the [semantic pass](https://yuku.fyi/parser/semantic/) into the call so early errors arrive in the same `diagnostics` array. `langFromPath` and `sourceTypeFromPath` are exported too. See [yuku-parser on npm](https://www.npmjs.com/package/yuku-parser) for the full API.
 
 ## WebAssembly
 
@@ -262,7 +262,14 @@ tree.isTs()              // language is .ts, .tsx, or .dts
 tree.isJsx()             // language is .jsx or .tsx
 tree.isModule()          // source_type is .module
 tree.hasErrors()         // any diagnostic with severity .error
+tree.hasDiagnostics()    // any diagnostic at all
+
+tree.setData(idx, data)  // write API, see the transform traverser
+tree.addNode(data, span) // append a node, returns its NodeIndex
+tree.addString("x")      // intern text; sourceSlice(a, b) points into the source instead
 ```
+
+Every enum a node field holds also carries `toString()`, returning the construct's source text (`decl.kind.toString()` is `"const"`, `expr.operator.toString()` is `"==="`).
 
 ## Core types
 
@@ -1097,8 +1104,8 @@ Every construct in the spec that introduces a new lexical environment creates a 
 | Node                                                         | Scope kind                                                    |
 | ------------------------------------------------------------ | ------------------------------------------------------------- |
 | Program                                                      | `global` (plus a child `module` if `source_type` is `module`) |
-| Function declaration / expression                            | `function`                                                    |
-| Arrow function                                               | `function`                                                    |
+| Function declaration / expression                            | `function`, wrapping a child `function_body` (see below)      |
+| Arrow function                                               | `function`, wrapping a child `function_body`                  |
 | Block statement                                              | `block`                                                       |
 | `for` / `for...in` / `for...of`                              | `block`                                                       |
 | `catch` clause                                               | `block` (the body block reuses this scope)                    |
@@ -1180,6 +1187,7 @@ symbol.flags.value_module         // TS namespace whose body has runtime content
 symbol.flags.namespace_module     // TS namespace (any kind)
 symbol.flags.import               // value or unspecified-kind import
 symbol.flags.type_import          // `import type ...` or `import { type x }`
+symbol.flags.enum_member          // TS enum member, bound in its enum's body scope
 ```
 
 **Modifiers** (qualifiers on the binding):
@@ -1204,6 +1212,8 @@ flags.isBlockScopedLike()   // names a hoisting `var` cannot pass through
 flags.toString()            // human-readable category for diagnostics
 ```
 
+`Symbol.variable`, `Symbol.any_import`, `Symbol.value_space`, `Symbol.type_space`, and `Symbol.namespace_space` are ready-made masks for `intersects`, the same sets the JS decoder mirrors as [`SymbolFlags`](https://yuku.fyi/analyzer/#flags) composites.
+
 The space predicates (`inValueSpace`, `inTypeSpace`, `inNamespaceSpace`, `visibleIn`) answer which declaration spaces a symbol occupies. They drive reference resolution and have their own section: [Declaration Spaces](#declaration-spaces).
 
 ### Redeclaration Excludes
@@ -1227,6 +1237,7 @@ Symbol.Excludes.import_binding
 Symbol.Excludes.parameter
 Symbol.Excludes.catch_var
 Symbol.Excludes.type_parameter
+Symbol.Excludes.enum_member
 ```
 
 This single mechanism handles function overloads, `class` + `interface` declaration merging, `namespace` + `enum` merging, and ambient module patterns without any per-construct branching.
@@ -1238,8 +1249,8 @@ TypeScript names live in three declaration spaces. Value space is what exists at
 Both sides of the model speak in spaces. A **symbol occupies** one or more spaces, decided by its declarations:
 
 ```zig
-flags.inValueSpace()        // var, let, const, function, class, enum, value namespace
-flags.inTypeSpace()         // class, enum, interface, type alias, type parameter
+flags.inValueSpace()        // var, let, const, function, class, enum + members, value namespace
+flags.inTypeSpace()         // class, enum + members, interface, type alias, type parameter
 flags.inNamespaceSpace()    // namespace, enum
 ```
 
@@ -1839,6 +1850,8 @@ pub fn enter_identifier_reference(
 }
 ```
 
+`sem.refSpace(tree, &ctx.path, ctx.inTypePosition())` and `sem.isWriteTarget(tree, &ctx.path)` are the two rules exported, so a hook can classify an identifier position itself. They are what fill `Reference.flags.space` and `flags.write`.
+
 `inTypePosition()` is also what the tracker uses internally to decide that a `binding_identifier` inside a function-type or index signature is a parameter _label_ (not a real declaration). Only `type_parameter` bindings are real in type position.
 
 ## Transform Traverser
@@ -2038,6 +2051,10 @@ _ = try sem.traverse(Transpiler, &source_tree, &transpiler);
 
 The two trees never touch each other's storage, and either can be freed independently. This is the recommended structure for any tool that produces a transformed AST from an input AST without mutating the input.
 
+## Your Own Mode
+
+The four modes are four context types over one walker. `traverser.walk(C, V, &visitor, &ctx)` drives any context with a `.tree` field, and `traverser.Layer(C, V)` wraps a visitor so the context's own `enter`, `post_enter`, and `exit` run around each hook. That is all a built-in mode is, in [about thirty lines](https://github.com/yuku-toolchain/yuku/blob/main/src/parser/traverser/basic.zig).
+
 ## Combining Modes
 
 The four modes compose via multiple passes. A typical pipeline looks like:
@@ -2079,7 +2096,7 @@ const { program } = parse("const x = 1 + 2;");
 const { code } = generate(program);
 ```
 
-`generate` takes the `Program` node off the `ParseResult` returned by [yuku-parser](https://www.npmjs.com/package/yuku-parser). For source maps, pass the original source text via `sourceMap: { source }`. See [yuku-codegen on npm](https://www.npmjs.com/package/yuku-codegen) for the full API.
+`generate` takes the `Program` node off the `ParseResult` returned by [yuku-parser](https://www.npmjs.com/package/yuku-parser). For source maps, pass the original source text via `sourceMap: { source }`. `minify` also takes an object there (`{ syntax, whitespace, quotes }`) to pick individual switches, and `comments` accepts `true` / `false` as sugar for `"all"` / `"none"`. See [yuku-codegen on npm](https://www.npmjs.com/package/yuku-codegen) for the full API.
 
 ## WebAssembly
 
@@ -2095,7 +2112,7 @@ const { program } = parse("const x = 1 + 2;");
 const code = generate(program);
 ```
 
-The same API as `yuku-codegen`, paired with `@yuku-parser/wasm`, as a single portable WebAssembly module for browsers and other environments without native bindings. See [@yuku-codegen/wasm on npm](https://www.npmjs.com/package/@yuku-codegen/wasm).
+The same options as `yuku-codegen`, except that `generate` returns the code string directly and source maps are unavailable. Paired with `@yuku-parser/wasm`, as a single portable WebAssembly module for browsers and other environments without native bindings. See [@yuku-codegen/wasm on npm](https://www.npmjs.com/package/@yuku-codegen/wasm).
 
 ## Zig
 
@@ -2174,7 +2191,7 @@ const result = try parser.codegen.generate(allocator, &tree, .{
 | `comments`   | `Comments`          | `.some`     | Comment passthrough filter. See [Comments](#comments).     |
 | `source_map` | `?SourceMapOptions` | `null`      | Set to emit a Source Map V3 alongside the code             |
 
-Every transformation is an independent flag, so they compose freely, e.g. `.strip = true` together with `.minify = .all`.
+Every transformation is an independent flag, so they compose freely, e.g. `.strip = true` together with `.minify = true`.
 
 `Format` controls only discretionary whitespace. Grammar-required separators (semicolons, commas, parentheses) are always emitted regardless of mode.
 

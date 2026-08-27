@@ -453,6 +453,8 @@ pub fn enter_identifier_reference(
 }
 ```
 
+`sem.refSpace(tree, &ctx.path, ctx.inTypePosition())` and `sem.isWriteTarget(tree, &ctx.path)` are the two rules exported, so a hook can classify an identifier position itself. They are what fill `Reference.flags.space` and `flags.write`.
+
 `inTypePosition()` is also what the tracker uses internally to decide that a `binding_identifier` inside a function-type or index signature is a parameter _label_ (not a real declaration). Only `type_parameter` bindings are real in type position.
 
 ## [Transform Traverser]($section.id('transform-traverser'))
@@ -651,6 +653,10 @@ _ = try sem.traverse(Transpiler, &source_tree, &transpiler);
 ```
 
 The two trees never touch each other's storage, and either can be freed independently. This is the recommended structure for any tool that produces a transformed AST from an input AST without mutating the input.
+
+## [Your Own Mode]($section.id('your-own-mode'))
+
+The four modes are four context types over one walker. `traverser.walk(C, V, &visitor, &ctx)` drives any context with a `.tree` field, and `traverser.Layer(C, V)` wraps a visitor so the context's own `enter`, `post_enter`, and `exit` run around each hook. That is all a built-in mode is, in [about thirty lines](https://github.com/yuku-toolchain/yuku/blob/main/src/parser/traverser/basic.zig).
 
 ## [Combining Modes]($section.id('combining-modes'))
 
