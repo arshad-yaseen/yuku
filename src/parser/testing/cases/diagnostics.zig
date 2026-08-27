@@ -13,6 +13,26 @@ fn expectRejected(source: []const u8, opts: parser.Options) !void {
     }
 }
 
+// asserts the first diagnostic covers exactly [start, end) of the source,
+// so a test failure names the byte range the diagnostic swallowed instead
+// of just saying "spans differ"
+fn expectFirstSpan(source: []const u8, start: u32, end: u32) !void {
+    var tree = try parser.parse(testing.allocator, source, .{
+        .source_type = .script,
+        .lang = .js,
+    });
+    defer tree.deinit();
+
+    if (tree.diagnostics.items.len == 0) {
+        std.debug.print("accepted with no diagnostics: {s}\n", .{source});
+        return error.AcceptedWithoutDiagnostics;
+    }
+
+    const span = tree.diagnostics.items[0].span;
+    try testing.expectEqual(start, span.start);
+    try testing.expectEqual(end, span.end);
+}
+
 // `let`, `using`, `async` and `import` each decide between a declaration and
 // an expression on one token of lookahead, and `await using` on two.
 test "a lexical error behind a lookahead-driven keyword is reported" {
@@ -110,4 +130,36 @@ test "the annex b for-in head parses without a diagnostic" {
     defer tree.deinit();
 
     try testing.expectEqual(@as(usize, 0), tree.diagnostics.items.len);
+}
+
+// a lexical diagnostic points at the byte at the cursor: the offending
+// byte when the failure has one (a misplaced `_`, the identifier glued
+// onto a number), the byte the scanner stepped past it onto otherwise
+// (`1_;` stops on the `;`), and a zero-width point at the end of input
+// for an unterminated unit. the span never reaches back over the
+// whitespace or comments before the token. methodology: one exact-range
+// assertion per failure class, with the amount of preceding whitespace
+// varied so a regression cannot hide in the layout
+test "a lexical diagnostic points at the cursor" {
+    try expectFirstSpan("let x = 0x_ab", 10, 11);
+    try expectFirstSpan("let x =   0x_ab", 12, 13);
+    try expectFirstSpan("0x_ab", 2, 3);
+    try expectFirstSpan("let x /* c */ = 0x_ab", 18, 19);
+    try expectFirstSpan("let x = 0b_1", 10, 11);
+    try expectFirstSpan("let x = 0o_7", 10, 11);
+    try expectFirstSpan("let x = 1__2", 10, 11);
+    try expectFirstSpan("let x = 3in", 9, 10);
+    try expectFirstSpan("let x = 1_;", 10, 11);
+    try expectFirstSpan("let x = 1._5", 9, 10);
+}
+
+test "a lexical diagnostic at the end of input is zero-width" {
+    try expectFirstSpan("let x = 0b", 10, 10);
+    try expectFirstSpan("let x = 0x", 10, 10);
+    try expectFirstSpan("let x = 1e", 10, 10);
+    try expectFirstSpan("let x = 'abc", 12, 12);
+    try expectFirstSpan("let x = `abc", 12, 12);
+    try expectFirstSpan("let x = #", 9, 9);
+    try expectFirstSpan("let x /* c", 10, 10);
+    try expectFirstSpan("let x = 1; /* c", 15, 15);
 }
