@@ -431,7 +431,6 @@ main {
 ::highlight(yuku-diag-info) {
   text-decoration-line: underline;
   text-decoration-style: wavy;
-  /* keep the wave unbroken across descender ink (g, j, y, ...) */
   text-decoration-skip-ink: none;
 }
 
@@ -450,25 +449,173 @@ main {
   text-decoration-thickness: 1px;
 }
 
+::highlight(yuku-label-error),
+::highlight(yuku-label-warning),
+::highlight(yuku-label-info) {
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1.5px;
+  text-decoration-skip-ink: none;
+}
+
+::highlight(yuku-label-error) {
+  text-decoration-color: var(--err);
+}
+
+::highlight(yuku-label-warning) {
+  text-decoration-color: var(--warn);
+}
+
+::highlight(yuku-label-info) {
+  text-decoration-color: var(--dim);
+}
+
 #problems {
-  max-height: 30vh;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  max-height: 34vh;
   background: var(--panel);
   border-top: 1px solid var(--line);
   font-size: 12px;
+}
+
+#problems[hidden] {
+  display: none;
+}
+
+.problems-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+  padding: 5px 12px 5px 16px;
+  border-bottom: 1px solid var(--line);
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 10px;
+}
+
+.problems-counts {
+  display: flex;
+  gap: 12px;
+  letter-spacing: normal;
+  font-size: 11px;
+}
+
+.problems-counts .count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.problems-close {
+  margin-left: auto;
+  padding: 0 3px;
+  background: transparent;
+  border: none;
+  color: var(--dim);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.problems-close:hover {
+  color: var(--fg);
+}
+
+#problemsList {
+  overflow: auto;
+  padding-block: 2px 4px;
+}
+
+.problem-group.problem-active {
+  background: var(--sel);
 }
 
 .problem {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  padding: 3px 16px;
+  padding: 3px 16px 3px 6px;
   cursor: pointer;
   white-space: pre;
 }
 
 .problem:hover {
   background: color-mix(in srgb, var(--sel) 40%, transparent);
+}
+
+.problem-chev {
+  flex: none;
+  display: inline-block;
+  width: 1em;
+  color: var(--dim);
+  transition: transform 0.15s ease;
+}
+
+.problem-chev.open {
+  transform: rotate(90deg);
+}
+
+.problem-chev:hover {
+  color: var(--fg);
+}
+
+.problem-count {
+  flex: none;
+  font-size: 10px;
+  padding: 0 5px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--dim);
+}
+
+.problem-detail {
+  padding: 0 16px 4px 2.5em;
+}
+
+.problem-rel,
+.problem-help {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.problem-rel {
+  cursor: pointer;
+}
+
+.problem-rel:hover {
+  background: color-mix(in srgb, var(--sel) 40%, transparent);
+}
+
+.rel-arrow {
+  flex: none;
+  color: var(--dim);
+}
+
+.rel-msg {
+  color: var(--dim);
+}
+
+.problem-rel:hover .rel-msg {
+  color: var(--fg);
+}
+
+.help-icon {
+  flex: none;
+  color: var(--accent);
+  font-size: 10px;
+}
+
+.help-msg {
+  color: var(--dim);
 }
 
 .problem-icon {
@@ -502,33 +649,94 @@ main {
 
 #diagTip {
   position: fixed;
-  z-index: 10;
-  max-width: 420px;
-  padding: 8px 10px;
+  z-index: 20;
+  min-width: 200px;
+  max-width: 440px;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 6px;
-  box-shadow: 0 6px 20px rgb(0 0 0 / 0.25);
+  border-radius: 4px;
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.15);
   font-size: 12px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  pointer-events: none;
+  line-height: 1.55;
+  overflow: hidden;
 }
 
 .tip-item {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
+  padding: 9px 12px;
 }
 
 .tip-item + .tip-item {
-  margin-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+.tip-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.tip-level {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 10px;
+  color: var(--dim);
+}
+
+.tip-head .problem-pos {
+  padding-left: 12px;
+}
+
+.tip-msg {
+  color: var(--fg);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.tip-rels {
+  margin-top: 8px;
   padding-top: 6px;
   border-top: 1px solid var(--line);
 }
 
+.tip-rel {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-inline: -6px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.tip-rel:hover {
+  background: color-mix(in srgb, var(--sel) 40%, transparent);
+}
+
+.tip-rel-focus {
+  background: var(--sel);
+}
+
+.tip-rel:hover .rel-msg,
+.tip-rel-focus .rel-msg {
+  color: var(--fg);
+}
+
 .tip-help {
-  margin-top: 2px;
-  color: var(--dim);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .problem-chev {
+    transition: none;
+  }
 }

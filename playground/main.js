@@ -15,6 +15,7 @@ const outView = $("out");
 const status = $("status");
 const problemsPanel = $("problems");
 const problemsList = $("problemsList");
+const problemsCounts = $("problemsCounts");
 const diagTip = $("diagTip");
 
 const OPEN_DEPTH = 4;
@@ -39,8 +40,6 @@ const jar = CodeJar(
   codeView,
   (el) => {
     el.innerHTML = hl(el.textContent, "typescript");
-    // codejar re-highlights on a debounce after onUpdate, so the rewrite above
-    // collapses squiggle ranges built during render. rebuild them here
     renderSquiggles();
   },
   { tab: "  ", spellcheck: false },
@@ -179,8 +178,6 @@ function refBadges(ref) {
   return out;
 }
 
-// a symbol (or unresolved-name group): summary hover lights every site
-// at once, the expanded per-site rows light one at a time
 function symNode(name, badgeList, spans, sites, path) {
   const details = el("details");
   details.__path = path;
@@ -327,13 +324,28 @@ function setStatus(text, kind) {
   status.className = kind;
 }
 
-// hint shares the info style, matching ide convention
 const DIAG_LEVEL = { error: "error", warning: "warning", info: "info", hint: "info" };
 const DIAG_ICON = { error: "✖", warning: "⚠", info: "ℹ" };
+const LEVELS = ["error", "warning", "info"];
 
 let currentDiags = [];
 let lineStarts = [0];
 let problemsOpen = true;
+let hitRegions = [];
+const relatedOpen = new Map();
+let problemCursor = -1;
+
+function levelOf(d) {
+  return DIAG_LEVEL[d.severity] ?? "info";
+}
+
+function diagKey(d) {
+  return `${d.severity}:${d.start}:${d.end}:${d.message}`;
+}
+
+function relatedOf(d) {
+  return (d.labels ?? []).filter((l) => l.start !== d.start || l.end !== d.end);
+}
 
 function setDiagnostics(diags, source) {
   currentDiags = diags;
@@ -341,28 +353,55 @@ function setDiagnostics(diags, source) {
   for (let i = 0; i < source.length; i++) {
     if (source.charCodeAt(i) === 10) lineStarts.push(i + 1);
   }
-  diagTip.hidden = true;
+  problemCursor = -1;
+  hideDiagTip();
   renderSquiggles();
   renderProblems();
   problemsPanel.hidden = !(problemsOpen && diags.length > 0);
 }
 
+function clampSpan(start, end, textLen) {
+  const s = Math.min(Math.max(start, 0), textLen);
+  let e = end > start ? end : start + 1;
+  e = Math.min(Math.max(e, 0), textLen);
+  if (e === s && s > 0) return [s - 1, s];
+  return [s, e];
+}
+
+function addSpan(diag, label, bucket, textLen, viewRect) {
+  const src = label ?? diag;
+  const [start, end] = clampSpan(src.start, src.end, textLen);
+  const range = rangeFromOffsets(codeView, start, end);
+  if (!range) return;
+  bucket.add(range);
+  const rects = [];
+  for (const r of range.getClientRects()) {
+    if (r.width === 0 || r.height === 0) continue;
+    rects.push({
+      x1: r.left - viewRect.left + codeView.scrollLeft,
+      y1: r.top - viewRect.top + codeView.scrollTop,
+      x2: r.right - viewRect.left + codeView.scrollLeft,
+      y2: r.bottom - viewRect.top + codeView.scrollTop,
+    });
+  }
+  if (rects.length) hitRegions.push({ diag, label, rects });
+}
+
 function renderSquiggles() {
+  hitRegions = [];
   if (!diagHighlights) return;
-  for (const h of Object.values(diagHighlights)) h.clear();
+  for (const level of LEVELS) {
+    diagHighlights[level].clear();
+    labelHighlights[level].clear();
+  }
   const textLen = codeView.textContent.length;
+  const viewRect = codeView.getBoundingClientRect();
   for (const d of currentDiags) {
-    const bucket = diagHighlights[DIAG_LEVEL[d.severity] ?? "info"];
-    // zero-length spans render nothing, stretch them to one char
-    let start = Math.min(Math.max(d.start, 0), textLen);
-    let end = d.end > d.start ? d.end : d.start + 1;
-    end = Math.min(Math.max(end, 0), textLen);
-    if (end === start && start > 0) {
-      start -= 1;
-      end = start + 1;
+    const level = levelOf(d);
+    addSpan(d, null, diagHighlights[level], textLen, viewRect);
+    for (const label of relatedOf(d)) {
+      addSpan(d, label, labelHighlights[level], textLen, viewRect);
     }
-    const range = rangeFromOffsets(codeView, start, end);
-    if (range) bucket.add(range);
   }
 }
 
@@ -377,28 +416,118 @@ function problemPos(offset) {
   return `${lo + 1}:${offset - lineStarts[lo] + 1}`;
 }
 
+function jumpTo(start, end) {
+  selectCode(start, end);
+  scrollCodeIntoView(start, end);
+}
+
+function highlightDiag(d) {
+  if (!srcHighlight) return;
+  clearCodeHighlight();
+  const textLen = codeView.textContent.length;
+  const add = (highlight, start, end) => {
+    const [s, e] = clampSpan(start, end, textLen);
+    const range = rangeFromOffsets(codeView, s, e);
+    if (range) highlight.add(range);
+  };
+  add(srcHighlight, d.start, d.end);
+  for (const label of relatedOf(d)) add(refHighlight, label.start, label.end);
+}
+
+function relatedRow(label, className) {
+  const row = el("div", className);
+  row.append(el("span", "rel-arrow", "↳"));
+  row.append(el("span", "rel-msg", label.message));
+  row.append(el("span", "problem-pos", problemPos(label.start)));
+  row.addEventListener("mouseover", (e) => {
+    e.stopPropagation();
+    highlightCode(label.start, label.end);
+  });
+  row.addEventListener("click", (e) => {
+    e.stopPropagation();
+    jumpTo(label.start, label.end);
+  });
+  return row;
+}
+
+function helpRow(text, className) {
+  const row = el("div", className);
+  row.append(el("span", "help-icon", "◆"));
+  row.append(el("span", "help-msg", text));
+  return row;
+}
+
+function problemGroup(d, index) {
+  const level = levelOf(d);
+  const related = relatedOf(d);
+  const key = diagKey(d);
+  const expandable = related.length > 0 || !!d.help;
+  const open = relatedOpen.get(key) ?? true;
+
+  const group = el("div", `problem-group sev-${level}`);
+  if (index === problemCursor) group.classList.add("problem-active");
+
+  const row = el("div", "problem");
+  const chevron = el("span", "problem-chev", expandable ? "▸" : "");
+  if (expandable) {
+    if (open) chevron.classList.add("open");
+    chevron.addEventListener("click", (e) => {
+      e.stopPropagation();
+      relatedOpen.set(key, !open);
+      renderProblems();
+    });
+  }
+  row.append(chevron);
+  row.append(el("span", "problem-icon", DIAG_ICON[level]));
+  row.append(el("span", "problem-msg", d.message));
+  if (related.length) row.append(el("span", "problem-count", `+${related.length}`));
+  row.append(el("span", "problem-pos", problemPos(d.start)));
+  row.addEventListener("mouseover", () => highlightDiag(d));
+  row.addEventListener("click", () => {
+    problemCursor = index;
+    jumpTo(d.start, d.end);
+    renderProblems();
+  });
+  group.append(row);
+
+  if (expandable && open) {
+    const detail = el("div", "problem-detail");
+    for (const label of related) detail.append(relatedRow(label, "problem-rel"));
+    if (d.help) detail.append(helpRow(d.help, "problem-help"));
+    group.append(detail);
+  }
+  group.addEventListener("mouseleave", restoreActive);
+  return group;
+}
+
 function renderProblems() {
-  problemsList.replaceChildren(
-    ...currentDiags.map((d) => {
-      const level = DIAG_LEVEL[d.severity] ?? "info";
-      const row = el("div", `problem sev-${level}`);
-      row.append(el("span", "problem-icon", DIAG_ICON[level]));
-      row.append(el("span", "problem-msg", d.message));
-      row.append(el("span", "problem-pos", problemPos(d.start)));
-      row.addEventListener("mouseover", () => highlightCode(d.start, d.end));
-      row.addEventListener("mouseleave", restoreActive);
-      row.addEventListener("click", () => {
-        selectCode(d.start, d.end);
-        scrollCodeIntoView(d.start, d.end);
-      });
-      return row;
+  const counts = { error: 0, warning: 0, info: 0 };
+  for (const d of currentDiags) counts[levelOf(d)]++;
+  problemsCounts.replaceChildren(
+    ...LEVELS.filter((level) => counts[level]).map((level) => {
+      const chip = el("span", `count sev-${level}`);
+      chip.append(el("span", "problem-icon", DIAG_ICON[level]));
+      chip.append(el("span", null, String(counts[level])));
+      return chip;
     }),
   );
+  problemsList.replaceChildren(...currentDiags.map(problemGroup));
+}
+
+function gotoProblem(delta) {
+  if (currentDiags.length === 0) return;
+  const n = currentDiags.length;
+  if (problemCursor < 0) problemCursor = delta > 0 ? -1 : 0;
+  problemCursor = (((problemCursor + delta) % n) + n) % n;
+  const d = currentDiags[problemCursor];
+  jumpTo(d.start, d.end);
+  renderProblems();
+  problemsList.querySelector(".problem-active")?.scrollIntoView({ block: "nearest" });
 }
 
 function diagStatusText(diags, times) {
   const counts = { error: 0, warning: 0, info: 0 };
-  for (const d of diags) counts[DIAG_LEVEL[d.severity] ?? "info"]++;
+  for (const d of diags) counts[levelOf(d)]++;
   const parts = [];
   if (counts.error) parts.push(`${DIAG_ICON.error} ${counts.error}`);
   if (counts.warning) parts.push(`${DIAG_ICON.warning} ${counts.warning}`);
@@ -407,57 +536,114 @@ function diagStatusText(diags, times) {
   return [`${parts.join("  ")} · ${times}`, kind];
 }
 
-function offsetAtPoint(x, y) {
-  let node;
-  let offset;
-  if (document.caretRangeFromPoint) {
-    const r = document.caretRangeFromPoint(x, y);
-    if (!r) return null;
-    node = r.startContainer;
-    offset = r.startOffset;
-  } else if (document.caretPositionFromPoint) {
-    const p = document.caretPositionFromPoint(x, y);
-    if (!p) return null;
-    node = p.offsetNode;
-    offset = p.offset;
-  } else {
-    return null;
+function regionsAt(clientX, clientY) {
+  const viewRect = codeView.getBoundingClientRect();
+  if (clientX < viewRect.left || clientX > viewRect.right) return [];
+  if (clientY < viewRect.top || clientY > viewRect.bottom) return [];
+  const x = clientX - viewRect.left + codeView.scrollLeft;
+  const y = clientY - viewRect.top + codeView.scrollTop;
+  const hits = [];
+  for (const region of hitRegions) {
+    let area = Infinity;
+    for (const r of region.rects) {
+      if (x < r.x1 || x > r.x2 || y < r.y1 || y > r.y2) continue;
+      area = Math.min(area, (r.x2 - r.x1) * (r.y2 - r.y1));
+    }
+    if (area < Infinity) hits.push({ region, area });
   }
-  if (!codeView.contains(node)) return null;
-  const pre = document.createRange();
-  pre.selectNodeContents(codeView);
-  pre.setEnd(node, offset);
-  return pre.toString().length;
+  hits.sort((a, b) => a.area - b.area);
+  return hits.map((h) => h.region);
 }
 
-function showDiagTip(x, y) {
-  const offset = offsetAtPoint(x, y);
-  const hits =
-    offset === null ? [] : currentDiags.filter((d) => offset >= d.start && offset <= d.end);
-  if (hits.length === 0) {
-    diagTip.hidden = true;
-    return;
+function tipSection(d, focusLabel) {
+  const level = levelOf(d);
+  const section = el("div", `tip-item sev-${level}`);
+
+  const head = el("div", "tip-head");
+  head.append(el("span", "problem-icon", DIAG_ICON[level]));
+  head.append(el("span", "tip-level", level));
+  head.append(el("span", "problem-pos", problemPos(d.start)));
+  section.append(head);
+  section.append(el("div", "tip-msg", d.message));
+
+  const related = relatedOf(d);
+  if (related.length) {
+    const list = el("div", "tip-rels");
+    for (const label of related) {
+      const row = relatedRow(label, "tip-rel");
+      row.addEventListener("mouseleave", restoreActive);
+      row.addEventListener("click", hideDiagTip);
+      if (focusLabel && label.start === focusLabel.start && label.end === focusLabel.end) {
+        row.classList.add("tip-rel-focus");
+      }
+      list.append(row);
+    }
+    section.append(list);
   }
-  diagTip.replaceChildren(
-    ...hits.map((d) => {
-      const level = DIAG_LEVEL[d.severity] ?? "info";
-      const item = el("div", `tip-item sev-${level}`);
-      item.append(el("span", "problem-icon", DIAG_ICON[level]));
-      const body = el("div");
-      body.append(el("div", "tip-msg", d.message));
-      if (d.help) body.append(el("div", "tip-help", d.help));
-      item.append(body);
-      return item;
-    }),
-  );
-  diagTip.hidden = false;
-  const pad = 12;
-  const rect = diagTip.getBoundingClientRect();
-  const left = Math.max(pad, Math.min(x + pad, window.innerWidth - rect.width - pad));
-  let top = y + pad + 6;
-  if (top + rect.height > window.innerHeight - pad) top = y - rect.height - pad;
+  if (d.help) section.append(helpRow(d.help, "tip-help"));
+  return section;
+}
+
+let tipKey = null;
+let tipHideTimer;
+
+function hideDiagTip() {
+  clearTimeout(tipHideTimer);
+  diagTip.hidden = true;
+  tipKey = null;
+}
+
+function scheduleTipHide() {
+  clearTimeout(tipHideTimer);
+  tipHideTimer = setTimeout(hideDiagTip, 160);
+}
+
+function positionTip(region) {
+  const viewRect = codeView.getBoundingClientRect();
+  const r = region.rects[0];
+  const anchorLeft = r.x1 - codeView.scrollLeft + viewRect.left;
+  const anchorTop = r.y1 - codeView.scrollTop + viewRect.top;
+  const anchorBottom = r.y2 - codeView.scrollTop + viewRect.top;
+
+  diagTip.style.left = "0px";
+  diagTip.style.top = "0px";
+  const box = diagTip.getBoundingClientRect();
+  const pad = 10;
+  const left = Math.max(pad, Math.min(anchorLeft, window.innerWidth - box.width - pad));
+  let top = anchorBottom + 8;
+  if (top + box.height > window.innerHeight - pad) top = anchorTop - box.height - 8;
   diagTip.style.left = `${left}px`;
   diagTip.style.top = `${Math.max(pad, top)}px`;
+}
+
+function showDiagTip(clientX, clientY) {
+  const regions = regionsAt(clientX, clientY);
+  if (regions.length === 0) {
+    scheduleTipHide();
+    return;
+  }
+  clearTimeout(tipHideTimer);
+
+  const focus = regions[0];
+  const diags = [];
+  const seen = new Set();
+  for (const region of regions) {
+    const key = diagKey(region.diag);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    diags.push(region.diag);
+  }
+
+  const label = focus.label ? `${focus.label.start}:${focus.label.end}` : "-";
+  const key = `${diags.map(diagKey).join("|")}@${label}`;
+  if (key === tipKey && !diagTip.hidden) return;
+  tipKey = key;
+
+  diagTip.replaceChildren(
+    ...diags.map((d) => tipSection(d, d === focus.diag ? focus.label : null)),
+  );
+  diagTip.hidden = false;
+  positionTip(focus);
 }
 
 function render() {
@@ -541,13 +727,16 @@ const refHighlight = HAS_HL ? new Highlight() : null;
 if (refHighlight) CSS.highlights.set("yuku-ref", refHighlight);
 const declHighlight = HAS_HL ? new Highlight() : null;
 if (declHighlight) CSS.highlights.set("yuku-decl", declHighlight);
-// one registry per rendered severity, squiggles are rebuilt every render
 const diagHighlights = HAS_HL ? {} : null;
+const labelHighlights = HAS_HL ? {} : null;
 if (diagHighlights) {
-  for (const level of ["error", "warning", "info"]) {
-    const h = new Highlight();
-    CSS.highlights.set(`yuku-diag-${level}`, h);
-    diagHighlights[level] = h;
+  for (const level of LEVELS) {
+    const primary = new Highlight();
+    CSS.highlights.set(`yuku-diag-${level}`, primary);
+    diagHighlights[level] = primary;
+    const label = new Highlight();
+    CSS.highlights.set(`yuku-label-${level}`, label);
+    labelHighlights[level] = label;
   }
 }
 
@@ -614,7 +803,6 @@ function highlightSpans({ decl, refs }) {
   }
 }
 
-// spans of the selected symbol, restored after hover previews
 let activeSpans = null;
 
 function restoreActive() {
@@ -732,7 +920,6 @@ function clearSem() {
   }
 }
 
-// smallest symbol site, import/export record, or scope containing the offset
 function semTargetAt(offset) {
   let best = null;
   for (const t of semTargets) {
@@ -777,14 +964,22 @@ codeView.addEventListener("blur", removeHit);
 
 let tipFrame;
 codeView.addEventListener("mousemove", (e) => {
+  const { clientX, clientY } = e;
   cancelAnimationFrame(tipFrame);
-  tipFrame = requestAnimationFrame(() => showDiagTip(e.clientX, e.clientY));
+  tipFrame = requestAnimationFrame(() => showDiagTip(clientX, clientY));
 });
-codeView.addEventListener("mouseleave", () => {
-  diagTip.hidden = true;
-});
-codeView.addEventListener("scroll", () => {
-  diagTip.hidden = true;
+codeView.addEventListener("mouseleave", scheduleTipHide);
+codeView.addEventListener("scroll", hideDiagTip);
+diagTip.addEventListener("mouseenter", () => clearTimeout(tipHideTimer));
+diagTip.addEventListener("mouseleave", scheduleTipHide);
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "F8") {
+    e.preventDefault();
+    gotoProblem(e.shiftKey ? -1 : 1);
+  } else if (e.key === "Escape" && !diagTip.hidden) {
+    hideDiagTip();
+  }
 });
 
 astView.addEventListener(
@@ -940,8 +1135,12 @@ status.addEventListener("click", () => {
   persist();
 });
 
-// codejar fires onupdate on every keyup, even caret-only moves like arrow
-// keys. gate on the text actually changing so those no longer reparse
+$("problemsClose").addEventListener("click", () => {
+  problemsOpen = false;
+  problemsPanel.hidden = true;
+  persist();
+});
+
 let lastCode = null;
 jar.onUpdate((code) => {
   if (code === lastCode) return;
@@ -949,7 +1148,6 @@ jar.onUpdate((code) => {
   render();
 });
 
-// registered before the render listeners so render sees the synced values
 $("minify").addEventListener("change", (e) => {
   $("format").value = e.target.checked ? "compact" : "pretty";
   $("quotes").value = e.target.checked ? "shortest" : "preserve";
