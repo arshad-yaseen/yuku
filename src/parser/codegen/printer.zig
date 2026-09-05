@@ -444,11 +444,10 @@ const Printer = struct {
             .ts_instantiation_expression,
             => Precedence.Call,
             .boolean_literal => if (self.options.minify) Precedence.Unary else Precedence.Grouping,
-            // minify rewrites `undefined` and `Infinity`
+            // minify rewrites `Infinity`
             .identifier_reference => |id| blk: {
                 if (!self.options.minify or self.in_assign_target) break :blk Precedence.Grouping;
                 const s = self.tree.string(id.name);
-                if (std.mem.eql(u8, s, "undefined")) break :blk Precedence.Unary;
                 if (std.mem.eql(u8, s, "Infinity")) break :blk Precedence.Multiplicative;
                 break :blk Precedence.Grouping;
             },
@@ -1565,7 +1564,6 @@ const Printer = struct {
         if (self.options.minify) {
             if (!self.in_assign_target) {
                 const name = self.tree.string(id.name);
-                if (std.mem.eql(u8, name, "undefined")) return self.writeStr("void 0");
                 if (std.mem.eql(u8, name, "Infinity")) return self.writeStr("1/0");
             }
         }
@@ -2161,7 +2159,7 @@ const Printer = struct {
     }
 
     /// emits `idx` as a TS entity name (Identifier | QualifiedName | this |
-    /// ImportType). Suppresses `undefined`/`Infinity` rewrites that the
+    /// ImportType). Suppresses `Infinity` rewrites that the
     /// expression-context emitter applies, since type queries and type
     /// references require a bare entity name.
     fn emitEntityName(self: *Self, idx: NodeIndex) Error!void {
@@ -2638,8 +2636,8 @@ const Printer = struct {
         if (d.declare) try self.writeStr("declare ");
         try self.writeStr(d.kind.toString());
         try self.writeByte(' ');
-        // route through emitEntityName so the minify-mode `undefined ->
-        // void 0` rewrite never fires on a declaration name.
+        // route through emitEntityName so the minify-mode `Infinity -> 1/0`
+        // rewrite never fires on a declaration name
         try self.emitEntityName(d.id);
         if (d.body != .null) {
             try self.space();
