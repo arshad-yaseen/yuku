@@ -1,7 +1,7 @@
 test/parser/suite/js/fail
 =========================
-Passed:       4998/5000 (99.96%)
-Failed:       2
+Passed:       4998/4998 (100.00%)
+Failed:       0
 
 ✓ test/parser/suite/js/fail/0009a73f0859ac14.js
 error: Expected ',' or ')' in parenthesized expression, but found ';'
@@ -31945,7 +31945,6 @@ error: Rest element must be the last element
    = help: No elements can follow the rest element in a destructuring pattern.
 
 
-✗ test/parser/suite/js/fail/a95b80985f6ba820.js (expected error, but parsed successfully)
 ✓ test/parser/suite/js/fail/a95caa7436f7ed2e.js
 error: Getter/setter cannot appear in destructuring pattern
    |
@@ -47243,7 +47242,6 @@ error: 'false' is reserved and cannot be used as a binding identifier
    |     ^^^^^
    |
 
-✗ test/parser/suite/js/fail/fd053da2d16d1cc1.js (expected error, but parsed successfully)
 ✓ test/parser/suite/js/fail/fd09d4a8517f0577.js
 error: Unexpected token '>'
    |
