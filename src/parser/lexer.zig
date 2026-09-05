@@ -1511,8 +1511,7 @@ pub fn getLexicalErrorMessage(error_type: LexicalError) []const u8 {
         error.InvalidBinaryLiteral => "Binary literal must contain at least one binary digit",
         error.InvalidHexLiteral => "Hexadecimal literal must contain at least one hex digit",
         error.InvalidExponentPart => "Exponent part is missing a number",
-        error.NumericSeparatorMisuse => "Numeric separator cannot appear at the end of a" ++
-            " numeric literal",
+        error.NumericSeparatorMisuse => "Numeric separator is only allowed between two digits",
         error.ConsecutiveNumericSeparators => "Numeric literal cannot contain consecutive" ++
             " separators",
         error.MultipleDecimalPoints => "Numeric literal cannot contain multiple decimal points",
@@ -1565,8 +1564,8 @@ pub fn getLexicalErrorHelp(error_type: LexicalError) []const u8 {
             " after '0x'",
         error.InvalidExponentPart => "Try adding digits here after the exponent" ++
             " (e.g., e10, e-5, E+2)",
-        error.NumericSeparatorMisuse => "Try removing the trailing underscore here or" ++
-            " adding more digits after it",
+        error.NumericSeparatorMisuse => "Try placing the separator between two digits," ++
+            " or removing it",
         error.ConsecutiveNumericSeparators => "Try removing one of the consecutive underscores" ++
             " here",
         error.MultipleDecimalPoints => "Try removing the extra decimal point here",

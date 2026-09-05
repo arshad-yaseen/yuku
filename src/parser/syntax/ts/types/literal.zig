@@ -1,6 +1,5 @@
 const std = @import("std");
 const ast = @import("../../../ast.zig");
-const lexer = @import("../../../lexer.zig");
 const Parser = @import("../../../parser.zig").Parser;
 const Error = @import("../../../parser.zig").Error;
 
@@ -90,11 +89,7 @@ pub fn parseTemplateLiteralType(parser: *Parser) Error!?ast.NodeIndex {
         const right_brace = parser.current_token;
         const rescan = parser.lexer.reScanTemplateContinuation(right_brace.span.start);
         const template_token = rescan catch |e| {
-            try parser.report(
-                right_brace.span,
-                lexer.getLexicalErrorMessage(e),
-                .{ .help = lexer.getLexicalErrorHelp(e) },
-            );
+            try parser.reportLexicalError(e);
             return null;
         };
 

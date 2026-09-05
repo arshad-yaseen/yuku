@@ -1,6 +1,5 @@
 const std = @import("std");
 const ast = @import("../ast.zig");
-const lexer = @import("../lexer.zig");
 const Token = @import("../token.zig").Token;
 const Precedence = @import("../token.zig").Precedence;
 const Parser = @import("../parser.zig").Parser;
@@ -66,11 +65,7 @@ pub fn parseRegExpLiteral(parser: *Parser) Error!?ast.NodeIndex {
     const token = parser.current_token;
 
     const regex = parser.lexer.reScanAsRegex(token.span.start) catch |e| {
-        try parser.report(
-            token.span,
-            lexer.getLexicalErrorMessage(e),
-            .{ .help = lexer.getLexicalErrorHelp(e) },
-        );
+        try parser.reportLexicalError(e);
         return null;
     };
 
@@ -145,11 +140,7 @@ pub fn parseTemplateLiteral(parser: *Parser, tagged: bool) Error!?ast.NodeIndex 
         const right_brace = parser.current_token;
         const rescan = parser.lexer.reScanTemplateContinuation(right_brace.span.start);
         const template_token = rescan catch |e| {
-            try parser.report(
-                right_brace.span,
-                lexer.getLexicalErrorMessage(e),
-                .{ .help = lexer.getLexicalErrorHelp(e) },
-            );
+            try parser.reportLexicalError(e);
             return null;
         };
 

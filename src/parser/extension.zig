@@ -3,10 +3,6 @@
 //!
 //! `-Dparser-extension=path` binds one file to the `parser_extension` module.
 //! A `pub fn` named after a `Point` runs there. Unbound points compile away.
-//!
-//! Hooks cannot import the parser, since the parser imports them, so they take
-//! it as `anytype` and receive their return type from `at` as `comptime R`.
-//! `null` always declines, and must leave the token position untouched.
 
 const std = @import("std");
 const ast = @import("ast.zig");
