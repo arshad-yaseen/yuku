@@ -28,6 +28,12 @@ const g = 1234.5;`,
   );
 });
 
+test("keeps references to a shadowed undefined binding", () => {
+  expect(gen(`function f(undefined) { return undefined; }`, MINIFY)).toMatchInlineSnapshot(
+    `"function f(undefined){return undefined}"`,
+  );
+});
+
 test("escapes script-close sequences in strings and templates", () => {
   expect(
     gen(
