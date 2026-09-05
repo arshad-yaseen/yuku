@@ -1,43 +1,83 @@
-import { readdir, rm, stat } from "node:fs/promises";
+import { readdir, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import Bun from "bun";
 
 const TEST_SUITE_REPO_URL = "https://github.com/yuku-toolchain/parser-test-suite";
 const INCLUDE_FOLDERS = ["js", "jsx", "ts"];
 const SUITE_DIR = "test/parser/suite";
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-let shouldLoad = true;
+const REV_FILE = ".suite-rev";
 
-try {
-  const info = await stat(SUITE_DIR);
-  if (Date.now() - info.mtimeMs > ONE_DAY_MS) {
-    await rm(SUITE_DIR, { recursive: true, force: true });
-    console.log("\nsuite expired, re-downloading");
-  } else {
-    shouldLoad = false;
-  }
-} catch {
-  // directory doesn't exist
+const argv = Bun.argv.slice(2);
+const branchIndex = argv.findIndex((arg) => arg === "--branch" || arg === "-b");
+let branch: string | null = null;
+
+if (branchIndex !== -1 && argv[branchIndex + 1]) {
+  branch = argv[branchIndex + 1]!;
+  argv.splice(branchIndex, 2);
 }
 
-if (!shouldLoad) {
+const dest = argv[0] ?? SUITE_DIR;
+const ref = branch ?? "HEAD";
+const revPath = path.join(dest, REV_FILE);
+
+type RevResult =
+  | { kind: "ok"; sha: string }
+  | { kind: "missing-ref" }
+  | { kind: "unreachable" };
+
+function resolveRemoteRev(): RevResult {
+  const result = Bun.spawnSync({
+    cmd: ["git", "ls-remote", TEST_SUITE_REPO_URL, ref],
+    stderr: "inherit",
+  });
+
+  if (result.exitCode !== 0) return { kind: "unreachable" };
+
+  const sha = result.stdout.toString().trim().split(/\s+/)[0] ?? "";
+  return /^[0-9a-f]{40}$/.test(sha) ? { kind: "ok", sha } : { kind: "missing-ref" };
+}
+
+async function exists(target: string): Promise<boolean> {
+  try {
+    await stat(target);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const haveSuite = await exists(dest);
+const localRev = await Bun.file(revPath)
+  .text()
+  .then((text) => text.trim())
+  .catch(() => null);
+
+const remoteRev = resolveRemoteRev();
+
+if (remoteRev.kind === "missing-ref") {
+  console.error(`\n'${ref}' does not exist in ${TEST_SUITE_REPO_URL}\n`);
+  process.exit(1);
+}
+
+if (remoteRev.kind === "unreachable") {
+  if (haveSuite && localRev) {
+    console.log("\ncould not reach the test suite remote, keeping the existing copy\n");
+    process.exit(0);
+  }
+  console.error("\ncould not resolve the test suite revision and no local copy exists\n");
+  process.exit(1);
+}
+
+const wanted = `${ref} ${remoteRev.sha}`;
+
+if (haveSuite && localRev === wanted) {
   process.exit(0);
 }
 
-const argv = Bun.argv.slice(2);
-let dest = ".";
-const branchIndex = argv.findIndex((arg) => arg === "--branch" || arg === "-b");
-let branch = null;
-
-if (argv.length > 0) {
-  if (branchIndex !== -1 && argv[branchIndex + 1]) {
-    branch = argv[branchIndex + 1];
-    argv.splice(branchIndex, 2);
-  }
-  if (argv.length > 0) {
-    dest = argv[0]!;
-  }
+if (haveSuite) {
+  console.log(localRev ? "\nsuite changed upstream, re-downloading" : "\nsuite revision unknown, re-downloading");
+  await rm(dest, { recursive: true, force: true });
 }
 
 console.log("\nDownloading test suite...\n");
@@ -57,7 +97,12 @@ const gitCmd = [
   dest,
 ];
 
-Bun.spawnSync({ cmd: gitCmd, stderr: "inherit" });
+const clone = Bun.spawnSync({ cmd: gitCmd, stderr: "inherit" });
+
+if (clone.exitCode !== 0) {
+  console.error("\nfailed to clone the test suite\n");
+  process.exit(clone.exitCode ?? 1);
+}
 
 const entries = await readdir(dest);
 for (const entry of entries) {
@@ -65,5 +110,7 @@ for (const entry of entries) {
     await rm(path.join(dest, entry), { recursive: true, force: true });
   }
 }
+
+await writeFile(revPath, `${wanted}\n`);
 
 console.log("\nTest suite downloaded\n");

@@ -77,17 +77,24 @@ jobs:
           restore-keys: |
             zig-${{ runner.os }}-
 
-      - name: Resolve suite week
+      - name: Resolve suite revision
         id: suite
         shell: bash
-        run: echo "week=$(date -u +'%G-W%V')" >> "$GITHUB_OUTPUT"
+        run: |
+          set -euo pipefail
+          rev=$(git ls-remote https://github.com/yuku-toolchain/parser-test-suite.git HEAD | cut -f1)
+          if [ -z "$rev" ]; then
+            echo "could not resolve parser-test-suite HEAD" >&2
+            exit 1
+          fi
+          echo "rev=$rev" >> "$GITHUB_OUTPUT"
 
       - name: Cache test data
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             test/parser/suite
-          key: test-data-${{ steps.suite.outputs.week }}-${{ hashFiles('test/parser/load.ts') }}
+          key: test-data-${{ steps.suite.outputs.rev }}-${{ hashFiles('test/parser/load.ts') }}
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
