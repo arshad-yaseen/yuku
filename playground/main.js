@@ -13,6 +13,10 @@ const codeView = $("code");
 const astView = $("ast");
 const outView = $("out");
 const status = $("status");
+const problemsPanel = $("problems");
+const problemsList = $("problemsList");
+const problemsCounts = $("problemsCounts");
+const diagTip = $("diagTip");
 
 const OPEN_DEPTH = 4;
 
@@ -36,6 +40,7 @@ const jar = CodeJar(
   codeView,
   (el) => {
     el.innerHTML = hl(el.textContent, "typescript");
+    renderSquiggles();
   },
   { tab: "  ", spellcheck: false },
 );
@@ -173,8 +178,6 @@ function refBadges(ref) {
   return out;
 }
 
-// a symbol (or unresolved-name group): summary hover lights every site
-// at once, the expanded per-site rows light one at a time
 function symNode(name, badgeList, spans, sites, path) {
   const details = el("details");
   details.__path = path;
@@ -321,6 +324,328 @@ function setStatus(text, kind) {
   status.className = kind;
 }
 
+const DIAG_LEVEL = { error: "error", warning: "warning", info: "info", hint: "info" };
+const DIAG_ICON = { error: "✖", warning: "⚠", info: "ℹ" };
+const LEVELS = ["error", "warning", "info"];
+
+let currentDiags = [];
+let lineStarts = [0];
+let problemsOpen = true;
+let hitRegions = [];
+const relatedOpen = new Map();
+let problemCursor = -1;
+
+function levelOf(d) {
+  return DIAG_LEVEL[d.severity] ?? "info";
+}
+
+function diagKey(d) {
+  return `${d.severity}:${d.start}:${d.end}:${d.message}`;
+}
+
+function relatedOf(d) {
+  return (d.labels ?? []).filter((l) => l.start !== d.start || l.end !== d.end);
+}
+
+function setDiagnostics(diags, source) {
+  currentDiags = diags;
+  lineStarts = [0];
+  for (let i = 0; i < source.length; i++) {
+    if (source.charCodeAt(i) === 10) lineStarts.push(i + 1);
+  }
+  problemCursor = -1;
+  hideDiagTip();
+  renderSquiggles();
+  renderProblems();
+  problemsPanel.hidden = !(problemsOpen && diags.length > 0);
+}
+
+function clampSpan(start, end, textLen) {
+  const s = Math.min(Math.max(start, 0), textLen);
+  let e = end > start ? end : start + 1;
+  e = Math.min(Math.max(e, 0), textLen);
+  if (e === s && s > 0) return [s - 1, s];
+  return [s, e];
+}
+
+function addSpan(diag, label, bucket, textLen, viewRect) {
+  const src = label ?? diag;
+  const [start, end] = clampSpan(src.start, src.end, textLen);
+  const range = rangeFromOffsets(codeView, start, end);
+  if (!range) return;
+  bucket.add(range);
+  const rects = [];
+  for (const r of range.getClientRects()) {
+    if (r.width === 0 || r.height === 0) continue;
+    rects.push({
+      x1: r.left - viewRect.left + codeView.scrollLeft,
+      y1: r.top - viewRect.top + codeView.scrollTop,
+      x2: r.right - viewRect.left + codeView.scrollLeft,
+      y2: r.bottom - viewRect.top + codeView.scrollTop,
+    });
+  }
+  if (rects.length) hitRegions.push({ diag, label, rects });
+}
+
+function renderSquiggles() {
+  hitRegions = [];
+  if (!diagHighlights) return;
+  for (const level of LEVELS) {
+    diagHighlights[level].clear();
+    labelHighlights[level].clear();
+  }
+  const textLen = codeView.textContent.length;
+  const viewRect = codeView.getBoundingClientRect();
+  for (const d of currentDiags) {
+    const level = levelOf(d);
+    addSpan(d, null, diagHighlights[level], textLen, viewRect);
+    for (const label of relatedOf(d)) {
+      addSpan(d, label, labelHighlights[level], textLen, viewRect);
+    }
+  }
+}
+
+function problemPos(offset) {
+  let lo = 0;
+  let hi = lineStarts.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (lineStarts[mid] <= offset) lo = mid;
+    else hi = mid - 1;
+  }
+  return `${lo + 1}:${offset - lineStarts[lo] + 1}`;
+}
+
+function jumpTo(start, end) {
+  selectCode(start, end);
+  scrollCodeIntoView(start, end);
+}
+
+function highlightDiag(d) {
+  if (!srcHighlight) return;
+  clearCodeHighlight();
+  const textLen = codeView.textContent.length;
+  const add = (highlight, start, end) => {
+    const [s, e] = clampSpan(start, end, textLen);
+    const range = rangeFromOffsets(codeView, s, e);
+    if (range) highlight.add(range);
+  };
+  add(srcHighlight, d.start, d.end);
+  for (const label of relatedOf(d)) add(refHighlight, label.start, label.end);
+}
+
+function relatedRow(label, className) {
+  const row = el("div", className);
+  row.append(el("span", "rel-arrow", "↳"));
+  row.append(el("span", "rel-msg", label.message));
+  row.append(el("span", "problem-pos", problemPos(label.start)));
+  row.addEventListener("mouseover", (e) => {
+    e.stopPropagation();
+    highlightCode(label.start, label.end);
+  });
+  row.addEventListener("click", (e) => {
+    e.stopPropagation();
+    jumpTo(label.start, label.end);
+  });
+  return row;
+}
+
+function helpRow(text, className) {
+  const row = el("div", className);
+  row.append(el("span", "help-icon", "◆"));
+  row.append(el("span", "help-msg", text));
+  return row;
+}
+
+function problemGroup(d, index) {
+  const level = levelOf(d);
+  const related = relatedOf(d);
+  const key = diagKey(d);
+  const expandable = related.length > 0 || !!d.help;
+  const open = relatedOpen.get(key) ?? true;
+
+  const group = el("div", `problem-group sev-${level}`);
+  if (index === problemCursor) group.classList.add("problem-active");
+
+  const row = el("div", "problem");
+  const chevron = el("span", "problem-chev", expandable ? "▸" : "");
+  if (expandable) {
+    if (open) chevron.classList.add("open");
+    chevron.addEventListener("click", (e) => {
+      e.stopPropagation();
+      relatedOpen.set(key, !open);
+      renderProblems();
+    });
+  }
+  row.append(chevron);
+  row.append(el("span", "problem-icon", DIAG_ICON[level]));
+  row.append(el("span", "problem-msg", d.message));
+  if (related.length) row.append(el("span", "problem-count", `+${related.length}`));
+  row.append(el("span", "problem-pos", problemPos(d.start)));
+  row.addEventListener("mouseover", () => highlightDiag(d));
+  row.addEventListener("click", () => {
+    problemCursor = index;
+    jumpTo(d.start, d.end);
+    renderProblems();
+  });
+  group.append(row);
+
+  if (expandable && open) {
+    const detail = el("div", "problem-detail");
+    for (const label of related) detail.append(relatedRow(label, "problem-rel"));
+    if (d.help) detail.append(helpRow(d.help, "problem-help"));
+    group.append(detail);
+  }
+  group.addEventListener("mouseleave", restoreActive);
+  return group;
+}
+
+function renderProblems() {
+  const counts = { error: 0, warning: 0, info: 0 };
+  for (const d of currentDiags) counts[levelOf(d)]++;
+  problemsCounts.replaceChildren(
+    ...LEVELS.filter((level) => counts[level]).map((level) => {
+      const chip = el("span", `count sev-${level}`);
+      chip.append(el("span", "problem-icon", DIAG_ICON[level]));
+      chip.append(el("span", null, String(counts[level])));
+      return chip;
+    }),
+  );
+  problemsList.replaceChildren(...currentDiags.map(problemGroup));
+}
+
+function gotoProblem(delta) {
+  if (currentDiags.length === 0) return;
+  const n = currentDiags.length;
+  if (problemCursor < 0) problemCursor = delta > 0 ? -1 : 0;
+  problemCursor = (((problemCursor + delta) % n) + n) % n;
+  const d = currentDiags[problemCursor];
+  jumpTo(d.start, d.end);
+  renderProblems();
+  problemsList.querySelector(".problem-active")?.scrollIntoView({ block: "nearest" });
+}
+
+function diagStatusText(diags, times) {
+  const counts = { error: 0, warning: 0, info: 0 };
+  for (const d of diags) counts[levelOf(d)]++;
+  const parts = [];
+  if (counts.error) parts.push(`${DIAG_ICON.error} ${counts.error}`);
+  if (counts.warning) parts.push(`${DIAG_ICON.warning} ${counts.warning}`);
+  if (counts.info) parts.push(`${DIAG_ICON.info} ${counts.info}`);
+  const kind = counts.error ? "err" : counts.warning ? "warn" : "";
+  return [`${parts.join("  ")} · ${times}`, kind];
+}
+
+function regionsAt(clientX, clientY) {
+  const viewRect = codeView.getBoundingClientRect();
+  if (clientX < viewRect.left || clientX > viewRect.right) return [];
+  if (clientY < viewRect.top || clientY > viewRect.bottom) return [];
+  const x = clientX - viewRect.left + codeView.scrollLeft;
+  const y = clientY - viewRect.top + codeView.scrollTop;
+  const hits = [];
+  for (const region of hitRegions) {
+    let area = Infinity;
+    for (const r of region.rects) {
+      if (x < r.x1 || x > r.x2 || y < r.y1 || y > r.y2) continue;
+      area = Math.min(area, (r.x2 - r.x1) * (r.y2 - r.y1));
+    }
+    if (area < Infinity) hits.push({ region, area });
+  }
+  hits.sort((a, b) => a.area - b.area);
+  return hits.map((h) => h.region);
+}
+
+function tipSection(d, focusLabel) {
+  const level = levelOf(d);
+  const section = el("div", `tip-item sev-${level}`);
+
+  const head = el("div", "tip-head");
+  head.append(el("span", "problem-icon", DIAG_ICON[level]));
+  head.append(el("span", "tip-level", level));
+  head.append(el("span", "problem-pos", problemPos(d.start)));
+  section.append(head);
+  section.append(el("div", "tip-msg", d.message));
+
+  const related = relatedOf(d);
+  if (related.length) {
+    const list = el("div", "tip-rels");
+    for (const label of related) {
+      const row = relatedRow(label, "tip-rel");
+      row.addEventListener("mouseleave", restoreActive);
+      row.addEventListener("click", hideDiagTip);
+      if (focusLabel && label.start === focusLabel.start && label.end === focusLabel.end) {
+        row.classList.add("tip-rel-focus");
+      }
+      list.append(row);
+    }
+    section.append(list);
+  }
+  if (d.help) section.append(helpRow(d.help, "tip-help"));
+  return section;
+}
+
+let tipKey = null;
+let tipHideTimer;
+
+function hideDiagTip() {
+  clearTimeout(tipHideTimer);
+  diagTip.hidden = true;
+  tipKey = null;
+}
+
+function scheduleTipHide() {
+  clearTimeout(tipHideTimer);
+  tipHideTimer = setTimeout(hideDiagTip, 160);
+}
+
+function positionTip(region) {
+  const viewRect = codeView.getBoundingClientRect();
+  const r = region.rects[0];
+  const anchorLeft = r.x1 - codeView.scrollLeft + viewRect.left;
+  const anchorTop = r.y1 - codeView.scrollTop + viewRect.top;
+  const anchorBottom = r.y2 - codeView.scrollTop + viewRect.top;
+
+  diagTip.style.left = "0px";
+  diagTip.style.top = "0px";
+  const box = diagTip.getBoundingClientRect();
+  const pad = 10;
+  const left = Math.max(pad, Math.min(anchorLeft, window.innerWidth - box.width - pad));
+  let top = anchorBottom + 8;
+  if (top + box.height > window.innerHeight - pad) top = anchorTop - box.height - 8;
+  diagTip.style.left = `${left}px`;
+  diagTip.style.top = `${Math.max(pad, top)}px`;
+}
+
+function showDiagTip(clientX, clientY) {
+  const regions = regionsAt(clientX, clientY);
+  if (regions.length === 0) {
+    scheduleTipHide();
+    return;
+  }
+  clearTimeout(tipHideTimer);
+
+  const focus = regions[0];
+  const diags = [];
+  const seen = new Set();
+  for (const region of regions) {
+    const key = diagKey(region.diag);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    diags.push(region.diag);
+  }
+
+  const label = focus.label ? `${focus.label.start}:${focus.label.end}` : "-";
+  const key = `${diags.map(diagKey).join("|")}@${label}`;
+  if (key === tipKey && !diagTip.hidden) return;
+  tipKey = key;
+
+  diagTip.replaceChildren(
+    ...diags.map((d) => tipSection(d, d === focus.diag ? focus.label : null)),
+  );
+  diagTip.hidden = false;
+  positionTip(focus);
+}
+
 function render() {
   astNodes = [];
   astDetails = [];
@@ -331,24 +656,29 @@ function render() {
   activeSpans = null;
   clearCodeHighlight();
 
+  const source = jar.toString();
   let result;
   const t0 = performance.now();
   try {
-    result = parse(jar.toString(), options());
+    result = parse(source, options());
   } catch (e) {
     astView.replaceChildren();
     outView.textContent = "";
+    setDiagnostics([], source);
     setStatus(String(e), "err");
     persist();
     return;
   }
   const t1 = performance.now();
 
+  let diags = result.diagnostics;
   const astScroll = astView.scrollTop;
   $("paneTitle").textContent = $("view").value;
   if ($("view").value === "semantics") {
     try {
-      astView.replaceChildren(semTree(analyze(jar.toString(), options())));
+      const m = analyze(source, options());
+      diags = m.diagnostics;
+      astView.replaceChildren(semTree(m));
     } catch (e) {
       astView.replaceChildren(el("div", "sem-err", String(e)));
     }
@@ -379,9 +709,9 @@ function render() {
   const t3 = performance.now();
 
   const times = `parse ${(t1 - t0).toFixed(2)}ms · codegen ${(t3 - t2).toFixed(2)}ms`;
-  const diags = result.diagnostics;
+  setDiagnostics(diags, source);
   if (diags.length) {
-    setStatus(`${diags.length} diagnostic${diags.length > 1 ? "s" : ""} · ${times} · ${diags.map((d) => d.message).join("  |  ")}`, "warn");
+    setStatus(...diagStatusText(diags, times));
   } else {
     setStatus(`ok · ${times}`, "ok");
   }
@@ -397,6 +727,18 @@ const refHighlight = HAS_HL ? new Highlight() : null;
 if (refHighlight) CSS.highlights.set("yuku-ref", refHighlight);
 const declHighlight = HAS_HL ? new Highlight() : null;
 if (declHighlight) CSS.highlights.set("yuku-decl", declHighlight);
+const diagHighlights = HAS_HL ? {} : null;
+const labelHighlights = HAS_HL ? {} : null;
+if (diagHighlights) {
+  for (const level of LEVELS) {
+    const primary = new Highlight();
+    CSS.highlights.set(`yuku-diag-${level}`, primary);
+    diagHighlights[level] = primary;
+    const label = new Highlight();
+    CSS.highlights.set(`yuku-label-${level}`, label);
+    labelHighlights[level] = label;
+  }
+}
 
 let suppressCaret = false;
 
@@ -461,7 +803,6 @@ function highlightSpans({ decl, refs }) {
   }
 }
 
-// spans of the selected symbol, restored after hover previews
 let activeSpans = null;
 
 function restoreActive() {
@@ -579,7 +920,6 @@ function clearSem() {
   }
 }
 
-// smallest symbol site, import/export record, or scope containing the offset
 function semTargetAt(offset) {
   let best = null;
   for (const t of semTargets) {
@@ -622,6 +962,41 @@ document.addEventListener("selectionchange", () => {
 codeView.addEventListener("click", () => mapCaret(true, true));
 codeView.addEventListener("blur", removeHit);
 
+// CodeJar's addClosing inserts the closer after the caret but never types over
+// it, so typing the matching closer would duplicate the character. Move the
+// caret instead when the next character already is that closer.
+const CLOSERS = ")]}'\"";
+codeView.addEventListener("keydown", (e) => {
+  if (e.isComposing || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (!CLOSERS.includes(e.key)) return;
+  const sel = window.getSelection();
+  if (!sel || !sel.isCollapsed) return;
+  const offset = caretOffset();
+  if (offset == null || codeView.textContent[offset] !== e.key) return;
+  e.preventDefault();
+  sel.modify("move", "forward", "character");
+});
+
+let tipFrame;
+codeView.addEventListener("mousemove", (e) => {
+  const { clientX, clientY } = e;
+  cancelAnimationFrame(tipFrame);
+  tipFrame = requestAnimationFrame(() => showDiagTip(clientX, clientY));
+});
+codeView.addEventListener("mouseleave", scheduleTipHide);
+codeView.addEventListener("scroll", hideDiagTip);
+diagTip.addEventListener("mouseenter", () => clearTimeout(tipHideTimer));
+diagTip.addEventListener("mouseleave", scheduleTipHide);
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "F8") {
+    e.preventDefault();
+    gotoProblem(e.shiftKey ? -1 : 1);
+  } else if (e.key === "Escape" && !diagTip.hidden) {
+    hideDiagTip();
+  }
+});
+
 astView.addEventListener(
   "toggle",
   (e) => {
@@ -663,7 +1038,11 @@ const STATE_KEY = "yuku-state";
 const CONTROLS = ["lang", "sourceType", "preserveParens", "semanticErrors", "attachComments", "strip", "minify", "format", "quotes", "comments", "indent", "view"];
 
 function snapshot() {
-  const s = { code: jar.toString(), theme: document.documentElement.dataset.theme };
+  const s = {
+    code: jar.toString(),
+    theme: document.documentElement.dataset.theme,
+    problems: problemsOpen,
+  };
   for (const id of CONTROLS) {
     const c = $(id);
     s[id] = c.type === "checkbox" ? c.checked : c.value;
@@ -728,6 +1107,7 @@ function applyState(s) {
     else c.value = s[id];
   }
   if (s.op === "strip" || s.op === "minify") $(s.op).checked = true;
+  if (s.problems !== undefined) problemsOpen = !!s.problems;
   if (s.theme === "dark" || s.theme === "light") {
     document.documentElement.dataset.theme = s.theme;
     localStorage.setItem("yuku-theme", s.theme);
@@ -764,9 +1144,25 @@ themeBtn.addEventListener("click", () => {
 });
 labelTheme();
 
-jar.onUpdate(render);
+status.addEventListener("click", () => {
+  problemsOpen = !problemsOpen;
+  problemsPanel.hidden = !(problemsOpen && currentDiags.length > 0);
+  persist();
+});
 
-// registered before the render listeners so render sees the synced values
+$("problemsClose").addEventListener("click", () => {
+  problemsOpen = false;
+  problemsPanel.hidden = true;
+  persist();
+});
+
+let lastCode = null;
+jar.onUpdate((code) => {
+  if (code === lastCode) return;
+  lastCode = code;
+  render();
+});
+
 $("minify").addEventListener("change", (e) => {
   $("format").value = e.target.checked ? "compact" : "pretty";
   $("quotes").value = e.target.checked ? "shortest" : "preserve";

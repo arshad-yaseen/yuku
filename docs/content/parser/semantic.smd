@@ -215,8 +215,8 @@ Every construct in the spec that introduces a new lexical environment creates a 
 | Node                                                         | Scope kind                                                    |
 | ------------------------------------------------------------ | ------------------------------------------------------------- |
 | Program                                                      | `global` (plus a child `module` if `source_type` is `module`) |
-| Function declaration / expression                            | `function`                                                    |
-| Arrow function                                               | `function`                                                    |
+| Function declaration / expression                            | `function`, wrapping a child `function_body` (see below)      |
+| Arrow function                                               | `function`, wrapping a child `function_body`                  |
 | Block statement                                              | `block`                                                       |
 | `for` / `for...in` / `for...of`                              | `block`                                                       |
 | `catch` clause                                               | `block` (the body block reuses this scope)                    |
@@ -246,7 +246,7 @@ Without this, `const foo = 1` inside the body would conflict with the expression
 
 **`ts_module` is its own scope kind, not a block.** TypeScript namespace bodies act as a `var`-hoist target, so a `var` inside a namespace stays inside the namespace instead of escaping to the surrounding scope. That difference is encoded as a separate `Scope.Kind` so `Kind.isHoistTarget()` returns true for it.
 
-**`function_body` splits a function in two when its parameter list contains expressions.** Per FunctionDeclarationInstantiation (section 10.2.11, step 28), body `var`s then live in a separate environment so closures created in parameter defaults cannot see them: in `function f(a = () => x) { var x }` the default's `x` resolves to the outer scope. Plain parameter lists keep the single `function` scope.
+**`function_body` gives every body its own scope.** Matching TypeScript's block locals, body-level `let`/`const`/`class` and local types (`interface`, `type`, `enum`) bind inside the body, invisible to the signature: in `function f(a: T) { type T = {} }` the parameter annotation stays unresolved. Body `var`s and function declarations are var-scoped and hoist past into the `function` scope, where they merge with parameters. A parameter list containing expressions makes the body their hoist target instead, the separate `var` environment of FunctionDeclarationInstantiation (section 10.2.11, step 28), so closures created in parameter defaults cannot see body `var`s: in `function f(a = () => x) { var x }` the default's `x` resolves to the outer scope.
 
 **Decorators evaluate in the scope enclosing the class.** Per the decorator proposal, neither the class's type parameters nor a class expression's own name are visible inside a decorator expression. `scopeOf` on nodes inside a decorator reflects that, even though the decorator sits inside the class syntactically.
 
@@ -298,6 +298,7 @@ symbol.flags.value_module         // TS namespace whose body has runtime content
 symbol.flags.namespace_module     // TS namespace (any kind)
 symbol.flags.import               // value or unspecified-kind import
 symbol.flags.type_import          // `import type ...` or `import { type x }`
+symbol.flags.enum_member          // TS enum member, bound in its enum's body scope
 ```
 
 **Modifiers** (qualifiers on the binding):
@@ -322,6 +323,8 @@ flags.isBlockScopedLike()   // names a hoisting `var` cannot pass through
 flags.toString()            // human-readable category for diagnostics
 ```
 
+`Symbol.variable`, `Symbol.any_import`, `Symbol.value_space`, `Symbol.type_space`, and `Symbol.namespace_space` are ready-made masks for `intersects`, the same sets the JS decoder mirrors as [`SymbolFlags`](/analyzer/#flags) composites.
+
 The space predicates (`inValueSpace`, `inTypeSpace`, `inNamespaceSpace`, `visibleIn`) answer which declaration spaces a symbol occupies. They drive reference resolution and have their own section: [Declaration Spaces](#declaration-spaces).
 
 ### [Redeclaration Excludes]($section.id('redeclaration-excludes'))
@@ -345,6 +348,7 @@ Symbol.Excludes.import_binding
 Symbol.Excludes.parameter
 Symbol.Excludes.catch_var
 Symbol.Excludes.type_parameter
+Symbol.Excludes.enum_member
 ```
 
 This single mechanism handles function overloads, `class` + `interface` declaration merging, `namespace` + `enum` merging, and ambient module patterns without any per-construct branching.
@@ -356,8 +360,8 @@ TypeScript names live in three declaration spaces. Value space is what exists at
 Both sides of the model speak in spaces. A **symbol occupies** one or more spaces, decided by its declarations:
 
 ```zig
-flags.inValueSpace()        // var, let, const, function, class, enum, value namespace
-flags.inTypeSpace()         // class, enum, interface, type alias, type parameter
+flags.inValueSpace()        // var, let, const, function, class, enum + members, value namespace
+flags.inTypeSpace()         // class, enum + members, interface, type alias, type parameter
 flags.inNamespaceSpace()    // namespace, enum
 ```
 

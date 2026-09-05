@@ -55,17 +55,25 @@ pub const Scope = struct {
         /// declared inside don't escape to the surrounding scope.
         ts_module,
 
-        /// Separate var environment of a function body whose parameter
-        /// list contains expressions (10.2.11 FunctionDeclarationInstantiation
-        /// step 28):
+        /// A function body's own scope, holding its lexical and type
+        /// declarations. The signature sits outside, so TypeScript
+        /// resolves a parameter annotation or a return type without
+        /// seeing a body-local type:
+        ///
+        ///   function f(a: T) { type T = {} }
+        ///   //            ^ unresolved, T is local to the body
+        ///
+        /// Body `var`s and function declarations hoist past it. It is
+        /// their hoist target itself only when the parameter list
+        /// contains expressions, the separate var environment of
+        /// 10.2.11 FunctionDeclarationInstantiation step 28:
         ///
         ///   function f(a = () => x) { var x }
-        ///   //       ^ function scope: a
-        ///   //                        ^ function_body scope: x,
-        ///   //                          invisible to the default's closure
+        ///   //                        ^ invisible to the default's closure
         function_body,
 
-        /// Returns whether `var` declarations hoist to this scope kind.
+        /// Returns whether `var` declarations can hoist to this kind.
+        /// `function_body` varies per instance, see `hoist_target`.
         pub fn isHoistTarget(self: Kind) bool {
             return switch (self) {
                 .global, .module, .function, .static_block, .ts_module, .function_body => true,
@@ -232,18 +240,17 @@ pub const ScopeTracker = struct {
                 try self.pushScope(.function, index, flags);
             },
             .function_body => {
-                // pushed only when the parent function's parameter list
-                // contains expressions, see Kind.function_body
                 const params = switch (self.tree.data(parent)) {
                     .function => |f| f.params,
                     .arrow_function_expression => |a| a.params,
                     else => return,
                 };
-                if (params == .null) return;
-                const params_data = self.tree.data(params);
-                if (params_data != .formal_parameters) return;
-                if (ecmascript.findParameterExpression(self.tree, params_data.formal_parameters) != null)
-                    try self.pushScope(.function_body, index, self.inheritStrictFlag());
+                try self.pushScope(.function_body, index, self.inheritStrictFlag());
+                // vars hoist past unless the parameter list has expressions
+                if (!hasParameterExpression(self.tree, params)) {
+                    const enclosing = self.currentScope().parent;
+                    self.currentMut().hoist_target = self.get(enclosing).hoist_target;
+                }
             },
             .block_statement => {
                 // 14.15.2 CatchClauseEvaluation gives the parameter and
@@ -375,6 +382,13 @@ pub const ScopeTracker = struct {
                 self.popScope();
             },
         }
+    }
+
+    fn hasParameterExpression(tree: *const ast.Tree, params: ast.NodeIndex) bool {
+        if (params == .null) return false;
+        const data = tree.data(params);
+        if (data != .formal_parameters) return false;
+        return ecmascript.findParameterExpression(tree, data.formal_parameters) != null;
     }
 
     fn isNamedFunctionExpression(func: ast.Function) bool {

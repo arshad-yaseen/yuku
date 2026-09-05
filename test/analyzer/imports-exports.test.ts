@@ -77,6 +77,7 @@ describe("exports", () => {
             direct#0  const exported
             named#1  function exported default
             function "named"
+              functionBody BlockStatement
         exports
           direct → #0
           default → #1"

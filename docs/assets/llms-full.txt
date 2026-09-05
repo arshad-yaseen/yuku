@@ -66,7 +66,7 @@ import { parse } from "yuku-parser";
 const { program, comments, diagnostics } = parse("const x = 1 + 2;");
 ```
 
-Outputs an [ESTree](https://github.com/estree/estree) / [TS-ESTree](https://www.npmjs.com/package/@typescript-eslint/typescript-estree)-compatible AST matching [Oxc](https://oxc.rs). Runs 3-10x faster than alternatives on npm. See [yuku-parser on npm](https://www.npmjs.com/package/yuku-parser) for the full API.
+Outputs an [ESTree](https://github.com/estree/estree) / [TS-ESTree](https://www.npmjs.com/package/@typescript-eslint/typescript-estree)-compatible AST matching [Oxc](https://oxc.rs). Runs 3-10x faster than alternatives on npm. Alongside the options below it takes `attachComments` (the JS spelling of the `comments` mode) and `semanticErrors`, which folds the [semantic pass](https://yuku.fyi/parser/semantic/) into the call so early errors arrive in the same `diagnostics` array. `langFromPath` and `sourceTypeFromPath` are exported too. See [yuku-parser on npm](https://www.npmjs.com/package/yuku-parser) for the full API.
 
 ## WebAssembly
 
@@ -281,7 +281,14 @@ tree.isTs()              // language is .ts, .tsx, or .dts
 tree.isJsx()             // language is .jsx or .tsx
 tree.isModule()          // source_type is .module
 tree.hasErrors()         // any diagnostic with severity .error
+tree.hasDiagnostics()    // any diagnostic at all
+
+tree.setData(idx, data)  // write API, see the transform traverser
+tree.addNode(data, span) // append a node, returns its NodeIndex
+tree.addString("x")      // intern text; sourceSlice(a, b) points into the source instead
 ```
+
+Every enum a node field holds also carries `toString()`, returning the construct's source text (`decl.kind.toString()` is `"const"`, `expr.operator.toString()` is `"==="`).
 
 ## Core types
 
@@ -1116,8 +1123,8 @@ Every construct in the spec that introduces a new lexical environment creates a 
 | Node                                                         | Scope kind                                                    |
 | ------------------------------------------------------------ | ------------------------------------------------------------- |
 | Program                                                      | `global` (plus a child `module` if `source_type` is `module`) |
-| Function declaration / expression                            | `function`                                                    |
-| Arrow function                                               | `function`                                                    |
+| Function declaration / expression                            | `function`, wrapping a child `function_body` (see below)      |
+| Arrow function                                               | `function`, wrapping a child `function_body`                  |
 | Block statement                                              | `block`                                                       |
 | `for` / `for...in` / `for...of`                              | `block`                                                       |
 | `catch` clause                                               | `block` (the body block reuses this scope)                    |
@@ -1147,7 +1154,7 @@ Without this, `const foo = 1` inside the body would conflict with the expression
 
 **`ts_module` is its own scope kind, not a block.** TypeScript namespace bodies act as a `var`-hoist target, so a `var` inside a namespace stays inside the namespace instead of escaping to the surrounding scope. That difference is encoded as a separate `Scope.Kind` so `Kind.isHoistTarget()` returns true for it.
 
-**`function_body` splits a function in two when its parameter list contains expressions.** Per FunctionDeclarationInstantiation (section 10.2.11, step 28), body `var`s then live in a separate environment so closures created in parameter defaults cannot see them: in `function f(a = () => x) { var x }` the default's `x` resolves to the outer scope. Plain parameter lists keep the single `function` scope.
+**`function_body` gives every body its own scope.** Matching TypeScript's block locals, body-level `let`/`const`/`class` and local types (`interface`, `type`, `enum`) bind inside the body, invisible to the signature: in `function f(a: T) { type T = {} }` the parameter annotation stays unresolved. Body `var`s and function declarations are var-scoped and hoist past into the `function` scope, where they merge with parameters. A parameter list containing expressions makes the body their hoist target instead, the separate `var` environment of FunctionDeclarationInstantiation (section 10.2.11, step 28), so closures created in parameter defaults cannot see body `var`s: in `function f(a = () => x) { var x }` the default's `x` resolves to the outer scope.
 
 **Decorators evaluate in the scope enclosing the class.** Per the decorator proposal, neither the class's type parameters nor a class expression's own name are visible inside a decorator expression. `scopeOf` on nodes inside a decorator reflects that, even though the decorator sits inside the class syntactically.
 
@@ -1199,6 +1206,7 @@ symbol.flags.value_module         // TS namespace whose body has runtime content
 symbol.flags.namespace_module     // TS namespace (any kind)
 symbol.flags.import               // value or unspecified-kind import
 symbol.flags.type_import          // `import type ...` or `import { type x }`
+symbol.flags.enum_member          // TS enum member, bound in its enum's body scope
 ```
 
 **Modifiers** (qualifiers on the binding):
@@ -1223,6 +1231,8 @@ flags.isBlockScopedLike()   // names a hoisting `var` cannot pass through
 flags.toString()            // human-readable category for diagnostics
 ```
 
+`Symbol.variable`, `Symbol.any_import`, `Symbol.value_space`, `Symbol.type_space`, and `Symbol.namespace_space` are ready-made masks for `intersects`, the same sets the JS decoder mirrors as [`SymbolFlags`](https://yuku.fyi/analyzer/#flags) composites.
+
 The space predicates (`inValueSpace`, `inTypeSpace`, `inNamespaceSpace`, `visibleIn`) answer which declaration spaces a symbol occupies. They drive reference resolution and have their own section: [Declaration Spaces](#declaration-spaces).
 
 ### Redeclaration Excludes
@@ -1246,6 +1256,7 @@ Symbol.Excludes.import_binding
 Symbol.Excludes.parameter
 Symbol.Excludes.catch_var
 Symbol.Excludes.type_parameter
+Symbol.Excludes.enum_member
 ```
 
 This single mechanism handles function overloads, `class` + `interface` declaration merging, `namespace` + `enum` merging, and ambient module patterns without any per-construct branching.
@@ -1257,8 +1268,8 @@ TypeScript names live in three declaration spaces. Value space is what exists at
 Both sides of the model speak in spaces. A **symbol occupies** one or more spaces, decided by its declarations:
 
 ```zig
-flags.inValueSpace()        // var, let, const, function, class, enum, value namespace
-flags.inTypeSpace()         // class, enum, interface, type alias, type parameter
+flags.inValueSpace()        // var, let, const, function, class, enum + members, value namespace
+flags.inTypeSpace()         // class, enum + members, interface, type alias, type parameter
 flags.inNamespaceSpace()    // namespace, enum
 ```
 
@@ -1858,6 +1869,8 @@ pub fn enter_identifier_reference(
 }
 ```
 
+`sem.refSpace(tree, &ctx.path, ctx.inTypePosition())` and `sem.isWriteTarget(tree, &ctx.path)` are the two rules exported, so a hook can classify an identifier position itself. They are what fill `Reference.flags.space` and `flags.write`.
+
 `inTypePosition()` is also what the tracker uses internally to decide that a `binding_identifier` inside a function-type or index signature is a parameter _label_ (not a real declaration). Only `type_parameter` bindings are real in type position.
 
 ## Transform Traverser
@@ -2057,6 +2070,10 @@ _ = try sem.traverse(Transpiler, &source_tree, &transpiler);
 
 The two trees never touch each other's storage, and either can be freed independently. This is the recommended structure for any tool that produces a transformed AST from an input AST without mutating the input.
 
+## Your Own Mode
+
+The four modes are four context types over one walker. `traverser.walk(C, V, &visitor, &ctx)` drives any context with a `.tree` field, and `traverser.Layer(C, V)` wraps a visitor so the context's own `enter`, `post_enter`, and `exit` run around each hook. That is all a built-in mode is, in [about thirty lines](https://github.com/yuku-toolchain/yuku/blob/main/src/parser/traverser/basic.zig).
+
 ## Combining Modes
 
 The four modes compose via multiple passes. A typical pipeline looks like:
@@ -2098,7 +2115,7 @@ const { program } = parse("const x = 1 + 2;");
 const { code } = generate(program);
 ```
 
-`generate` takes the `Program` node off the `ParseResult` returned by [yuku-parser](https://www.npmjs.com/package/yuku-parser). For source maps, pass the original source text via `sourceMap: { source }`. See [yuku-codegen on npm](https://www.npmjs.com/package/yuku-codegen) for the full API.
+`generate` takes the `Program` node off the `ParseResult` returned by [yuku-parser](https://www.npmjs.com/package/yuku-parser). For source maps, pass the original source text via `sourceMap: { source }`. `minify` also takes an object there (`{ syntax, whitespace, quotes }`) to pick individual switches, and `comments` accepts `true` / `false` as sugar for `"all"` / `"none"`. See [yuku-codegen on npm](https://www.npmjs.com/package/yuku-codegen) for the full API.
 
 ## WebAssembly
 
@@ -2114,7 +2131,7 @@ const { program } = parse("const x = 1 + 2;");
 const code = generate(program);
 ```
 
-The same API as `yuku-codegen`, paired with `@yuku-parser/wasm`, as a single portable WebAssembly module for browsers and other environments without native bindings. See [@yuku-codegen/wasm on npm](https://www.npmjs.com/package/@yuku-codegen/wasm).
+The same options as `yuku-codegen`, except that `generate` returns the code string directly and source maps are unavailable. Paired with `@yuku-parser/wasm`, as a single portable WebAssembly module for browsers and other environments without native bindings. See [@yuku-codegen/wasm on npm](https://www.npmjs.com/package/@yuku-codegen/wasm).
 
 ## Zig
 
@@ -2193,7 +2210,7 @@ const result = try parser.codegen.generate(allocator, &tree, .{
 | `comments`   | `Comments`          | `.some`     | Comment passthrough filter. See [Comments](#comments).     |
 | `source_map` | `?SourceMapOptions` | `null`      | Set to emit a Source Map V3 alongside the code             |
 
-Every transformation is an independent flag, so they compose freely, e.g. `.strip = true` together with `.minify = .all`.
+Every transformation is an independent flag, so they compose freely, e.g. `.strip = true` together with `.minify = true`.
 
 `Format` controls only discretionary whitespace. Grammar-required separators (semicolons, commas, parentheses) are always emitted regardless of mode.
 
@@ -2355,6 +2372,8 @@ module.walk({
 module.rootScope.find("double").references.length; // 1
 ```
 
+`analyze` takes the same options as `addFile`, plus `path` (default `"input.js"`), which names the module and supplies the default `lang` and `sourceType`. The module still carries its own import and export records, but nothing links, since the analyzer behind it holds a single file. Reach for `Analyzer` the moment there is more than one.
+
 For a project, `Analyzer` adds files and links them:
 
 ```js
@@ -2443,6 +2462,16 @@ analyzer.addFile("legacy.cjs", source, {
 });
 ```
 
+The two functions behind those defaults are exported, so a host that needs the same mapping never has to re-derive it.
+
+```js
+import { langFromPath, sourceTypeFromPath } from "yuku-analyzer";
+
+langFromPath("types.d.ts");   // "dts"  (.d.ts, .d.mts, .d.cts)
+langFromPath("app.tsx");      // "tsx"; .ts/.mts/.cts give "ts", .jsx gives "jsx", else "js"
+sourceTypeFromPath("a.cjs");  // "commonjs" for .cjs and .cts, "module" for everything else
+```
+
 Adding a path that already exists replaces the module and marks the graph for relinking. The call returns a new `Module`, and any scopes, symbols, or nodes you held from the previous version belong to that earlier parse. A change in `analyzer.module(path)` identity is the signal to drop a cache keyed on the old one.
 
 ### Module resolution
@@ -2465,6 +2494,7 @@ Returning `null` marks the import as external. `import.resolvedModule` stays `nu
 `addFile` returns a `Module`, the per-file unit of the analysis. Everything on it is local JavaScript. No native calls happen after `addFile` returns.
 
 ```js
+module.analyzer;    // the Analyzer that owns it
 module.path;        // the path it was added under
 module.source;      // the original source text
 module.ast;         // ESTree / TS-ESTree Program, lazily decoded
@@ -2485,7 +2515,11 @@ module.unresolvedReferences; // references that resolve to no binding
 module.imports;              // Import[], dynamic import() and require() included
 module.exports;              // Export[], in source order
 module.moduleFlags;          // CommonJS classification signals
+module.dependencies;         // Module[], the files this one imports from
+module.dependents;           // Module[], the files that import this one
 ```
+
+The last two are the graph edges rather than per-file semantics, and they link on demand (see [Linking](#linking)). Everything above them is answered from this file alone.
 
 Ids are stable within a parse, so `(module.path, symbol.id)` is a persistable key for caches and incremental tooling. Re-adding a path reparses it into a new `Module` and can renumber, so pair the key with module identity and invalidate when `analyzer.module(path)` changes.
 
@@ -2496,6 +2530,8 @@ Every lexical environment in the file, as a tree.
 ```js
 const scope = module.scopes[3];
 
+scope.id;          // stable index into module.scopes
+scope.module;      // the owning Module
 scope.kind;        // "global" | "module" | "function" | "block" | "class"
                    // | "staticBlock" | "expressionName" | "tsModule" | "functionBody"
 scope.node;        // the AST node that created the scope
@@ -2509,7 +2545,7 @@ scope.contains(other);    // is `other` this scope or a descendant?
 for (const s of scope.ancestors()) { /* this scope up to global */ }
 ```
 
-Most kinds map one to one onto the construct that created them. `block` covers every lexical environment: braced blocks, loop heads, catch clauses, the case block a `switch` shares across its cases (its discriminant sits outside, in the enclosing scope), and TypeScript enum bodies, where members are lexically visible (`enum E { a, b = a }` resolves `a` to the member). `functionBody` exists only for functions whose parameter list contains expressions: the spec gives such bodies a separate `var` environment, so in `function f(a = () => x) { var x = 2 }` the default's closure resolves `x` to the outer scope, not the body.
+Most kinds map one to one onto the construct that created them. `block` covers every lexical environment: braced blocks, loop heads, catch clauses, the case block a `switch` shares across its cases (its discriminant sits outside, in the enclosing scope), and TypeScript enum bodies, where members are lexically visible (`enum E { a, b = a }` resolves `a` to the member). `functionBody` is the body's own scope, matching tsc's block locals: body-level `let`/`const`/`class` and local types live there, invisible to the signature, so in `function f(a: T) { type T = {} }` the parameter annotation stays unresolved. Body `var`s hoist past it into the function scope, unless the parameter list contains expressions, which makes the body a separate `var` environment: in `function f(a = () => x) { var x = 2 }` the default's closure then resolves `x` to the outer scope.
 
 The scope tree is the native binder's exact output, and resolution applies the rules the spec and TypeScript layer on top of it: `arguments` in a value position never resolves past the enclosing non-arrow function, where the implicit arguments object shadows any outer binding of that name, `infer` variables are visible only in their conditional's true branch, and class type parameters are out of scope in static members and computed member keys.
 
@@ -2521,9 +2557,11 @@ A `Symbol` is one declared binding.
 const sym = module.rootScope.find("render");
 
 sym.name;         // "render"
+sym.module;       // the owning Module
 sym.scope;        // the Scope it is declared in
 sym.declarations; // every declarator node, in source order
 sym.references;   // every resolved use site in this module
+sym.flags;        // the raw SymbolFlags bitset behind has / hasAll
 sym.id;           // stable index into module.symbols
 ```
 
@@ -2551,7 +2589,7 @@ sym.has(SymbolFlags.TypeSpace);      // referencable from a TS type position
 sym.has(SymbolFlags.NamespaceSpace); // a dotted type name (`ns.T`) can start from it
 ```
 
-The one method beyond `has` is `sym.visibleIn(space)`, the acceptance rule of name resolution: whether a reference resolving in `space` may bind to this symbol (see [References](#references)). Import bindings alias another module's symbol, whose space one file cannot know, so they are visible in every space.
+Beyond `has` and `hasAll`, one method is left: `sym.visibleIn(space)`, the acceptance rule of name resolution: whether a reference resolving in `space` may bind to this symbol (see [References](#references)). Import bindings alias another module's symbol, whose space one file cannot know, so they are visible in every space.
 
 A `class` satisfies both `ValueSpace` and `TypeSpace`, which is what makes "use a class as a type" work without special cases. The flag values, composites included, are generated from the native binder's bit layout at build time, so they can never disagree with what the binder wrote.
 
@@ -2563,6 +2601,8 @@ A `Reference` is one identifier in use position, already resolved.
 const ref = module.references[0];
 
 ref.name;           // the identifier text
+ref.module;         // the owning Module
+ref.id;             // stable index into module.references
 ref.node;           // the Identifier node, identity-shared with the AST
 ref.scope;          // the scope the use occurs in
 ref.symbol;         // the resolved Symbol, or null for free names
@@ -2603,6 +2643,8 @@ module.resolve("T", someScope, "type");   // or in another space ("any" is by na
 `symbolOf` is the workhorse. Hand it a declaration identifier and you get the symbol it declares, hand it a reference identifier and you get the symbol it resolves to.
 
 `parentOf` walks upward from a node you already hold, with no ancestor stack and no full walk. Because nodes are memoized by index, it is the same constant-time lookup as the others. It returns `null` at the program root and for any node that is not part of this module's AST.
+
+`scopeOf` never returns `null`. A node this module's analysis never saw, such as one you built during a transform, falls back to the root scope. `resolve` walks the chain the way the engine would, with `from` defaulting to the root scope and `space` to `"value"`: a binding outside the requested space does not stop the walk, `"any"` matches by name alone, and a value-position `arguments` lookup stops at the first non-arrow function or static block, where the implicit arguments object shadows any outer binding of that name.
 
 ## Editing the AST
 
@@ -2739,6 +2781,8 @@ for (const capture of module.capturesOf(tick)) {
 
 Each `Capture` carries the outer `symbol`, the capturing `references` inside the function, and `isWritten`. Type-only references are excluded, since they do not exist at runtime. Only bindings appear. `this`, `arguments`, and unresolved globals carry no symbol and are never reported, while module-scope and imported bindings count like any other outer binding.
 
+`capturesOf` throws a `TypeError` when the node is not part of this module's AST, or when it is a node that creates no function scope. Ask it about a function or arrow, nothing else.
+
 Because the computation rides the resolved reference table, it is shadowing-correct and alias-correct by construction. A local `count` declared inside the function does not produce a false capture, and a reference is attributed to the binding it actually resolves to, not to the nearest matching name.
 
 ## Cross-file analysis
@@ -2757,7 +2801,17 @@ for (const imp of module.imports) {
   imp.local;          // the local binding Symbol, or null when nothing binds
   imp.typeOnly;       // import type / import { type x }
   imp.phase;          // "source" | "defer" | null (stage 3 phase imports)
+  imp.node;           // the specifier, the declaration, or the
+                      // import() / require() call itself
+  imp.module;         // the importing Module
+  imp.id;             // stable index into module.imports
   imp.resolvedModule; // the defining Module, or null when external
+
+  // the same question as `kind`, asked as a predicate
+  imp.isNamespace;    // "namespace" or "importEquals": binds a whole module
+  imp.isSideEffect;   // "sideEffect"
+  imp.isDynamic;      // "dynamic"
+  imp.isRequire;      // "require"
 }
 
 for (const exp of module.exports) {
@@ -2770,9 +2824,19 @@ for (const exp of module.exports) {
   exp.fromName;       // the name a reExport takes from its source module
   exp.globalName;     // TS export as namespace N, else null
   exp.typeOnly;       // export type
+  exp.node;           // the specifier, declaration, or statement node
+  exp.module;         // the exporting Module
+  exp.id;             // stable index into module.exports
   exp.resolvedModule; // the source Module for re-exports
+
+  // the same question as `kind`, asked as a predicate
+  exp.isStar;              // "star": export * from "m"
+  exp.isExportEquals;      // "equals": TS export = expr
+  exp.isNamespaceReexport; // "namespace": export * as ns from "m"
 }
 ```
+
+`kind` is the field everything else hangs off. A `name` exists only where the kind has one, `fromName` only on a `reExport`, `globalName` only on a `global` record, and the `is*` getters are that one classification asked as a predicate. Read `kind` when you want to switch, read a predicate when you want a branch.
 
 Import records cover every statically known dependency edge. Dynamic `import("m")` and CommonJS `require("m")` anywhere in the file produce records like static declarations do, and link into the graph the same way. Only literal specifiers become records, and a `require` call counts only when `require` is a free name, so every edge is sound.
 
@@ -2795,6 +2859,8 @@ for (const d of analyzer.diagnostics) {
 }
 ```
 
+Each record carries `severity`, `message`, `module` (the path of the file it belongs to), and the `start` / `end` offsets of the offending import or re-export. Severity is `"error"` for a name the source module does not export or supplies ambiguously, and `"warning"` when the host resolver returns a path that was never added, which is a host configuration problem rather than a broken source file.
+
 ### Definitions across modules
 
 `definitionOf` follows import, re-export, and `export *` chains to the place a binding is actually defined, however many files away.
@@ -2812,7 +2878,7 @@ def.module.path;  // "a.ts"
 def.symbol.name;  // "value"
 ```
 
-`symbol.definition()` is the instance-method shorthand. A result with `symbol: null` means the definition is a whole module namespace (`import * as ns`). A `null` result means the chain leaves the added file set (an external package, by design not an error), cannot be resolved, or is ambiguous.
+`symbol.definition()` is the instance-method shorthand. A result with `symbol: null` means the definition is a whole module namespace, which is what `import * as ns`, `import ns = require("m")`, and a re-exported `export * as ns` all bind. A `null` result means the chain leaves the added file set (an external package, by design not an error), cannot be resolved, or is ambiguous.
 
 Chains with cycles terminate safely. A circular request is detected per (module, name) pair, so a chain may legitimately pass through the same module twice under different names.
 
@@ -2879,15 +2945,17 @@ The full bitset, generated from the native binder's layout.
 | `CatchVariable`         | `catch (e)` binding                              |
 | `Exported`              | exported from its module                         |
 | `Default`               | the default export                               |
+| `EnumMember`            | a TS enum member, declared in its enum's body scope |
 
-Plus four composites (unions of the above), for the common categorical questions.
+Plus five composites (unions of the above), for the common categorical questions.
 
-| Composite     | Matches                                                            |
-| ------------- | ----------------------------------------------------------------- |
-| `Variable`    | `var` / `let` / `const`, parameters and catch bindings included   |
-| `Import`      | any import binding, value or `import type`                        |
-| `ValueSpace`  | visible at runtime (var, function, class, enum, value namespace)  |
-| `TypeSpace`   | referencable from a type position (class, enum, interface, alias, type param) |
+| Composite        | Matches                                                            |
+| ---------------- | ------------------------------------------------------------------ |
+| `Variable`       | `var` / `let` / `const`, parameters and catch bindings included    |
+| `Import`         | any import binding, value or `import type`                         |
+| `ValueSpace`     | visible at runtime (var, function, class, enum and its members, value namespace) |
+| `TypeSpace`      | referencable from a type position (class, enum and its members, interface, alias, type param) |
+| `NamespaceSpace` | what a dotted type name can start from (namespace of any kind, enum) |
 
 ## Performance
 
@@ -2897,11 +2965,21 @@ Concretely, on an Apple M-series machine, parsing plus complete semantic analysi
 
 ## TypeScript
 
-Everything is fully typed. Visitor handlers receive exact node types, and the semantic surface (`Module`, `Scope`, `Symbol`, `Reference`, `Import`, `Export`, `Capture`) is exported.
+Everything is fully typed. Visitor handlers receive exact node types, and every type in the model is exported, so a function that takes a piece of the analysis can name it.
 
 ```ts
-import type { Module, Symbol, Capture } from "yuku-analyzer";
+import type {
+  Module, Scope, Symbol, Reference, Import, Export, Capture,
+  Definition, ModuleReference, LinkDiagnostic, ModuleFlags,
+  Space, ScopeKind, ImportKind, ExportKind,
+  Visitors, WalkHandler, WalkHooks, WalkContext,
+  AsyncVisitors, AsyncWalkHandler, AsyncWalkHooks,
+  AnalyzerOptions, AddFileOptions, AnalyzeOptions,
+  NodeType, NodeOfType,
+} from "yuku-analyzer";
 ```
+
+`NodeType` and `NodeOfType` are re-exported from the toolchain's AST types, so visitor keys and `findAll` stay in step with the parser without a second import.
 
 # Testing
 

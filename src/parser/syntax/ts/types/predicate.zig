@@ -158,7 +158,8 @@ pub fn applyTypeAnnotationToPattern(
     extendSpanTo(parser, pattern, parser.tree.span(annotation).end);
 }
 
-// decorators hang on pattern node, span unchanged, empty range noop
+// decorators hang on the pattern node. only a rest element grows to cover them,
+// which is how TS-ESTree ranges a decorated parameter. empty range noop
 pub fn applyDecoratorsToPattern(
     parser: *Parser,
     pattern: ast.NodeIndex,
@@ -176,6 +177,11 @@ pub fn applyDecoratorsToPattern(
         else => return,
     }
     parser.tree.setData(pattern, data);
+
+    if (data == .binding_rest_element) {
+        const first = parser.tree.extra(decorators)[0];
+        extendSpanFrom(parser, pattern, parser.tree.span(first).start);
+    }
 }
 
 // `x!` promises an assignment the checker cannot see, so it needs a declared
@@ -219,4 +225,9 @@ pub fn markPatternOptional(parser: *Parser, pattern: ast.NodeIndex, end: u32) vo
 inline fn extendSpanTo(parser: *Parser, node: ast.NodeIndex, end: u32) void {
     const span = parser.tree.span(node);
     if (end > span.end) parser.tree.setSpan(node, .{ .start = span.start, .end = end });
+}
+
+inline fn extendSpanFrom(parser: *Parser, node: ast.NodeIndex, start: u32) void {
+    const span = parser.tree.span(node);
+    if (start < span.start) parser.tree.setSpan(node, .{ .start = start, .end = span.end });
 }

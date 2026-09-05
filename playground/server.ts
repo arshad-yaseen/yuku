@@ -14,7 +14,6 @@ const server = Bun.serve({
     const { pathname } = new URL(req.url);
     if (pathname === "/" || pathname === "/index.html") {
       let html = await Bun.file(`${dir}/index.html`).text();
-      // replaceAll: the parser url appears twice (import map + version badge).
       for (const [cdn, path] of Object.entries(local)) html = html.replaceAll(cdn, path);
       return new Response(html, { headers: { "content-type": "text/html" } });
     }

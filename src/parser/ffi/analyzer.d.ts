@@ -322,34 +322,77 @@ interface Capture {
   readonly isWritten: boolean;
 }
 
+/**
+ * The form of an {@link Import} record, the field every other one is
+ * derived from.
+ *
+ * - `"named"`: `import x from "m"`, `import { x } from "m"`
+ * - `"namespace"`: `import * as ns from "m"`
+ * - `"sideEffect"`: bare `import "m"`
+ * - `"importEquals"`: TS `import ns = require("m")`
+ * - `"dynamic"`: `import("m")` with a literal specifier
+ * - `"require"`: `require("m")` where `require` is a free name
+ */
+type ImportKind = "named" | "namespace" | "sideEffect" | "importEquals" | "dynamic" | "require";
+
 /** One imported binding (or side-effect import) of a module. */
 interface Import {
   /** The importing module. */
   readonly module: Module;
   /** Stable id, the index into {@link Module.imports}. */
   readonly id: number;
-  /** The local binding symbol, or null for side-effect imports. */
+  /** The form of this record; every other field follows from it. */
+  readonly kind: ImportKind;
+  /**
+   * The local binding symbol, or null when nothing binds (side-effect,
+   * dynamic, and `require` records).
+   */
   readonly local: Symbol | null;
   /**
-   * The imported export name, `"default"` for default imports (the
-   * spec models default as a name). Null for namespace and side-effect
-   * imports.
+   * The imported export name of a `"named"` record, `"default"` for
+   * default imports (the spec models default as a name). Null for
+   * every other kind.
    */
   readonly name: string | null;
-  /** True for `import * as ns`. */
+  /**
+   * True when the record binds a whole module namespace: `"namespace"`
+   * and `"importEquals"`.
+   */
   readonly isNamespace: boolean;
   /** True for bare `import "m"`. */
   readonly isSideEffect: boolean;
+  /** True for a literal-specifier `import("m")`. */
+  readonly isDynamic: boolean;
+  /** True for a `require("m")` call on a free `require`. */
+  readonly isRequire: boolean;
   /** True for `import type` / `import { type x }`. */
   readonly typeOnly: boolean;
   /** Stage 3 phase modifier, or null. */
   readonly phase: "source" | "defer" | null;
   readonly specifier: string;
-  /** The specifier node (the declaration for side-effect imports). */
+  /**
+   * The specifier node: the import specifier for `"named"` and
+   * `"namespace"`, the declaration for `"sideEffect"` and
+   * `"importEquals"`, and the `import()` / `require()` call itself for
+   * `"dynamic"` and `"require"`.
+   */
   readonly node: Node;
   /** The defining module, or null when external. Links on demand. */
   readonly resolvedModule: Module | null;
 }
+
+/**
+ * The form of an {@link Export} record, the field every other one is
+ * derived from.
+ *
+ * - `"named"`: `export const x`, `export { x }`, `export default x`
+ * - `"reExport"`: `export { x as y } from "m"`
+ * - `"namespace"`: `export * as ns from "m"`
+ * - `"star"`: `export * from "m"`
+ * - `"equals"`: TS `export = expr`
+ * - `"global"`: TS `export as namespace N`
+ */
+type ExportKind = "named" | "reExport" | "namespace" | "star" | "equals" | "global";
 
 /** One exported name of a module. */
 interface Export {
@@ -357,6 +400,8 @@ interface Export {
   readonly module: Module;
   /** Stable id, the index into {@link Module.exports}. */
   readonly id: number;
+  /** The form of this record; every other field follows from it. */
+  readonly kind: ExportKind;
   /**
    * The exported name (`"default"` included), or null for `export *`,
    * `export =`, and `export as namespace`.
@@ -375,8 +420,9 @@ interface Export {
   readonly specifier: string | null;
   /** The name taken from the source module, or null (namespace / `export *`). */
   readonly fromName: string | null;
-  /** True for `export *` and `export * as ns from "m"`. */
+  /** True for `export * as ns from "m"`, which binds the namespace itself. */
   readonly isNamespaceReexport: boolean;
+  /** The specifier, declaration, or statement node behind this record. */
   readonly node: Node;
   /** The re-export source module, or null. Links on demand. */
   readonly resolvedModule: Module | null;
@@ -417,6 +463,12 @@ interface Module {
   readonly references: Reference[];
   /** References resolving to no binding: globals and free names. */
   readonly unresolvedReferences: Reference[];
+  /**
+   * CommonJS classification signals for this file. Runtime `exports`
+   * assignments have no sound static shape and never become
+   * {@link Export} records, so these flags classify the file instead.
+   */
+  readonly moduleFlags: ModuleFlags;
 
   /**
    * The symbol a node refers to: its own symbol for a declaration
@@ -495,6 +547,18 @@ interface Module {
   readonly dependencies: Module[];
   /** Modules that import from this module. Links on demand. */
   readonly dependents: Module[];
+}
+
+/** CommonJS usage signals, as reported by {@link Module.moduleFlags}. */
+interface ModuleFlags {
+  /** The file calls a free `require`. */
+  readonly usesRequire: boolean;
+  /** The file references a free `module`. */
+  readonly usesModule: boolean;
+  /** The file references a free `exports`. */
+  readonly usesExports: boolean;
+  /** The file uses `import.meta`. */
+  readonly usesImportMeta: boolean;
 }
 
 /** A symbol's defining site, possibly in another module. */
@@ -616,9 +680,12 @@ export {
   type Capture,
   type Definition,
   type Export,
+  type ExportKind,
   type Import,
+  type ImportKind,
   type LinkDiagnostic,
   type Module,
+  type ModuleFlags,
   type ModuleReference,
   type NodeOfType,
   type NodeType,

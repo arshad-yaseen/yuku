@@ -430,13 +430,15 @@ error: Private field '#unknown' must be declared in an enclosing class
    |
 
 ✓ test/parser/suite/ts/semantic/28d0908453c92c7b.ts
-error: Only a single variable declaration is allowed in a for-in/of statement
+error: for-in loop variable declaration may not have an initializer
    |
  1 | // @target: es2015
  2 | for (var a: number = 1, b: string = "" in X) {
-   |      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |          ^^^^^^^^^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/ts/semantic/29752a5fa8f507db.ts
 error: Identifier 'x' has already been declared
@@ -499,13 +501,15 @@ error: Duplicate export of 'default'
    |
 
 ✓ test/parser/suite/ts/semantic/2ab8ff972e204808.ts
-error: Only a single variable declaration is allowed in a for-in/of statement
+error: for-of loop variable declaration may not have an initializer
    |
  1 | //@target: ES6
  2 | for (var a: number = 1, b: string = "" of X) {
-   |      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |          ^^^^^^^^^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/ts/semantic/2af5479d1ecf91fd.ts
 error: Private field '#foo' must be declared in an enclosing class
@@ -1006,13 +1010,15 @@ error: Duplicate export of 'default'
    |
 
 ✓ test/parser/suite/ts/semantic/61cbe59ceb37440c.ts
-error: Only a single variable declaration is allowed in a for-in/of statement
+error: for-of loop variable declaration may not have an initializer
    |
  1 | //@target: ES6
  2 | for (var a = 1, b = 2 of X) {
-   |      ^^^^^^^^^^^^^^^^
+   |          ^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/ts/semantic/67476688495b7d49.ts
 error: Duplicate label 'target'
@@ -1257,12 +1263,14 @@ error: Illegal continue statement
 
 
 ✓ test/parser/suite/ts/semantic/7d8c8a15bc77f080.ts
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  2 | //@target: ES5, ES2015
  3 | for (var of = 0 in of) { }
    |          ^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/ts/semantic/7d9ebba8416a3bef.ts
 error: Private field '#foo' must be declared in an enclosing class
@@ -1531,13 +1539,15 @@ error: 'let' is reserved in strict mode and cannot be used as a binding identifi
    |
 
 ✓ test/parser/suite/ts/semantic/93621a6eabf6fb18.ts
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | //@target: ES6
  2 | for (var a = 1 of X) {
    |          ^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/ts/semantic/95b3588e3eef1504.module.ts
 error: Duplicate export of 'default'
@@ -1751,13 +1761,15 @@ error: Private field '#prop' must be declared in an enclosing class
    |
 
 ✓ test/parser/suite/ts/semantic/a8e560cc3cd981b3.ts
-error: Only a single variable declaration is allowed in a for-in/of statement
+error: for-of loop variable declaration may not have an initializer
    |
  1 | //@target: ES5, ES2015
  2 | for (var a = 1, b = 2 of X) {
-   |      ^^^^^^^^^^^^^^^^
+   |          ^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/ts/semantic/a90cb42689340c5a.ts
 error: Identifier 'v' has already been declared
@@ -1806,13 +1818,15 @@ error: Duplicate label 'target'
    |
 
 ✓ test/parser/suite/ts/semantic/abad149ad298f072.ts
-error: Only a single variable declaration is allowed in a for-in/of statement
+error: for-in loop variable declaration may not have an initializer
    |
  1 | // @target: es2015
  2 | for (var a = 1, b = 2 in X) {
-   |      ^^^^^^^^^^^^^^^^
+   |          ^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/ts/semantic/abd3451a93473890.ts
 error: Deleting a variable in strict mode is not allowed
@@ -1867,13 +1881,15 @@ error: Deleting a variable in strict mode is not allowed
    |
 
 ✓ test/parser/suite/ts/semantic/b0bdc13752b79510.ts
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | // @target: es2015
  2 | for (var a = 1 in X) {
    |          ^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/ts/semantic/b11f9ce81fa5fd63.ts
 error: Cannot break to label 'target' across function boundaries
@@ -1885,13 +1901,15 @@ error: Cannot break to label 'target' across function boundaries
    |
 
 ✓ test/parser/suite/ts/semantic/b178f8990ade6f95.ts
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | //@target: ES5, ES2015
  2 | for (var a = 1 of X) {
    |          ^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/ts/semantic/b1794f4577729dee.module.ts
 error: Duplicate export of 'default'
@@ -2404,13 +2422,15 @@ error: 'super' property access is only valid inside a method or class body
 
 
 ✓ test/parser/suite/ts/semantic/d385619b459a9685.ts
-error: Only a single variable declaration is allowed in a for-in/of statement
+error: for-of loop variable declaration may not have an initializer
    |
  1 | //@target: ES5, ES2015
  2 | for (var a: number = 1, b: string = "" of X) {
-   |      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |          ^^^^^^^^^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/ts/semantic/d4bc863958075498.ts
 error: Identifier 'T2' has already been declared
@@ -2730,12 +2750,14 @@ error: 'arguments' is not allowed as a binding identifier in strict mode
    |
 
 ✓ test/parser/suite/ts/semantic/f4df05868024e821.ts
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  2 | //@target: ES6
  3 | for (var of = 0 in of) { }
    |          ^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/ts/semantic/f58265e2fc9606a9.ts
 error: Cannot break to label 'label' across function boundaries

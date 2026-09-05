@@ -21,7 +21,7 @@ const { program } = parse("const x = 1 + 2;");
 const { code } = generate(program);
 ```
 
-`generate` takes the `Program` node off the `ParseResult` returned by [yuku-parser](https://www.npmjs.com/package/yuku-parser). For source maps, pass the original source text via `sourceMap: { source }`. See [yuku-codegen on npm](https://www.npmjs.com/package/yuku-codegen) for the full API.
+`generate` takes the `Program` node off the `ParseResult` returned by [yuku-parser](https://www.npmjs.com/package/yuku-parser). For source maps, pass the original source text via `sourceMap: { source }`. `minify` also takes an object there (`{ syntax, whitespace, quotes }`) to pick individual switches, and `comments` accepts `true` / `false` as sugar for `"all"` / `"none"`. See [yuku-codegen on npm](https://www.npmjs.com/package/yuku-codegen) for the full API.
 
 ## [WebAssembly]($section.id('webassembly'))
 
@@ -37,7 +37,7 @@ const { program } = parse("const x = 1 + 2;");
 const code = generate(program);
 ```
 
-The same API as `yuku-codegen`, paired with `@yuku-parser/wasm`, as a single portable WebAssembly module for browsers and other environments without native bindings. See [@yuku-codegen/wasm on npm](https://www.npmjs.com/package/@yuku-codegen/wasm).
+The same options as `yuku-codegen`, except that `generate` returns the code string directly and source maps are unavailable. Paired with `@yuku-parser/wasm`, as a single portable WebAssembly module for browsers and other environments without native bindings. See [@yuku-codegen/wasm on npm](https://www.npmjs.com/package/@yuku-codegen/wasm).
 
 ## [Zig]($section.id('zig'))
 
@@ -116,7 +116,7 @@ const result = try parser.codegen.generate(allocator, &tree, .{
 | `comments`   | `Comments`          | `.some`     | Comment passthrough filter. See [Comments](#comments).     |
 | `source_map` | `?SourceMapOptions` | `null`      | Set to emit a Source Map V3 alongside the code             |
 
-Every transformation is an independent flag, so they compose freely, e.g. `.strip = true` together with `.minify = .all`.
+Every transformation is an independent flag, so they compose freely, e.g. `.strip = true` together with `.minify = true`.
 
 `Format` controls only discretionary whitespace. Grammar-required separators (semicolons, commas, parentheses) are always emitted regardless of mode.
 

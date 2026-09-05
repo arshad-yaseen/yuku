@@ -965,13 +965,15 @@ error: 'with' statements are not allowed in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/05b9cad34c4aca67.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | async function fn() {
  2 |   for await (let [x] = 1 of []) {}
    |                  ^^^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/05d24c9185495502.js
 error: Octal escape sequences are not allowed in strict mode
@@ -2052,11 +2054,13 @@ error: 'eval' is not allowed as a binding identifier in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/0dbe1a42b1ced77f.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (const {x} = 1 of []) {}
    |            ^^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/0dc9cba4eec02b47.module.js
 error: 'yield' is reserved in strict mode and cannot be used as an identifier
@@ -2077,11 +2081,13 @@ error: 'with' statements are not allowed in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/0ddab4a1a651034c.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (let x = 42 in list) process(x);
    |          ^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/0e0a57aa84c202af.module.js
 error: In strict mode code, functions can only be declared at top level or inside a block
@@ -2159,12 +2165,14 @@ error: 'arguments' is not allowed as a binding identifier in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/0e497d817c637662.module.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (var x = 0 in {});
    |          ^^^^^
  2 | 
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/0e6a3cea443bb750.js
 error: Private field '#x' must be declared in an enclosing class
@@ -3194,11 +3202,13 @@ error: Use of undefined label 'b'
    |
 
 ✓ test/parser/suite/js/semantic/144ffcec0e68d597.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (var [x] = 1 of []) {}
    |          ^^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/14551b80fa8a0ce1.js
 error: Cannot use 'export' declaration outside a module
@@ -3392,12 +3402,14 @@ error: 'yield' is reserved in strict mode and cannot be used as an identifier
    |
 
 ✓ test/parser/suite/js/semantic/154f02d86fce5e81.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (const x = 0 in y){}
    |            ^^^^^
  2 | 
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/15597bacb4043e05.js
 error: Cannot use import statement outside a module
@@ -3589,13 +3601,15 @@ error: Illegal break statement
 
 
 ✓ test/parser/suite/js/semantic/1684c608bffc511c.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | async function fn() {
  2 |   for await (var x = 1 of []) {}
    |                  ^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/16b7231a52c5bb3a.js
 error: Private fields cannot be deleted
@@ -3947,11 +3961,13 @@ error: In strict mode code, functions can only be declared at top level or insid
    |
 
 ✓ test/parser/suite/js/semantic/185cc309566f0a77.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (var [a] = 0 in {});
    |          ^^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/1871ca0f97c7438c.js
 error: Cannot use 'export default' declaration outside a module
@@ -4814,13 +4830,15 @@ error: Cannot use 'export default' declaration outside a module
    |
 
 ✓ test/parser/suite/js/semantic/1db328bb0fd50d0a.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | async function fn() {
  2 |   for await (var {x} = 1 of []) {}
    |                  ^^^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/1db4ffaddb2d025d.js
 error: Identifier 'x' has already been declared
@@ -4872,11 +4890,13 @@ error: Cannot use import statement outside a module
    |
 
 ✓ test/parser/suite/js/semantic/1e42ba88963ad21f.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (const a = 0 in {});
    |            ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/1e47a48eabab5038.module.js
 error: Duplicate export of 'default'
@@ -6202,13 +6222,15 @@ error: 'eval' is not allowed as a binding identifier in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/26a10a2c36beef84.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | async function fn() {
  2 |   for await (let {x} = 1 of []) {}
    |                  ^^^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/26aa8b685715d445.js
 error: Cannot use 'export' declaration outside a module
@@ -6921,12 +6943,14 @@ error: 'with' statements are not allowed in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/2b050de45ab44c8c.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (var x = 1 of y);
    |          ^^^^^
  2 | 
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/2b095eb9ab077801.module.js
 error: Cannot assign to 'eval' or 'arguments' in strict mode
@@ -7639,13 +7663,15 @@ error: Private field '#x' must be declared in an enclosing class
    |
 
 ✓ test/parser/suite/js/semantic/2f635111e48f68e1.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  2 |   const obj = { [Symbol.dispose]() {} };
  3 |   for await (using x = obj of []) {}
    |                    ^^^^^^^
  4 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/2f687f1ed1953d27.module.js
 error: Identifier '__decl' has already been declared
@@ -7672,11 +7698,13 @@ error: In strict mode code, functions can only be declared at top level or insid
    |
 
 ✓ test/parser/suite/js/semantic/2f9ac6d6c228dbf6.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (let [x] = 1 of []) {}
    |          ^^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/2fa73a979636e1da.js
 error: Cannot use import statement outside a module
@@ -7890,11 +7918,13 @@ error: Use of undefined label 'IN_DO_FUNC'
    |
 
 ✓ test/parser/suite/js/semantic/3162394f5bc07198.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for(const a = 0 in b);
    |           ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/3166bdecf8e521b2.module.js
 error: Cannot assign to 'eval' or 'arguments' in strict mode
@@ -7913,12 +7943,14 @@ error: 'yield' is reserved in strict mode and cannot be used as an identifier
    |
 
 ✓ test/parser/suite/js/semantic/317c81f05510f4ad.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (var {x} = y of z);
    |          ^^^^^^^
  2 | 
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/3190762e2e329b66.js
 error: Yield expression is not allowed in formal parameters
@@ -8238,12 +8270,14 @@ error: Private field '#x' must be declared in an enclosing class
    |
 
 ✓ test/parser/suite/js/semantic/33d43e9f01bda5ce.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (let x = 0 in y){}
    |          ^^^^^
  2 | 
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/33dc83a14bb8f430.module.js
 error: Identifier 'smoosh' has already been declared
@@ -8323,13 +8357,15 @@ error: Identifier 'x' has already been declared
 
 
 ✓ test/parser/suite/js/semantic/343cb98766e6f5d9.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | async function fn() {
  2 |   for await (const {x} = 1 of []) {}
    |                    ^^^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/3448888f4c7dc6ef.js
 error: Cannot use 'export default' declaration outside a module
@@ -10013,12 +10049,14 @@ error: Cannot assign to 'eval' or 'arguments' in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/3edd761e268da407.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | const obj = { [Symbol.dispose]() { } };
  2 | for (using x = obj of []) {}
    |            ^^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/3f0112f11626650a.module.js
 error: 'arguments' is not allowed as a binding identifier in strict mode
@@ -10235,11 +10273,13 @@ error: In non-strict mode code, functions can only be declared at top level, ins
    |
 
 ✓ test/parser/suite/js/semantic/406fd6ddf09108d7.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (let x = 1 of []) {}
    |          ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/407febd928d89f2e.js
 error: Illegal 'use strict' directive in function with non-simple parameter list
@@ -10665,13 +10705,15 @@ error: 'arguments' is not allowed as a binding identifier in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/42da2566bd309a7f.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  4 |   method() {
  5 |     for (var x = #a in y);
    |              ^^^^^^
  6 |   }
    |
+   = help: Remove the initializer, or leave strict mode.
+
 
 ✓ test/parser/suite/js/semantic/42dfe6c0921583a1.js
 error: Cannot use 'export' declaration outside a module
@@ -10716,11 +10758,13 @@ error: Private fields cannot be deleted
    |
 
 ✓ test/parser/suite/js/semantic/4348b7a409a105df.module.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (var eval = 42 in null) {}
    |          ^^^^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/434dadec3bcccf16.module.js
 error: 'static' is reserved in strict mode and cannot be used as a binding identifier
@@ -10991,11 +11035,13 @@ error: Identifier 'g' has already been declared
 
 
 ✓ test/parser/suite/js/semantic/45935be666fb9342.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (const [x] = 1 of []) {}
    |            ^^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/45a8e90329673ff3.js
 error: Illegal 'use strict' directive in function with non-simple parameter list
@@ -11295,13 +11341,15 @@ error: Cannot use 'export default' declaration outside a module
    |
 
 ✓ test/parser/suite/js/semantic/4722c6a5e6a90986.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | async function fn() {
  2 |   for await (const x = 1 of []) {}
    |                    ^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/4728730db638dc0e.module.js
 error: 'import' declaration may only appear at the top level
@@ -12454,11 +12502,13 @@ error: 'with' statements are not allowed in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/4e2cce832b4449f1.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for(let x=1 of [1,2,3]) 0
    |         ^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/4e3cb9c90a02d06d.js
 error: 'eval' is not allowed as a binding identifier in strict mode
@@ -12738,11 +12788,13 @@ error: 'yield' is reserved in strict mode and cannot be used as an identifier
    |
 
 ✓ test/parser/suite/js/semantic/5059efc702f08060.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for(var a = 0 of b);
    |         ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/50765d3c7a313997.module.js
 error: 'public' is reserved in strict mode and cannot be used as an identifier
@@ -13893,11 +13945,13 @@ error: In strict mode code, functions can only be declared at top level or insid
    |
 
 ✓ test/parser/suite/js/semantic/57bccbd2d7849186.js
-error: Only a single variable declaration is allowed in a for-in/of statement
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (let x, y = 4 in {}) { }
-   |      ^^^^^^^^^^^^
+   |             ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/57d408fff22b3bfe.js
 error: Illegal 'use strict' directive in function with non-simple parameter list
@@ -16525,19 +16579,23 @@ error: Export 'Object' is not defined
    |
 
 ✓ test/parser/suite/js/semantic/67be63b10a6e8640.module.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (var a = 0 in {});
    |          ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/67c714796e7f40a4.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (const x = 1 of y);
    |            ^^^^^
  2 | 
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/67c88ec8e8f9b73e.module.js
 error: In strict mode code, functions can only be declared at top level or inside a block
@@ -18133,11 +18191,13 @@ error: Cannot use import statement outside a module
    |
 
 ✓ test/parser/suite/js/semantic/71ff49beaf77cb36.js
-error: Only a single variable declaration is allowed in a for-in/of statement
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (let x = 3, y = 4 in {}) { }
-   |      ^^^^^^^^^^^^^^^^
+   |          ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/721010e17ec77462.js
 error: Cannot use import statement outside a module
@@ -18364,11 +18424,13 @@ error: 'arguments' is not allowed as a binding identifier in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/73d061b5d635a807.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (let x = 42 of list) process(x);
    |          ^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/73d6a9d72cea8fab.js
 error: Illegal 'use strict' directive in function with non-simple parameter list
@@ -18846,11 +18908,13 @@ error: 'arguments' is not allowed as a binding identifier in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/76465e2c7af91e73.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for(var x=1 of [1,2,3]) 0
    |         ^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/766ec156d439301e.js
 error: Identifier 'f' has already been declared
@@ -19213,13 +19277,15 @@ error: 'yield' is reserved in strict mode and cannot be used as a binding identi
    |
 
 ✓ test/parser/suite/js/semantic/78dd660c4d7661fa.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  2 | async function f() {
  3 |   for (await using x = obj of []) {}
    |                    ^^^^^^^
  4 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/78e469d051bc6aa8.module.js
 error: In strict mode code, functions can only be declared at top level or inside a block
@@ -20417,13 +20483,15 @@ error: 'eval' is not allowed as a binding identifier in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/80eba225d5dccaf7.module.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  2 |   var effects = 0;
  3 |   for (var a = ++effects in {});
    |            ^^^^^^^^^^^^^
  4 |   assert.sameValue(effects, 1);
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/8102c7091f5a52a4.js
 error: Illegal 'use strict' directive in function with non-simple parameter list
@@ -21092,11 +21160,13 @@ error: 'with' statements are not allowed in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/858b72be7f8f19d7.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for(let a = 0 of b);
    |         ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/858df5994cb8a77c.js
 error: 'arguments' is not allowed in class field initializers or static blocks
@@ -21702,12 +21772,14 @@ error: 'super' property access is only valid inside a method or class body
 
 
 ✓ test/parser/suite/js/semantic/8b64d39a402d342e.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | 'use strict';
  2 | for (var a = 0 in {});
    |          ^^^^^
    |
+   = help: Remove the initializer, or leave strict mode.
+
 
 ✓ test/parser/suite/js/semantic/8b6f72421d103ca3.module.js
 error: 'arguments' is not allowed as a binding identifier in strict mode
@@ -21717,12 +21789,14 @@ error: 'arguments' is not allowed as a binding identifier in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/8b72c44bd531621a.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (var [p]=q of r);
    |          ^^^^^
  2 | 
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/8b8dde7047f352d9.js
 error: Cannot use 'export default' declaration outside a module
@@ -21921,11 +21995,13 @@ error: Identifier 'a' has already been declared
 
 
 ✓ test/parser/suite/js/semantic/8d5ef4dee9c7c622.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for(const a = 0 of b);
    |           ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/8d7627d8f8cc16c8.js
 error: 'eval' is not allowed as a binding identifier in strict mode
@@ -22032,11 +22108,13 @@ error: Identifier 'a' has already been declared
 
 
 ✓ test/parser/suite/js/semantic/8e36f44d82ff29f5.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (let {x} = 1 of []) {}
    |          ^^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/8e3f0660b32fbfd2.module.js
 error: Octal escape sequences are not allowed in strict mode
@@ -23088,13 +23166,15 @@ error: Identifier 'smoosh' has already been declared
 
 
 ✓ test/parser/suite/js/semantic/9551a5b931bda0a3.module.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  3 |   var stored;
  4 |   for (var a = (++effects, -1) in stored = a, {a: 0, b: 1, c: 2}) {
    |            ^^^^^^^^^^^^^^^^^^^
  5 |     ++iterations;
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/9553abad6e93d941.js
 error: Private field '#x' must be declared in an enclosing class
@@ -24366,11 +24446,13 @@ error: Duplicate private name '#m'
    |
 
 ✓ test/parser/suite/js/semantic/9c294430edf77b49.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (var {x} = 1 of []) {}
    |          ^^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/9c3cb060167274ec.js
 error: Illegal 'use strict' directive in function with non-simple parameter list
@@ -26075,11 +26157,13 @@ error: Identifier 'param' has already been declared
 
 
 ✓ test/parser/suite/js/semantic/a661ad72322e9481.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (const x = 1 of []) {}
    |            ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/a665a36d91aada0e.js
 error: 'super()' is only valid in a constructor of a derived class
@@ -26333,11 +26417,13 @@ error: Illegal 'use strict' directive in function with non-simple parameter list
    |
 
 ✓ test/parser/suite/js/semantic/a80e874cd9834774.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (var {a} = 0 in {});
    |          ^^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/a8138ac5de107670.module.js
 error: 'yield' is reserved in strict mode and cannot be used as a binding identifier
@@ -28876,11 +28962,13 @@ error: Identifier 'smoosh' has already been declared
 
 
 ✓ test/parser/suite/js/semantic/b9aa15e67ed30760.module.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (var arguments = 42 in null) {}
    |          ^^^^^^^^^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/b9d8ba7f0ea8992d.module.js
 error: 'yield' is reserved in strict mode and cannot be used as a binding identifier
@@ -29097,11 +29185,13 @@ error: 'super' keyword unexpected here
    |
 
 ✓ test/parser/suite/js/semantic/bbc9fbf72ebcc234.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (let x = 3 in {}) { }
    |          ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/bbcfb006ac2c042f.js
 error: Cannot use import statement outside a module
@@ -30382,13 +30472,15 @@ error: Cannot use import statement outside a module
    |
 
 ✓ test/parser/suite/js/semantic/c2c02af7b8fdfc3e.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | async function fn() {
  2 |   for await (var [x] = 1 of []) {}
    |                  ^^^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/c2ecd30a0e080989.module.js
 error: 'yield' is reserved in strict mode and cannot be used as an identifier
@@ -30932,11 +31024,13 @@ error: 'yield' is reserved in strict mode and cannot be used as an identifier
    |
 
 ✓ test/parser/suite/js/semantic/c68edafe4994151f.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (var x = 42 of list) process(x);
    |          ^^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/c6984380e52bbb83.module.js
 error: 'import' declaration may only appear at the top level
@@ -31024,11 +31118,13 @@ error: 'yield' is reserved in strict mode and cannot be used as a binding identi
    |
 
 ✓ test/parser/suite/js/semantic/c75e9f5ea55611f3.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for(let x=1 in [1,2,3]) 0
    |         ^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/c76e17a417f486e6.js
 error: 'eval' is not allowed as a binding identifier in strict mode
@@ -33814,11 +33910,13 @@ error: Cannot use 'export default' declaration outside a module
    |
 
 ✓ test/parser/suite/js/semantic/d71a6900b46761f8.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (var x = 1 of []) {}
    |          ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/d72827528c8699df.module.js
 error: 'let' is reserved in strict mode and cannot be used as an identifier
@@ -34454,13 +34552,15 @@ error: In strict mode code, functions can only be declared at top level or insid
    |
 
 ✓ test/parser/suite/js/semantic/da2cf3664ef818a8.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | async function fn() {
  2 |   for await (let x = 1 of []) {}
    |                  ^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/da3451bc7bf7aeac.module.js
 error: Identifier 'a' has already been declared
@@ -35310,11 +35410,13 @@ error: 'arguments' is not allowed in class field initializers or static blocks
    |
 
 ✓ test/parser/suite/js/semantic/ded1395d7eb8b642.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (let a = 0 in {});
    |          ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/dee539f29e77cf1c.js
 error: 'super()' is only valid in a constructor of a derived class
@@ -35596,11 +35698,13 @@ error: Cannot break to label 'x' across function boundaries
    |
 
 ✓ test/parser/suite/js/semantic/e01265e2211e48b3.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for(let a = 0 in b);
    |         ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/e039de2a829197c2.js
 error: 'super()' is only valid in a constructor of a derived class
@@ -36278,20 +36382,24 @@ error: 'arguments' is not allowed as a binding identifier in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/e3fbcf63d7e43ead.module.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for(var x=1 in [1,2,3]) 0
    |         ^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/e411d184c00e068b.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | async function fn() {
  2 |   for await (const [x] = 1 of []) {}
    |                    ^^^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/e421d953546800f5.js
 error: In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement
@@ -36590,12 +36698,14 @@ error: 'eval' is not allowed as a binding identifier in strict mode
    |
 
 ✓ test/parser/suite/js/semantic/e6559958e6954318.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  1 | for (let x = 1 of y);
    |          ^^^^^
  2 | 
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/e6643a557fe93de0.module.js
 error: 'yield' is reserved in strict mode and cannot be used as an identifier
@@ -37979,11 +38089,13 @@ error: Cannot use import statement outside a module
    |
 
 ✓ test/parser/suite/js/semantic/eea16471c66ca015.js
-error: Only a single variable declaration is allowed in a for-in/of statement
+error: for-in loop variable declaration may not have an initializer
    |
  1 | for (let x = 3, y in {}) { }
-   |      ^^^^^^^^^^^^
+   |          ^^^^^
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/eeb5ffaafa815bb2.js
 error: Duplicate '__proto__' property in object literal
@@ -39439,13 +39551,15 @@ error: 'yield' is reserved in strict mode and cannot be used as an identifier
    |
 
 ✓ test/parser/suite/js/semantic/f7d93cc6e6b14c32.module.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-in loop variable declaration may not have an initializer
    |
  1 | function f() {
  2 |   for (var arguments = 42 in null) {}
    |            ^^^^^^^^^^^^^^
  3 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/f7d9b032115a3f5c.js
 error: Cannot use 'export' declaration outside a module
@@ -39789,13 +39903,15 @@ error: 'yield' is reserved in strict mode and cannot be used as an identifier
    |
 
 ✓ test/parser/suite/js/semantic/f973002ec1057a02.js
-error: for-in/of loop variable declaration may not have an initializer
+error: for-of loop variable declaration may not have an initializer
    |
  2 |   const obj = { async [Symbol.asyncDispose]() {} };
  3 |   for await (await using x = obj of []) {}
    |                          ^^^^^^^
  4 | }
    |
+   = help: Remove the initializer from the loop variable.
+
 
 ✓ test/parser/suite/js/semantic/f9838ae149782034.js
 error: Cannot use 'export' declaration outside a module

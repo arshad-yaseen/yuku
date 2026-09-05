@@ -61,7 +61,14 @@ tree.isTs()              // language is .ts, .tsx, or .dts
 tree.isJsx()             // language is .jsx or .tsx
 tree.isModule()          // source_type is .module
 tree.hasErrors()         // any diagnostic with severity .error
+tree.hasDiagnostics()    // any diagnostic at all
+
+tree.setData(idx, data)  // write API, see the transform traverser
+tree.addNode(data, span) // append a node, returns its NodeIndex
+tree.addString("x")      // intern text; sourceSlice(a, b) points into the source instead
 ```
+
+Every enum a node field holds also carries `toString()`, returning the construct's source text (`decl.kind.toString()` is `"const"`, `expr.operator.toString()` is `"==="`).
 
 ## [Core types]($section.id('core-types'))
 

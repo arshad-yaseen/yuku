@@ -402,6 +402,95 @@ test "references resolve regardless of source order" {
     try testing.expectEqual((try a.symbolNamed("hoisted")).id, ref.reference.symbol);
 }
 
+// the signature resolves outside the body scope, so a body-local type
+// is invisible to it while body positions still see it (issue #187)
+test "body type declarations are invisible to the signature" {
+    var a = try analyze(
+        "function foo(arg0: T): T { type T = {}; let x: T; }",
+        .{ .lang = .ts },
+    );
+    defer a.deinit();
+
+    const alias = try a.symbolNamed("T");
+    const alias_scope = a.sem.scope(alias.symbol.scope);
+    try testing.expectEqual(traverser.semantic.Scope.Kind.function_body, alias_scope.kind);
+
+    var buf: [4]Semantic.ReferenceEntry = undefined;
+    const refs = referencesNamed(&a, "T", &buf);
+    try testing.expectEqual(@as(usize, 3), refs.len);
+    // parameter annotation and return type, then the body annotation
+    try testing.expectEqual(SymbolId.none, refs[0].reference.symbol);
+    try testing.expectEqual(SymbolId.none, refs[1].reference.symbol);
+    try testing.expectEqual(alias.id, refs[2].reference.symbol);
+}
+
+// the excludes decide which signature and body pairs collide. both
+// spaces are verified against tsc
+test "body declarations collide with the signature where their spaces overlap" {
+    const conflicting = [_][]const u8{
+        "function f(a) { let a; }",
+        "function f<T>() { type T = 1; }",
+        "function f<T>() { interface T {} }",
+        "function f<T>() { class T {} }",
+        "function f<T>(a = 1) { interface T {} }",
+        "function f() { var v; let v; }",
+        // a hoisting function conflicts in either order
+        "function f() { let x; function x() {} }",
+        "function f() { function y() {} let y; }",
+    };
+    for (conflicting) |source| {
+        var a = try analyzeAllowErrors(source, .{ .lang = .ts });
+        defer a.deinit();
+        if (!a.tree.hasErrors()) {
+            std.debug.print("expected a redeclaration error: {s}\n", .{source});
+            return error.MissingRedeclarationError;
+        }
+    }
+
+    const legal = [_][]const u8{
+        "function f(a) { var a; }",
+        "function f<T>() { let T = 1; }",
+        "function f<T>() { { interface T {} } }",
+        "function f<T>() { function g() { interface T {} } }",
+        "function f() { var g; function g() {} }",
+    };
+    for (legal) |source| {
+        var a = try analyzeAllowErrors(source, .{ .lang = .ts });
+        defer a.deinit();
+        if (a.tree.hasErrors()) {
+            std.debug.print(
+                "unexpected error for {s}: {s}\n",
+                .{ source, a.tree.diagnostics.items[0].message },
+            );
+            return error.UnexpectedRedeclarationError;
+        }
+    }
+}
+
+// they hoist past the body scope, so they keep merging with vars and
+// parameters in the function scope
+test "body-top-level function declarations stay var-scoped" {
+    var a = try analyze(
+        "function f(a) { var g; function g() {} function a() {} }",
+        .{ .source_type = .script },
+    );
+    defer a.deinit();
+
+    const g = try a.symbolNamed("g");
+    try testing.expect(g.symbol.flags.function);
+    try testing.expect(g.symbol.flags.function_scoped_var);
+    try testing.expectEqual(@as(usize, 2), a.sem.decls(g.id).len);
+    try testing.expectEqual(
+        traverser.semantic.Scope.Kind.function,
+        a.sem.scope(g.symbol.scope).kind,
+    );
+
+    const param = try a.symbolNamed("a");
+    try testing.expect(param.symbol.flags.parameter);
+    try testing.expect(param.symbol.flags.function);
+    try testing.expectEqual(@as(usize, 2), a.sem.decls(param.id).len);
+}
+
 test "write references cover every assignment-target shape" {
     var a = try analyze(
         \\let w = 1;

@@ -790,7 +790,7 @@ pub const SymbolTracker = struct {
                     self.ambient;
                 const is_decl = func.type == .function_declaration or
                     func.type == .ts_declare_function;
-                const target = if (is_decl) scope.currentScope().parent else exprNameScope(scope);
+                const target = if (is_decl) declNameScope(scope) else exprNameScope(scope);
 
                 // ts overloads, sloppy js annex b 3.2, and global merge
                 // with var. lexical scopes (block/module) are not.
@@ -1513,6 +1513,16 @@ fn jsxTagRoot(tree: *const ast.Tree, name: ast.NodeIndex) ?ast.NodeIndex {
 fn exprNameScope(scope: *const sc.ScopeTracker) sc.ScopeId {
     const cur = scope.currentScope();
     return if (cur.kind == .function or cur.kind == .class) cur.parent else scope.current;
+}
+
+// a function declaration binds in its enclosing scope, except at a
+// body's top level, where it is var-scoped and hoists past
+fn declNameScope(scope: *const sc.ScopeTracker) sc.ScopeId {
+    const enclosing = scope.currentScope().parent;
+    std.debug.assert(enclosing != .none);
+    const enclosing_scope = scope.get(enclosing);
+    if (enclosing_scope.kind == .function_body) return enclosing_scope.hoist_target;
+    return enclosing;
 }
 
 // a namespace occupies value space if its body has any value-producing
