@@ -326,8 +326,6 @@ pub const Parser = struct {
         };
     }
 
-    /// reports a lexical error, spanning the single byte at the lexer cursor
-    /// where the scan stopped, zero-width at the end of input
     pub noinline fn reportLexicalError(self: *Parser, lex_err: lexer.LexicalError) Error!void {
         @branchHint(.cold);
         const cursor = self.lexer.cursor;

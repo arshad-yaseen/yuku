@@ -87,7 +87,6 @@ error: Expected JSX element name, but found '>'
 error: Unterminated string literal
    |
  1 | <foo bar="
-   |          ^
  2 | 
    | ^
    |
@@ -167,8 +166,9 @@ error: Expected '>' to close JSX opening element, but found '.'
 error: Line terminator not allowed in regular expression literal
    |
  1 | var x = <div>one</div><div>two</div>;
-   |                                ^
+   |                                      ^
  2 | 
+   | ^
    |
    = help: Try removing the line break here or escaping it within the regex pattern
 
